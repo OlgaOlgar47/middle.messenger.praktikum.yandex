@@ -1,0 +1,20 @@
+<main>
+  <header>
+    <h1>Вход</h1>
+  </header>
+  <form>
+    <ul>
+      <li>
+        {{> input type="text" name="login" placeholder="Логин" required=true className=styles.input }}
+      </li>
+      <li>
+        {{> input type="password" name="password" placeholder="Пароль" required=true className=styles.input }}
+      </li>
+    </ul>
+    {{> button type="submit" label="Войти" className=styles.button }}
+  </form>
+  <nav>
+    {{> link href="#/register" text="Нет аккаунта? Зарегистрируйтесь" className=styles.link }}
+  </nav>
+</main>
+{{> footerNav }}

@@ -1,8 +1,8 @@
-<main>
+  <form>
   <header>
     <h1>Регистрация</h1>
   </header>
-  <form>
+
     <ul>
       <li>
         {{> input type="email" name="email" placeholder="Email" required=true className=styles.input }}
@@ -14,13 +14,6 @@
         {{> input type="password" name="confirmPassword" placeholder="Повторите пароль" required=true className=styles.input }}
       </li>
     </ul>
-
     {{> button type="submit" label="Зарегистрироваться" className=styles.button }}
-  </form>
-
-  <nav class="{{styles.nav}}">
     {{> link href="#/login" text="Уже есть аккаунт? Войдите" className=styles.link }}
-  </nav>
-</main>
-
-{{{footer}}}
+  </form>

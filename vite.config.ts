@@ -7,14 +7,29 @@ export default defineConfig({
   plugins: [
     handlebars({
       partialDirectory: "./src/templates",
+      context: page => {
+        switch (page) {
+          case "login":
+            return { title: "Авторизация" };
+          case "register":
+            return { title: "Регистрация" };
+          case "chats":
+            return { title: "Чаты" };
+          case "profile":
+            return { title: "Профиль" };
+          case "404":
+            return { title: "404 - Не найдено" };
+          case "500":
+            return { title: "5** - Ошибка сервера" };
+          default:
+            return { title: "Мессенджер" };
+        }
+      },
     }),
   ],
   server: {
     port: 3000,
     strictPort: true,
-    fs: {
-      strict: false,
-    },
   },
   resolve: {
     alias: {

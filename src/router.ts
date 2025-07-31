@@ -1,16 +1,16 @@
-import { renderLoginPage } from './pages/Login';
-import { renderRegisterPage } from './pages/Register';
-import { renderChatsListPage } from './pages/ChatList';
+import { renderLoginPage } from "./pages/Login";
+import { renderRegisterPage } from "./pages/Register";
+import { renderChatsListPage } from "./pages/ChatList";
 
 export function renderRoute(): string {
   const hash = window.location.hash;
 
   switch (hash) {
-    case '#/register':
+    case "#/register":
       return renderRegisterPage();
-    case '#/chats':
+    case "#/chats":
       return renderChatsListPage();
-    case '#/login':
+    case "#/login":
     default:
       return renderLoginPage();
   }
@@ -46,4 +46,3 @@ export function renderRoute(): string {
 //       return renderLoginPage();
 //   }
 // }
-

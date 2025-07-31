@@ -1,6 +1,10 @@
 import { renderLoginPage } from "./pages/Login";
 import { renderRegisterPage } from "./pages/Register";
 import { renderChatsListPage } from "./pages/ChatList";
+import { renderProfilePage } from "./pages/Profile";
+import { renderSettingsPage } from "./pages/Settings";
+import { renderPageNotFound } from "./pages/PageNotFound";
+import { renderServerErrorPage } from "./pages/ServerErrorPage";
 
 export function renderRoute(): string {
   const hash = window.location.hash;
@@ -10,39 +14,16 @@ export function renderRoute(): string {
       return renderRegisterPage();
     case "#/chats":
       return renderChatsListPage();
+    case "#/profile":
+      return renderProfilePage();
+    case "#/settings":
+      return renderSettingsPage();
+    case "#/404":
+      return renderPageNotFound();
+    case "#/500":
+      return renderServerErrorPage();
     case "#/login":
     default:
       return renderLoginPage();
   }
 }
-
-// import { renderLoginPage } from "@/pages/Login";
-// import { renderRegisterPage } from "@/pages/Register";
-// import { renderChatsListPage } from "@/pages/ChatsList";
-// import { renderChatFeedPage } from "@/pages/ChatFeed";
-// import { renderSettingsPage } from "@/pages/Settings";
-// import { renderNotFoundPage } from "@/pages/NotFound";
-// import { renderError500Page } from "@/pages/Error500";
-
-// export function renderRoute(): string {
-//   const hash = window.location.hash;
-
-//   switch (hash) {
-//     case "#/register":
-//       return renderRegisterPage();
-//     case "#/chats":
-//       return renderChatsListPage();
-//     case "#/feed":
-//       return renderChatFeedPage();
-//     case "#/settings":
-//       return renderSettingsPage();
-//     case "#/404":
-//       return renderNotFoundPage();
-//     case "#/500":
-//       return renderError500Page();
-//     case "#/login":
-//     case "":
-//     default:
-//       return renderLoginPage();
-//   }
-// }

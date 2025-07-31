@@ -1,19 +1,38 @@
-  <form>
-  <header>
-    <h1>Регистрация</h1>
-  </header>
 
-    <ul>
+  <form>
+    <header>
+      <img src="/images/logoURUS.svg" alt="Логотип" class="{{styles.logo}}" />
+      <h1 class="{{styles.title}}">Регистрация</h1>
+    </header>
+    <ul class="{{styles.fields}}">
       <li>
-        {{> input type="email" name="email" placeholder="Email" required=true className=styles.input }}
+      {{> input
+        type="email"
+        name="email"
+        placeholder="example@mail.com"
+        label="Email"
+        required=true
+      }}
       </li>
       <li>
-        {{> input type="password" name="password" placeholder="Пароль" required=true className=styles.input }}
+      {{> input
+        type="password"
+        name="password"
+        placeholder="********"
+        label="Пароль"
+        required=true
+        }}
       </li>
       <li>
-        {{> input type="password" name="confirmPassword" placeholder="Повторите пароль" required=true className=styles.input }}
+      {{> input
+        type="password"
+        name="confirmPassword"
+        placeholder="*******"
+        label="Повторите пароль"
+        required=true
+        }}
       </li>
     </ul>
     {{> button type="submit" label="Зарегистрироваться" className=styles.button }}
-    {{> link href="#/login" text="Уже есть аккаунт? Войдите" className=styles.link }}
+     {{> link href="#/login" text="Уже есть аккаунт? Войдите" className=styles.link }}
   </form>

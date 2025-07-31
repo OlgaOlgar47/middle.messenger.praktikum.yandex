@@ -1,11 +1,12 @@
 @use "sass:color"
 @use "@/theme/colors"
+@import url('https://fonts.googleapis.com/css2?family=Onest:wght@300;400;500;600;700;800&display=swap')
 
 body
   margin: 0
   padding: 0
   box-sizing: border-box
-  font-family: sans-serif
+  font-family: 'Onest', sans-serif;
   min-height: 100vh
   background-color: #f9f9f9
 
@@ -14,8 +15,6 @@ main
   flex-direction: column
   align-items: center
   justify-content: center
-  padding: 1rem
-  min-height: calc(100vh - 60px)
 
 h1
   margin: 0
@@ -46,3 +45,6 @@ form
   width: 400px
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2)
   position: relative
+
+ul 
+  list-style: none

@@ -1,2 +1,45 @@
-.nav
-  color: #FFFFFF
+@use "sass:color"
+@use "@/theme/colors"
+
+.title
+  text-align: center
+  font-size: 24px
+  color: colors.$text-color
+  font-weight: bold
+  margin-top: 40px
+
+.logo
+  width: 200px
+  height: auto
+  margin-bottom: 10px
+
+.fields
+  width: 100%
+  list-style: none
+  padding: 0
+  margin-bottom: 60px
+
+li
+  margin-bottom: 15px
+
+button
+  width: 100%
+  padding: 10px
+  background-color: colors.$primary-color
+  color: white
+  border: none
+  border-radius: 5px
+  font-size: 16px
+  cursor: pointer
+
+  &:hover
+    background-color: color.adjust(colors.$primary-color, $lightness: -10%)
+
+.link
+  margin-top: 10px
+  font-size: 12px
+  color: colors.$text-color
+  text-decoration: none
+
+  &:hover
+    text-decoration: underline

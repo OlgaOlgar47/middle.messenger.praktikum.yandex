@@ -7,7 +7,12 @@ import { renderPageNotFound } from "./pages/PageNotFound";
 import { renderServerErrorPage } from "./pages/ServerErrorPage";
 
 export function renderRoute(): string {
-  const hash = window.location.hash;
+  let hash = window.location.hash;
+
+  if (!hash || hash === "#/") {
+    window.location.replace("#/login");
+    return "";
+  }
 
   switch (hash) {
     case "#/register":

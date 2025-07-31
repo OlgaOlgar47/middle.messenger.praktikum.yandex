@@ -10,8 +10,6 @@ export function App() {
     root.innerHTML = renderLayout(page);
   }
 
-  document.addEventListener("DOMContentLoaded", () => {
-    window.addEventListener("hashchange", updateView);
-    updateView();
-  });
+  window.addEventListener("hashchange", updateView);
+  updateView();
 }

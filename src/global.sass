@@ -1,10 +1,48 @@
+@use "sass:color"
+@use "@/theme/colors"
+
 body
   margin: 0
+  padding: 0
+  box-sizing: border-box
   font-family: sans-serif
-
-main
-  padding: 2rem
+  min-height: 100vh
   background-color: #f9f9f9
 
+main
+  display: flex
+  flex-direction: column
+  align-items: center
+  justify-content: center
+  padding: 1rem
+  min-height: calc(100vh - 60px)
+
 h1
-  color: #333
+  margin: 0
+
+input
+  box-sizing: border-box
+  width: 100%
+  padding: 10px
+  border: 1px solid #ccc
+  border-radius: 5px
+  font-size: 14px
+  background-color: white
+  color: colors.$text-color
+
+input:-webkit-autofill
+  background-color: #f0f0f0 !important
+  -webkit-box-shadow: 0 0 0px 1000px #f0f0f0 inset !important
+  -webkit-text-fill-color: #000 !important
+
+form
+  box-sizing: border-box
+  display: flex
+  flex-direction: column
+  align-items: center
+  padding: 20px
+  background-color: colors.$background-color
+  border-radius: 10px
+  width: 400px
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1)
+  position: relative

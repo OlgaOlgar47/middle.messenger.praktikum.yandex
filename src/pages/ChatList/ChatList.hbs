@@ -2,7 +2,17 @@
   <div class='{{styles.chatList}}'>
     <div class='{{styles.header}}'>
       <img src='/images/logoURUS.svg' alt='Логотип' class='{{styles.logo}}' />
-      <span class='{{styles.title}}'>Профиль &RightArrow;</span>
+      <span class='{{styles.title}}'>Профиль <img src='/images/chevron-right.svg' alt='Chevron' class='{{styles.chevronIcon}}'></span>
+    </div> 
+    <div class='{{styles.searchContainer}}'>
+       {{> input
+        type="text"
+        name="query"
+        placeholder="Поиск"
+        aria-label="search"
+        required=true
+        className=styles.searchInputWithIcon
+       }}
     </div>
     <ul class='{{styles.chatItems}}'>
       {{#each chats}}
@@ -24,7 +34,18 @@
   </div>
   <div class='{{styles.chat}}'>
     <div class='{{styles.placeholder}}'>
-      Выберите чат для отображения сообщения
+    </div>
+    <div class='{{styles.messageInputContainer}}'>
+      <img src='/images/attach.svg' alt='Attachment-icon' class='{{styles.logo}}' />
+       {{> input
+        type="text"
+        name="message"
+        placeholder="Введите ссобщение"
+        aria-label="message"
+        required=true
+        className=styles.messageInput
+       }}
+       {{{roundButton}}}
     </div>
   </div>
 </div>

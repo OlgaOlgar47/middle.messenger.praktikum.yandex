@@ -1,6 +1,8 @@
 import Handlebars from "handlebars";
 import rawTemplate from "./ChatList.hbs?raw";
+
 import styles from "./ChatList.module.sass";
+import { renderRoundButton } from "@/components/RoundButton";
 
 export function renderChatsListPage() {
   console.log("styles: ", styles);
@@ -65,5 +67,6 @@ export function renderChatsListPage() {
         isActive: false,
       },
     ],
+    roundButton: renderRoundButton({ icon: "arrow-right" }),
   });
 }

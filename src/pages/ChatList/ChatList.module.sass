@@ -4,9 +4,13 @@
 .wrapper
   width: 100%
   display: flex
+  min-height: 100vh
 
 .chat
-  flex-grow: 1
+  display: flex
+  height: calc(100vh - 70px)
+  flex-grow: 1;
+  flex-direction: column;
 
 .chatList
   padding: 1.5rem
@@ -64,6 +68,23 @@
   flex-grow: 1
   overflow: hidden
 
+.searchContainer
+  margin: 10px 0
+  
+.searchInputWithIcon 
+  font-family: inherit
+  padding-left: 36px
+  background-image: url('/images/search.svg')
+  background-repeat: no-repeat
+  background-position: 10px center
+  background-size: 16px 16px
+  border-radius: 5px
+  outline: none
+  border-bottom: none
+
+  &::placeholder 
+    color: colors.$border-color
+
 .timeBlock
   display: flex
   flex-direction: column
@@ -108,10 +129,30 @@
   flex-shrink: 0
 
 .placeholder
-  height: 100%
+  background-image: url('/images/placeholder.jpg')
+  background-repeat: no-repeat
+  background-position: center
+  background-size: cover
   flex-grow: 1
   display: flex
   align-items: center
   justify-content: center
   color: #6B7280
   font-size: 14px
+
+.messageInputContainer
+  display: flex
+  align-items: center
+  gap: 1rem
+  margin: 1rem
+
+.label
+  flex-grow: 1
+  width: 100%
+
+.messageInput
+  font-family: inherit
+  background-color: #F6F6F7
+  border-radius: 10px
+  padding: 1rem
+  

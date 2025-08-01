@@ -34,7 +34,6 @@ export default defineConfig({
       "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
     },
   },
-  appType: "spa",
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

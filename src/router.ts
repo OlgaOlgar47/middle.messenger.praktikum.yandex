@@ -5,6 +5,7 @@ import { renderProfilePage } from "./pages/Profile";
 import { renderSettingsPage } from "./pages/Settings";
 import { renderPageNotFound } from "./pages/PageNotFound";
 import { renderServerErrorPage } from "./pages/ServerErrorPage";
+import { renderChangePasswordPage } from "./pages/ChangePassword";
 
 export function renderRoute(): string {
   let hash = window.location.hash;
@@ -23,6 +24,8 @@ export function renderRoute(): string {
       return renderProfilePage();
     case "#/settings":
       return renderSettingsPage();
+    case "#/changePassword":
+      return renderChangePasswordPage();
     case "#/404":
       return renderPageNotFound();
     case "#/500":

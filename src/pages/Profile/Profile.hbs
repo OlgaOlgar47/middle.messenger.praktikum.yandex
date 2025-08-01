@@ -1,10 +1,13 @@
-<div class="{{styles.wrapper}}">
-<div class="{{styles.profile}}">
-  <h1 class="{{styles.title}}">Профиль</h1>
-  <div class="{{styles.container}}">
-    <div class="{{styles.avatar}}"></div>
+<div class="{{styles.container}}">
+  <div class="{{styles.sidebar}}">
+   {{{roundButton}}}
+  </div>
+  <div class="{{styles.profileWrapper}}">
+  <div class="{{styles.profile}}">
+    <label for="avatar-upload" class="{{styles.avatar}}">
+      <input type="file" id="avatar-upload" class="{{styles.fileInput}}" />
+    </label>
     <div class="{{styles.name}}">Иван</div>
-
     <ul class="{{styles.infoList}}">
       <li><span>Почта</span><span>pochta@yandex.ru</span></li>
       <li><span>Логин</span><span>ivanivanov</span></li>
@@ -15,12 +18,12 @@
     </ul>
     <div class="{{styles.actions}}">
     {{> link
-      href="#"
+      href="#/settings"
       text="Изменить данные"
       className=styles.link
     }}
     {{> link
-      href="#"
+      href="#/changePassword"
       text="Изменить пароль"
       className=styles.link
     }}
@@ -31,10 +34,5 @@
     }}
     </div>
   </div>
-</div>
-<aside class="{{styles.sidebar}}">
-  <button class="{{styles.backButton}}">
-    ←
-  </button>
-</aside>
+  </div>
 </div>

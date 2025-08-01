@@ -1,18 +1,9 @@
 <form class="{{styles.form}}">
   <header class="{{styles.header}}">
-    <img src="/images/logoURUS.svg" alt="Логотип" class="{{styles.logo}}" />
     <h1 class="{{styles.title}}">Настройки профиля</h1>
   </header>
 
   <ul class="{{styles.fields}}">
-    <li>
-      {{> input
-        type="file"
-        name="avatar"
-        label="Аватар"
-        className=styles.input
-      }}
-    </li>
     <li>
       {{> input
         type="text"
@@ -72,31 +63,7 @@
         className=styles.input
       }}
     </li>
-
-    <hr />
-
-    <li>
-      {{> input
-        type="password"
-        name="oldPassword"
-        label="Старый пароль"
-        placeholder="********"
-        required=true
-        className=styles.input
-      }}
-    </li>
-    <li>
-      {{> input
-        type="password"
-        name="newPassword"
-        label="Новый пароль"
-        placeholder="********"
-        required=true
-        className=styles.input
-      }}
-    </li>
   </ul>
 
   {{> button type="submit" label="Сохранить изменения" className=styles.button }}
-  {{> link href="#/logout" text="Выйти из аккаунта" className=styles.link }}
 </form>

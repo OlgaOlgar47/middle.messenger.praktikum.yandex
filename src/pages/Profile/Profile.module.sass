@@ -1,9 +1,13 @@
-.profile
+@use "sass:color"
+@use "@/theme/colors"
+
+.wrapper
   width: 100%
   height: 100%
+
+.profile
   padding: 20px
   background: #fff
-  position: relative
 
 .title
   font-size: 16px
@@ -26,6 +30,12 @@
   background-position: center
   background-size: 50%
 
+.link
+  color: colors.$secondary-color
+
+.logout
+  color: colors.$error-color
+
 .name
   font-weight: bold
   font-size: 16px
@@ -43,6 +53,7 @@
     border-bottom: 1px solid #eee
 
 .actions
+  align-self: left
   display: flex
   flex-direction: column
   gap: 10px
@@ -52,9 +63,6 @@
   color: red
 
 .sidebar
-  position: absolute
-  top: 0
-  left: 0
   width: 64px
   height: 100%
   background-color: #F5F5F5

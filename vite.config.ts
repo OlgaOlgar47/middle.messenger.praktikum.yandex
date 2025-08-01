@@ -7,6 +7,7 @@ export default defineConfig({
   plugins: [
     handlebars({
       partialDirectory: "./src/templates",
+      defaultLayout: false,
       context: page => {
         switch (page) {
           case "login":
@@ -29,7 +30,9 @@ export default defineConfig({
   ],
   server: {
     port: 3000,
-    strictPort: true,
+    headers: {
+      "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+    },
   },
   resolve: {
     alias: {

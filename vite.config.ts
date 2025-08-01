@@ -3,7 +3,6 @@ import * as path from "path";
 import handlebars from "vite-plugin-handlebars";
 
 export default defineConfig({
-  base: "./",
   plugins: [
     handlebars({
       partialDirectory: "./src/templates",
@@ -11,9 +10,6 @@ export default defineConfig({
   ],
   server: {
     port: 3000,
-    headers: {
-      "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
-    },
   },
   resolve: {
     alias: {

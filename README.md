@@ -4,7 +4,7 @@
 
 ![URUSchat logo](./public/images/logoURUS.svg)
 
-URUSchat — это мессенджер для семьи и друзей из Уругвая и России (URUguay+RUSsia). Он переводит сообщения с русского на уругвайский вариант испанского и обратно, помогая общаться без границ🚀
+URUSchat — это мессенджер для семьи и друзей из Уругвая и России (URUguay+RUSsia). Он переводит сообщения с русского на уругвайский вариант испанского и обратно, помогая общаться без границ🚀🌎
 
 ### **Cсылка на Netlify**
 
@@ -25,6 +25,14 @@ URUSchat — это мессенджер для семьи и друзей из 
 - 404 https://uruschat47.netlify.app/#/404
 - 500 https://uruschat47.netlify.app/#/505
 
+### **Макет**
+
+---
+
+Мы работаем на великолепным дизайном прямо сейчас 😎 👉 вот ссылка
+[Figma](https://www.figma.com/design/xhscLPxlVsROvehlxZqdgM/Chat_external_link--Copy-?node-id=0-1&t=hHUtyfkv54M8sB1A-1/) 🖼️
+
+
 ### **Установка**
 
 ---
@@ -39,6 +47,7 @@ URUSchat — это мессенджер для семьи и друзей из 
 
 ---
 
+🙋🏻‍♀️
 - Ольга Аверьянова ([GitHub](https://github.com/OlgaOlgar47)) - [Telegram](https://t.me/Olga_Averianova47) 📱💻
 
 ### **Шрифты**

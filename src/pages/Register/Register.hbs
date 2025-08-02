@@ -6,30 +6,66 @@
     </header>
     <ul class="{{styles.fields}}">
       <li>
-      {{> input
-        type="email"
-        name="email"
-        placeholder="example@mail.com"
-        label="Почта"
-        required=true
-      }}
-      </li>
-      <li>
-      {{> input
-        type="password"
-        name="password"
-        placeholder="********"
-        label="Пароль"
-        required=true
+        {{> input
+          type="text"
+          name="first_name"
+          placeholder="Иван"
+          label="Имя"
+          required=true
         }}
       </li>
       <li>
-      {{> input
-        type="password"
-        name="confirmPassword"
-        placeholder="*******"
-        label="Повторите пароль"
-        required=true
+        {{> input
+          type="text"
+          name="second_name"
+          placeholder="Иванов"
+          label="Фамилия"
+          required=true
+        }}
+      </li>
+      <li>
+        {{> input
+          type="text"
+          name="login"
+          placeholder="ivanivanov"
+          label="Логин"
+          required=true
+        }}
+      </li>
+      <li>
+        {{> input
+          type="tel"
+          name="phone"
+          placeholder="+7 (999) 999-99-99"
+          label="Телефон"
+          required=true
+        }}
+      </li>
+      <li>
+        {{> input
+          type="email"
+          name="email"
+          placeholder="example@mail.com"
+          label="Почта"
+          required=true
+        }}
+      </li>
+      <li>
+        {{> input
+          type="password"
+          name="password"
+          placeholder="********"
+          label="Пароль"
+          required=true
+        }}
+      </li>
+      <li>
+        {{> input
+          type="password"
+          name="confirmPassword"
+          placeholder="********"
+          label="Повторите пароль"
+          required=true
         }}
       </li>
     </ul>
@@ -37,3 +73,4 @@
     {{> link href="#/login" text="Войдите" className=styles.link }}
   </form>
 </div>
+

@@ -1,0 +1,22 @@
+@use "sass:color"
+@use "@/theme/colors"
+
+.button
+  display: flex
+  align-items: center
+  justify-content: center
+  width: 38px
+  height: 38px
+  border-radius: 50%
+  background-color: colors.$secondary-color
+  border: none
+  cursor: pointer
+  padding: 0
+  transition: background-color 0.3s ease
+
+  &:hover
+    background-color: color.adjust(colors.$secondary-color, $lightness: -10%)
+
+.icon
+  width: 24px
+  height: 24px

@@ -1,0 +1,85 @@
+@use "sass:color"
+@use "@/theme/colors"
+
+.container
+  display: flex
+  width: 100%;
+  height: calc(100vh - 40px)
+  overflow-y: auto 
+
+.profileWrapper 
+  display: flex
+  flex-direction: column
+  justify-content: center
+  align-items: center
+  margin: 0 auto
+  flex-grow: 1
+
+.profile
+  width: 40% 
+  flex-grow: 1
+  padding: 20px
+  background: colors.$background-color
+  display: flex
+  flex-direction: column
+  align-items: center
+  gap: 40px
+  margin-top: 60px
+
+.title
+  font-size: 16px
+  color: #999
+
+.avatar
+  width: 100px
+  height: 100px
+  border-radius: 50%
+  background: #eee
+  background-image: url('/images/avatar-placeholder.svg')
+  background-repeat: no-repeat
+  background-position: center
+  background-size: 50%
+  cursor: pointer 
+
+.fileInput
+  display: none
+
+.link
+  color: colors.$secondary-color
+
+.logout
+  color: colors.$error-color
+
+.name
+  font-weight: bold
+  font-size: 16px
+
+.infoList
+  list-style: none
+  padding: 0
+  margin: 0
+  width: 100%
+
+  li
+    display: flex
+    justify-content: space-between
+    padding: 8px 0
+    border-bottom: 1px solid #eee
+
+.actions
+  align-self: flex-start
+  display: flex
+  flex-direction: column
+  gap: 10px
+  margin-top: 20px
+
+.logout
+  color: red
+
+.sidebar
+  width: 64px
+  height: 100%
+  background-color: #F5F5F5
+  display: flex
+  align-items: center
+  justify-content: center

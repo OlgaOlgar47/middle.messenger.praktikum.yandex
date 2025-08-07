@@ -1,0 +1,13 @@
+<label class="{{styles.label}}">
+  {{#if label}}
+    <span class="{{styles.labelText}}">{{label}}</span>
+  {{/if}}
+  <input
+    type="{{type}}"
+    name="{{name}}"
+    placeholder="{{placeholder}}"
+    class="{{styles.input}} {{className}}"
+    {{#if required}}required{{/if}}
+    {{#if ariaLabel}}aria-label="{{ariaLabel}}"{{/if}}
+  />
+</label>

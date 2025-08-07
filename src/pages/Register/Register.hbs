@@ -1,0 +1,76 @@
+<div class="{{styles.formPage}} {{regStyles.registerForm}}">
+  <form>
+    <header>
+      <img src="/images/logoURUS.svg" alt="Логотип" class="{{styles.logo}}" />
+      <h1 class="{{styles.title}}">Регистрация</h1>
+    </header>
+    <ul class="{{styles.fields}}">
+      <li>
+        {{> input
+          type="text"
+          name="first_name"
+          placeholder="Иван"
+          label="Имя"
+          required=true
+        }}
+      </li>
+      <li>
+        {{> input
+          type="text"
+          name="second_name"
+          placeholder="Иванов"
+          label="Фамилия"
+          required=true
+        }}
+      </li>
+      <li>
+        {{> input
+          type="text"
+          name="login"
+          placeholder="ivanivanov"
+          label="Логин"
+          required=true
+        }}
+      </li>
+      <li>
+        {{> input
+          type="tel"
+          name="phone"
+          placeholder="+7 (999) 999-99-99"
+          label="Телефон"
+          required=true
+        }}
+      </li>
+      <li>
+        {{> input
+          type="email"
+          name="email"
+          placeholder="example@mail.com"
+          label="Почта"
+          required=true
+        }}
+      </li>
+      <li>
+        {{> input
+          type="password"
+          name="password"
+          placeholder="********"
+          label="Пароль"
+          required=true
+        }}
+      </li>
+      <li>
+        {{> input
+          type="password"
+          name="confirmPassword"
+          placeholder="********"
+          label="Повторите пароль"
+          required=true
+        }}
+      </li>
+    </ul>
+    {{> button type="submit" label="Зарегистрироваться" className=styles.button }}
+    {{> link href="#/login" text="Войдите" className=styles.link }}
+  </form>
+</div>
+

@@ -6,4 +6,3 @@ export function renderServerErrorPage() {
   const template = Handlebars.compile(rawTemplate);
   return template({ styles });
 }
-

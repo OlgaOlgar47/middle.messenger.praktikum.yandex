@@ -11,4 +11,3 @@ export function renderProfilePage() {
     roundButton: renderRoundButton({ icon: "arrow-left" }),
   });
 }
-

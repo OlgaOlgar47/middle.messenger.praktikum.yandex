@@ -32,7 +32,6 @@ URUSchat — это мессенджер для семьи и друзей из 
 Мы работаем на великолепным дизайном прямо сейчас 😎 👉 вот ссылка
 [Figma](https://www.figma.com/design/xhscLPxlVsROvehlxZqdgM/Chat_external_link--Copy-?node-id=0-1&t=hHUtyfkv54M8sB1A-1/) 🖼️
 
-
 ### **Установка**
 
 ---
@@ -48,6 +47,7 @@ URUSchat — это мессенджер для семьи и друзей из 
 ---
 
 🙋🏻‍♀️
+
 - Ольга Аверьянова ([GitHub](https://github.com/OlgaOlgar47)) - [Telegram](https://t.me/Olga_Averianova47) 📱💻
 
 ### **Шрифты**

@@ -8,7 +8,7 @@ import { renderServerErrorPage } from "./pages/ServerErrorPage";
 import { renderChangePasswordPage } from "./pages/ChangePassword";
 
 export function renderRoute(): string {
-  let hash = window.location.hash;
+  const { hash } = window.location;
 
   if (!hash || hash === "#/") {
     window.location.replace("#/login");

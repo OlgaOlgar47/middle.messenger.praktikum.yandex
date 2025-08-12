@@ -1,0 +1,42 @@
+{
+  "extends": "airbnb",
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint"],
+  "rules": {
+    "import/prefer-default-export": "off",
+    "quotes": ["error", "double"],
+    "max-len": [2, 100],
+    "@typescript-eslint/no-unused-vars": 2,
+    "max-params": [2, 3],
+    "import/extensions": [
+      "error",
+      "ignorePackages",
+      { "js": "never", "ts": "never", "tsx": "never", "jsx": "never" }
+    ],
+    "no-underscore-dangle": "off",
+    "no-param-reassign": [
+      "error",
+      { "props": true, "ignorePropertyModificationsFor": ["target"] }
+    ]
+  },
+  "settings": {
+    "import/ignore": ["\\.(scss|css)$", "\\?raw$"],
+    "import/resolver": {
+      "typescript": {},
+      "node": {
+        "extensions": [".js", ".ts", ".jsx", ".mjs"]
+      }
+    }
+  },
+  "overrides": [
+    {
+      "files": ["vite.config.*", "scripts/**"],
+      "rules": {
+        "import/no-extraneous-dependencies": [
+          "error",
+          { "devDependencies": true }
+        ]
+      }
+    }
+  ]
+}

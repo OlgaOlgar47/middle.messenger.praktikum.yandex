@@ -1,4 +1,4 @@
-import { renderLoginPage } from "./pages/Login";
+import { Login } from "./pages/Login";
 import { renderRegisterPage } from "./pages/Register";
 import { renderChatsListPage } from "./pages/ChatList";
 import { renderProfilePage } from "./pages/Profile";
@@ -6,8 +6,9 @@ import { renderSettingsPage } from "./pages/Settings";
 import { renderPageNotFound } from "./pages/PageNotFound";
 import { renderServerErrorPage } from "./pages/ServerErrorPage";
 import { renderChangePasswordPage } from "./pages/ChangePassword";
+import type Block from "./framework/Block";
 
-export function renderRoute(): string {
+export function renderRoute(): Block | string {
   const { hash } = window.location;
 
   if (!hash || hash === "#/") {
@@ -32,6 +33,6 @@ export function renderRoute(): string {
       return renderServerErrorPage();
     case "#/login":
     default:
-      return renderLoginPage();
+      return new Login({});
   }
 }

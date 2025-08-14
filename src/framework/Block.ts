@@ -25,20 +25,49 @@ export default class Block<T extends Record<string, any> = {}> {
 
   protected props: T;
 
+  private _setUpdate = false;
+
   private _eventBus: EventBus;
 
-  constructor(tagName: string = "div", props: T = {} as T) {
+  constructor(tagName: string = "div", propsAndChilds: T = {} as T) {
+    const { children, props } = this.getChildren(propsAndChilds);
     this._eventBus = new EventBus();
     this._meta = {
       tagName,
       props,
     };
-    this._id = Math.floor(100000 + Math.random() * 900000); // Уникальный ID для заглушек
-    this.children = (props.children as Record<string, Block<any>>) || {};
+    this._id = Math.floor(100000 + Math.random() * 900000);
     this.lists = (props.lists as Record<string, Array<Block<any> | string>>) || {};
-    this.props = this._makePropsProxy(props);
+    this.props = this._makePropsProxy({ ...props, _id: this._id });
+    this.children = this._makePropsProxy(children);
     this._registerEvents(this._eventBus);
     this._eventBus.emit(Block.EVENTS.INIT);
+  }
+
+  public addAttribute(): void {
+    const attr = (this.props.attr as Record<string, string> | undefined) ?? {};
+    if (this._element) {
+      Object.entries(attr).forEach(([key, value]) => {
+        this._element!.setAttribute(key, value);
+      });
+    }
+  }
+
+  public getChildren(propsAndChildren: T): { children: Record<string, Block<any>>; props: T } {
+    const children: Record<string, Block<any>> = {};
+    const props: Partial<T> = {};
+
+    Object.keys(propsAndChildren).forEach((key) => {
+      const value = propsAndChildren[key as keyof T] as any;
+      console.log(key, value instanceof Block);
+      if (value instanceof Block) {
+        children[key] = value as Block<any>;
+      } else {
+        props[key as keyof T] = value;
+      }
+    });
+
+    return { children, props: props as T };
   }
 
   private _registerEvents(eventBus: EventBus): void {
@@ -77,7 +106,6 @@ export default class Block<T extends Record<string, any> = {}> {
     this._render();
   };
 
-  // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
   protected componentDidUpdate(_oldProps: T, _newProps: T): boolean {
     return true;
   }
@@ -87,7 +115,23 @@ export default class Block<T extends Record<string, any> = {}> {
       return;
     }
 
-    Object.assign(this.props, nextProps);
+    this._setUpdate = false;
+    const oldValue = { ...this.props };
+
+    const { children, props } = this.getChildren(nextProps as T);
+
+    if (Object.values(children).length) {
+      Object.assign(this.children, children);
+    }
+
+    if (Object.values(props).length) {
+      Object.assign(this.props, props);
+
+      if (this._setUpdate) {
+        this._eventBus.emit(Block.EVENTS.FLOW_CDU, oldValue, this.props);
+        this._setUpdate = false;
+      }
+    }
   }
 
   public get element(): HTMLElement | null {
@@ -128,23 +172,17 @@ export default class Block<T extends Record<string, any> = {}> {
       }
     });
 
-    // Обработка и замена заглушек для lists
-    Object.entries(this.lists).forEach(([key, child]) => {
-      const listCont = this._createDocumentElement("template") as HTMLTemplateElement;
-      child.forEach((item) => {
-        if (item instanceof Block) {
-          const content = item.getContent();
-          if (content) {
-            listCont.content.append(content);
+    Object.entries(this.lists).forEach(([key, list]) => {
+      const stub = fragment.content.querySelector(`[data-id="${listIds[key]}"]`);
+      if (stub && Array.isArray(list)) {
+        const fragmentList = document.createDocumentFragment();
+        list.forEach((child) => {
+          if (child instanceof Block) {
+            const childContent = child.getContent();
+            if (childContent) fragmentList.appendChild(childContent);
           }
-        } else {
-          listCont.content.append(`${item}`);
-        }
-      });
-      const tmpId = listIds[key];
-      const stub = fragment.content.querySelector(`[data-id="${tmpId}"]`);
-      if (stub) {
-        stub.replaceWith(listCont.content);
+        });
+        stub.replaceWith(fragmentList);
       }
     });
 
@@ -170,18 +208,21 @@ export default class Block<T extends Record<string, any> = {}> {
     return this.element;
   }
 
-  private _makePropsProxy(props: T): T {
+  private _makePropsProxy<T extends object>(props: T): T {
     const self = this;
 
     return new Proxy(props, {
       get(target: T, prop: string): any {
         const value = target[prop as keyof T];
-        return typeof value === "function" ? value.bind(self) : value;
+        return typeof value === "function" ? value.bind(target) : value;
       },
       set(target: T, prop: string, value: any): boolean {
-        const oldTarget = { ...target };
-        (target as any)[prop] = value;
-        self._eventBus.emit(Block.EVENTS.FLOW_CDU, oldTarget, target);
+        if (target[prop as keyof T] !== value) {
+          const oldTarget = { ...target };
+          (target as any)[prop] = value;
+          self._eventBus.emit(Block.EVENTS.FLOW_CDU, oldTarget, target);
+          self._setUpdate = true; // Добавлено из компонента учителя
+        }
         return true;
       },
       deleteProperty(): never {

@@ -1,19 +1,31 @@
-import Handlebars from "handlebars";
-import rawTemplate from "./FooterNav.hbs?raw";
+import Block from "@/framework/Block";
+import { Link } from "../Link";
+
 import styles from "./FooterNav.module.sass";
 
-const template = Handlebars.compile(rawTemplate);
+export class FooterNav extends Block {
+  constructor(props: any) {
+    super("nav", {
+      ...props,
+      styles,
+    });
+    this.lists.links = [
+      new Link({ href: "#/login", label: "Вход" }),
+      new Link({ href: "#/register", label: "Регистрация" }),
+      new Link({ href: "#/chats", label: "Список чатов" }),
+      new Link({ href: "#/profile", label: "Профиль" }),
+      new Link({ href: "#/404", label: "404" }),
+      new Link({ href: "#/500", label: "Ошибка 5**" }),
+    ];
+  }
 
-export function renderFooterNav() {
-  return template({
-    styles,
-    links: [
-      { href: "#/login", label: "Вход" },
-      { href: "#/register", label: "Регистрация" },
-      { href: "#/chats", label: "Список чатов" },
-      { href: "#/profile", label: "Профиль" },
-      { href: "#/404", label: "404" },
-      { href: "#/500", label: "Ошибка 5**" },
-    ],
-  });
+  override render() {
+    return `
+      <nav class="{{styles.footerNav}}">
+        {{#each links}}
+          {{{ this }}}
+        {{/each}}
+      </nav>
+    `;
+  }
 }

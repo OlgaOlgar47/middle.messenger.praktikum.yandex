@@ -1,8 +1,8 @@
 import Block from "@/framework/Block";
 import { Link } from "@/components/Link";
-import styles from "./PageNotFound.module.sass";
+import styles from "./ServerError.module.sass";
 
-export class PageNotFound extends Block {
+export class ServerError extends Block {
   constructor(props: any = {}) {
     super("div", {
       ...props,
@@ -18,8 +18,8 @@ export class PageNotFound extends Block {
   override render() {
     return `
       <div class="{{styles.Container}}">
-        <h1>404</h1>
-        <p>Страница не найдена</p>
+        <h1>5**</h1>
+        <p>Произошла ошибка на сервере</p>
         {{{link}}}
       </div>
     `;

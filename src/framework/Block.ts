@@ -49,10 +49,10 @@ export default class Block<T extends Record<string, any> = {}> {
     this._eventBus.emit(Block.EVENTS.INIT);
   }
 
-  public addAttribute(): void {
-    const attr = (this.props.attr as Record<string, string> | undefined) ?? {};
+  protected addAttributes(): void {
+    const attributes = (this.props.attributes as Record<string, string> | undefined) ?? {};
     if (this._element) {
-      Object.entries(attr).forEach(([key, value]) => {
+      Object.entries(attributes).forEach(([key, value]) => {
         this._element!.setAttribute(key, value);
       });
     }
@@ -157,103 +157,67 @@ export default class Block<T extends Record<string, any> = {}> {
 
   private _render(): void {
     console.log("Render called for", this.constructor.name);
-    const propsAndStubs: Record<string, any> = { ...this.props };
-    console.log("propsAndStubs", propsAndStubs);
-    console.log("this.lists before forEach:", this.lists);
 
-    // Обработка children: добавляем заглушки в props для Handlebars
-    Object.entries(this.children).forEach(([key, child]) => {
-      propsAndStubs[key] = `<div data-id="${child._id}"></div>`;
-    });
+    // Компиляция шаблона с помощью compile
+    const fragment = this.compile(this.render(), this.props);
 
-    Object.entries(this.lists).forEach(([key, list]) => {
-      console.log("lists: ", this.lists);
-      if (Array.isArray(list)) {
-        propsAndStubs[key] = list.map((child) =>
-          child instanceof Block ? `<div data-id="${child._id}"></div>` : String(child)
-        );
-      }
-    });
-
-    // Создание фрагмента и компиляция шаблона Handlebars
-    const fragment = this._createDocumentElement("template") as HTMLTemplateElement;
-    fragment.innerHTML = Handlebars.compile(this.render())(propsAndStubs);
-    console.log("Compiled template innerHTML:", fragment.innerHTML);
-
-    // Замена заглушек для children на реальные элементы
-    Object.values(this.children).forEach((child) => {
-      const stub = fragment.content.querySelector(`[data-id="${child._id}"]`);
-
-      if (stub) {
-        const childContent = child.getContent();
-        if (childContent) {
-          stub.replaceWith(childContent);
-        }
-      }
-    });
-
-    Object.values(this.lists).forEach((list) => {
-      console.log("list222222222222222222222: ", list);
-      if (Array.isArray(list)) {
-        list.forEach((child) => {
-          if (child instanceof Block) {
-            const stub = fragment.content.querySelector(`[data-id="${child._id}"]`);
-            console.log("Replacing stub for child ID", child._id, "stub found?", !!stub); // Должен показать true для каждого Link
-            if (stub) {
-              const childContent = child.getContent();
-              console.log("childContent for ID", child._id, childContent?.outerHTML);
-              if (childContent) stub.replaceWith(childContent);
-            }
-          }
-        });
-      }
-    });
+    // Получаем новый элемент из фрагмента
+    const newElement = fragment.firstElementChild as HTMLElement | null;
 
     // Замена старого элемента на новый
-    const newElement = fragment.content.firstElementChild as HTMLElement | null;
     if (this._element && newElement) {
       this._element.replaceWith(newElement);
     }
     this._element = newElement || this._element;
 
-    // Добавление событий и атрибутов (как в примере наставника)
+    // Добавление событий и атрибутов
     this._addEvents();
     this.addAttributes();
   }
 
   public compile(template: string, props: T = this.props): DocumentFragment {
-    const propsAndStubs: Record<string, any> = { ...props };
+    const propsAndStubs: Record<string, unknown> = { ...props };
 
+    // Добавляем заглушки для children
     Object.entries(this.children).forEach(([key, child]) => {
       propsAndStubs[key] = `<div data-id="${child._id}"></div>`;
     });
 
-    Object.entries(this.lists).forEach(([key]) => {
-      propsAndStubs[key] = `<div data-id="__l_${key}"></div>`;
+    // Добавляем заглушки для lists как массив строк (для {{#each}} в шаблоне)
+    Object.entries(this.lists).forEach(([key, list]) => {
+      if (Array.isArray(list)) {
+        propsAndStubs[key] = list.map((item) =>
+          item instanceof Block ? `<div data-id="${item._id}"></div>` : `${item}`
+        );
+      }
     });
 
+    // Компиляция шаблона
     const fragment = this._createDocumentElement("template") as HTMLTemplateElement;
     fragment.innerHTML = Handlebars.compile(template)(propsAndStubs);
 
+    // Замена заглушек для children
     Object.values(this.children).forEach((child) => {
       const stub = fragment.content.querySelector(`[data-id="${child._id}"]`);
-      if (stub && child.getContent()) stub.replaceWith(child.getContent()!);
+      const childContent = child.getContent();
+      if (stub && childContent) {
+        stub.replaceWith(childContent);
+      }
     });
 
-    Object.entries(this.lists).forEach(([key, list]) => {
-      const stub = fragment.content.querySelector(`[data-id="__l_${key}"]`);
-      if (!stub) return;
-
-      const listContent = this._createDocumentElement("template") as HTMLTemplateElement;
-      list.forEach((item) => {
-        if (item instanceof Block && item.getContent()) {
-          listContent.content.append(item.getContent()!);
-        } else {
-          listContent.content.append(`${item}`);
-        }
-      });
-
-      stub.replaceWith(listContent.content);
+    // Замена заглушек для lists (по каждому элементу списка)
+    Object.values(this.lists).forEach((list) => {
+      if (Array.isArray(list)) {
+        list.forEach((item) => {
+          if (item instanceof Block) {
+            const stub = fragment.content.querySelector(`[data-id="${item._id}"]`);
+            const itemContent = item.getContent();
+            if (stub && itemContent) {
+              stub.replaceWith(itemContent);
+            }
+          }
+        });
+      }
     });
 
     return fragment.content;
@@ -293,7 +257,6 @@ export default class Block<T extends Record<string, any> = {}> {
   }
 
   private _createDocumentElement(tagName: string): HTMLElement {
-    // Could make a method that creates multiple blocks via fragments in a loop
     return document.createElement(tagName);
   }
 
@@ -316,15 +279,6 @@ export default class Block<T extends Record<string, any> = {}> {
     if (events && this._element) {
       Object.entries(events).forEach(([eventType, listener]) => {
         this._element!.addEventListener(eventType, listener);
-      });
-    }
-  }
-
-  protected addAttributes(): void {
-    const attributes = this.props.attributes as Record<string, string> | undefined;
-    if (attributes && this._element) {
-      Object.entries(attributes).forEach(([key, value]) => {
-        this._element!.setAttribute(key, value);
       });
     }
   }

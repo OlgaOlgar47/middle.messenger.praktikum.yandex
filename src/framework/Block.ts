@@ -15,10 +15,8 @@ export default class Block<T extends Record<string, any> = {}> {
 
   private _element: HTMLElement | null = null;
 
-  // eslint-disable-next-line no-use-before-define
   protected children: Record<string, Block<any>>;
 
-  // eslint-disable-next-line no-use-before-define
   protected lists: Record<string, Array<Block<any> | string>>;
 
   private _meta: { tagName: string; props: T };
@@ -30,16 +28,23 @@ export default class Block<T extends Record<string, any> = {}> {
   private _eventBus: EventBus;
 
   constructor(tagName: string = "div", propsAndChilds: T = {} as T) {
-    const { children, props } = this.getChildren(propsAndChilds);
+    console.log("propsAndChilds: ", propsAndChilds);
+    const { children, props, lists } = this.getChildren(propsAndChilds);
+    console.log("Constructor lists: ", lists);
+
     this._eventBus = new EventBus();
+
     this._meta = {
       tagName,
-      props,
+      props: props as T,
     };
+
     this._id = Math.floor(100000 + Math.random() * 900000);
-    this.lists = (props.lists as Record<string, Array<Block<any> | string>>) || {};
-    this.props = this._makePropsProxy({ ...props, _id: this._id });
+
+    this.lists = this._makePropsProxy(lists);
+    this.props = this._makePropsProxy({ ...(props as T), _id: this._id });
     this.children = this._makePropsProxy(children);
+
     this._registerEvents(this._eventBus);
     this._eventBus.emit(Block.EVENTS.INIT);
   }
@@ -53,21 +58,29 @@ export default class Block<T extends Record<string, any> = {}> {
     }
   }
 
-  public getChildren(propsAndChildren: T): { children: Record<string, Block<any>>; props: T } {
+  public getChildren(propsAndChildren: T): {
+    children: Record<string, Block<any>>;
+    props: Partial<T>;
+    lists: Record<string, Block<any>[]>;
+  } {
     const children: Record<string, Block<any>> = {};
     const props: Partial<T> = {};
-
-    Object.keys(propsAndChildren).forEach((key) => {
-      const value = propsAndChildren[key as keyof T] as any;
-      console.log(key, value instanceof Block);
+    const lists: Record<string, Block<any>[]> = {};
+    Object.entries(propsAndChildren).forEach(([key, value]) => {
       if (value instanceof Block) {
-        children[key] = value as Block<any>;
+        children[key] = value;
+      } else if (
+        Array.isArray(value) &&
+        (value.length === 0 || value.every((v) => v instanceof Block))
+      ) {
+        lists[key] = value;
       } else {
         props[key as keyof T] = value;
       }
     });
+    console.log("lists from getChildren: ", lists);
 
-    return { children, props: props as T };
+    return { children, props, lists };
   }
 
   private _registerEvents(eventBus: EventBus): void {
@@ -118,19 +131,23 @@ export default class Block<T extends Record<string, any> = {}> {
     this._setUpdate = false;
     const oldValue = { ...this.props };
 
-    const { children, props } = this.getChildren(nextProps as T);
+    const { children, props, lists } = this.getChildren(nextProps as T);
 
     if (Object.values(children).length) {
       Object.assign(this.children, children);
     }
 
+    if (Object.values(lists).length) {
+      Object.assign(this.lists, lists);
+    }
+
     if (Object.values(props).length) {
       Object.assign(this.props, props);
+    }
 
-      if (this._setUpdate) {
-        this._eventBus.emit(Block.EVENTS.FLOW_CDU, oldValue, this.props);
-        this._setUpdate = false;
-      }
+    if (this._setUpdate) {
+      this._eventBus.emit(Block.EVENTS.FLOW_CDU, oldValue, this.props);
+      this._setUpdate = false;
     }
   }
 
@@ -139,31 +156,34 @@ export default class Block<T extends Record<string, any> = {}> {
   }
 
   private _render(): void {
-    console.log("Render"); // Для отладки, можно удалить
-
+    console.log("Render called for", this.constructor.name);
     const propsAndStubs: Record<string, any> = { ...this.props };
+    console.log("propsAndStubs", propsAndStubs);
+    console.log("this.lists before forEach:", this.lists);
 
     // Обработка children: добавляем заглушки в props для Handlebars
     Object.entries(this.children).forEach(([key, child]) => {
       propsAndStubs[key] = `<div data-id="${child._id}"></div>`;
     });
 
-    const listIds: Record<string, number> = {};
-
-    // Обработка lists: добавляем уникальные заглушки для списков
-    Object.entries(this.lists).forEach(([key]) => {
-      const tmpId = Math.floor(100000 + Math.random() * 900000);
-      listIds[key] = tmpId;
-      propsAndStubs[key] = `<div data-id="${tmpId}"></div>`;
+    Object.entries(this.lists).forEach(([key, list]) => {
+      console.log("lists: ", this.lists);
+      if (Array.isArray(list)) {
+        propsAndStubs[key] = list.map((child) =>
+          child instanceof Block ? `<div data-id="${child._id}"></div>` : String(child)
+        );
+      }
     });
 
     // Создание фрагмента и компиляция шаблона Handlebars
     const fragment = this._createDocumentElement("template") as HTMLTemplateElement;
     fragment.innerHTML = Handlebars.compile(this.render())(propsAndStubs);
+    console.log("Compiled template innerHTML:", fragment.innerHTML);
 
     // Замена заглушек для children на реальные элементы
     Object.values(this.children).forEach((child) => {
       const stub = fragment.content.querySelector(`[data-id="${child._id}"]`);
+
       if (stub) {
         const childContent = child.getContent();
         if (childContent) {
@@ -172,17 +192,20 @@ export default class Block<T extends Record<string, any> = {}> {
       }
     });
 
-    Object.entries(this.lists).forEach(([key, list]) => {
-      const stub = fragment.content.querySelector(`[data-id="${listIds[key]}"]`);
-      if (stub && Array.isArray(list)) {
-        const fragmentList = document.createDocumentFragment();
+    Object.values(this.lists).forEach((list) => {
+      console.log("list222222222222222222222: ", list);
+      if (Array.isArray(list)) {
         list.forEach((child) => {
           if (child instanceof Block) {
-            const childContent = child.getContent();
-            if (childContent) fragmentList.appendChild(childContent);
+            const stub = fragment.content.querySelector(`[data-id="${child._id}"]`);
+            console.log("Replacing stub for child ID", child._id, "stub found?", !!stub); // Должен показать true для каждого Link
+            if (stub) {
+              const childContent = child.getContent();
+              console.log("childContent for ID", child._id, childContent?.outerHTML);
+              if (childContent) stub.replaceWith(childContent);
+            }
           }
         });
-        stub.replaceWith(fragmentList);
       }
     });
 
@@ -191,11 +214,49 @@ export default class Block<T extends Record<string, any> = {}> {
     if (this._element && newElement) {
       this._element.replaceWith(newElement);
     }
-    this._element = newElement;
+    this._element = newElement || this._element;
 
     // Добавление событий и атрибутов (как в примере наставника)
     this._addEvents();
     this.addAttributes();
+  }
+
+  public compile(template: string, props: T = this.props): DocumentFragment {
+    const propsAndStubs: Record<string, any> = { ...props };
+
+    Object.entries(this.children).forEach(([key, child]) => {
+      propsAndStubs[key] = `<div data-id="${child._id}"></div>`;
+    });
+
+    Object.entries(this.lists).forEach(([key]) => {
+      propsAndStubs[key] = `<div data-id="__l_${key}"></div>`;
+    });
+
+    const fragment = this._createDocumentElement("template") as HTMLTemplateElement;
+    fragment.innerHTML = Handlebars.compile(template)(propsAndStubs);
+
+    Object.values(this.children).forEach((child) => {
+      const stub = fragment.content.querySelector(`[data-id="${child._id}"]`);
+      if (stub && child.getContent()) stub.replaceWith(child.getContent()!);
+    });
+
+    Object.entries(this.lists).forEach(([key, list]) => {
+      const stub = fragment.content.querySelector(`[data-id="__l_${key}"]`);
+      if (!stub) return;
+
+      const listContent = this._createDocumentElement("template") as HTMLTemplateElement;
+      list.forEach((item) => {
+        if (item instanceof Block && item.getContent()) {
+          listContent.content.append(item.getContent()!);
+        } else {
+          listContent.content.append(`${item}`);
+        }
+      });
+
+      stub.replaceWith(listContent.content);
+    });
+
+    return fragment.content;
   }
 
   protected render(): string {
@@ -221,7 +282,7 @@ export default class Block<T extends Record<string, any> = {}> {
           const oldTarget = { ...target };
           (target as any)[prop] = value;
           self._eventBus.emit(Block.EVENTS.FLOW_CDU, oldTarget, target);
-          self._setUpdate = true; // Добавлено из компонента учителя
+          self._setUpdate = true;
         }
         return true;
       },

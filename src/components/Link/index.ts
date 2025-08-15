@@ -11,6 +11,6 @@ export class Link extends Block {
   }
 
   override render() {
-    return `<a href="{{href}}" class="{{className}}">{{text}}</a>`;
+    return `<a href="{{href}}" class="{{className}}">{{label}}</a>`;
   }
 }

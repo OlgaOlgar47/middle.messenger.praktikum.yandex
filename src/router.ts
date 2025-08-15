@@ -1,5 +1,5 @@
 import { Login } from "./pages/Login";
-import { renderRegisterPage } from "./pages/Register";
+import { Register } from "./pages/Register";
 import { renderChatsListPage } from "./pages/ChatList";
 import { renderProfilePage } from "./pages/Profile";
 import { renderSettingsPage } from "./pages/Settings";
@@ -18,7 +18,7 @@ export function renderRoute(): Block | string {
 
   switch (hash) {
     case "#/register":
-      return renderRegisterPage();
+      return new Register({});
     case "#/chats":
       return renderChatsListPage();
     case "#/profile":

@@ -39,14 +39,14 @@ export class Login extends Block {
       }),
       RegisterLink: new Link({
         href: "#/register",
-        text: "Нет аккаунта?",
+        label: "Нет аккаунта?",
         className: styles.link,
       }),
     });
   }
 
   protected componentDidMount(): void {
-    const form = this.element?.querySelector("form"); // Находим форму в DOM
+    const form = this.element?.querySelector("form");
     if (form) {
       form.addEventListener("submit", (e: Event) => {
         e.preventDefault();

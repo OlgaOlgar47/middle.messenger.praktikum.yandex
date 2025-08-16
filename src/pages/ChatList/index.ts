@@ -2,14 +2,25 @@ import Block from "@/framework/Block";
 import { Input } from "@/components/Input";
 import { RoundButton } from "@/components/RoundButton";
 import styles from "./ChatList.module.sass";
+import { createFormSubmitHandler } from "@/utils/formUtils";
 
-export class ChatList extends Block {
+interface ChatListProps {
+  onSubmit?: (formData: Record<string, string>) => void;
+  styles?: Record<string, string>;
+  chats?: any[];
+  messages?: any[]; // Массив сообщений для ленты переписки (добавлено по заданию)
+  searchInput?: Input;
+  messageInput?: Input;
+  roundButton?: RoundButton;
+  events?: Record<string, (e: Event) => void>;
+}
+
+export class ChatList extends Block<ChatListProps> {
   constructor(props: any = {}) {
     super("div", {
       ...props,
       styles,
       chats: [
-        // Массив чатов как в твоём примере
         {
           name: "Андрей",
           lastMessage: "Привет, как дела?",
@@ -67,6 +78,11 @@ export class ChatList extends Block {
           isActive: false,
         },
       ],
+      messages: [
+        { text: "Привет!", time: "10:41", isOwn: false },
+        { text: "Привет, как дела?", time: "10:42", isOwn: true },
+        { text: "Отлично, а у тебя?", time: "10:43", isOwn: false },
+      ],
       searchInput: new Input({
         type: "text",
         name: "query",
@@ -83,6 +99,13 @@ export class ChatList extends Block {
       }),
       roundButton: new RoundButton({ icon: "arrow-right" }),
     });
+  }
+
+  protected init(): void {
+    const messageInput = this.props.messageInput as Input; // Только message для валидации
+    this.props.events = {
+      submit: createFormSubmitHandler([messageInput], this.props.onSubmit), // Handler для submit формы
+    };
   }
 
   override render() {

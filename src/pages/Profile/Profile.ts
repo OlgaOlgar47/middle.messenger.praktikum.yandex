@@ -1,0 +1,60 @@
+import Block from "@/framework/Block";
+import { Link } from "@/components/Link";
+import styles from "./Profile.module.sass";
+import { RoundButton } from "@/components/RoundButton";
+
+export class Profile extends Block {
+  constructor(props: any = {}) {
+    super("div", {
+      ...props,
+      styles,
+      roundButton: new RoundButton({ icon: "arrow-left" }),
+      changeDataLink: new Link({
+        href: "#/settings",
+        label: "Изменить данные",
+        className: styles.link,
+      }),
+      changePasswordLink: new Link({
+        href: "#/changePassword",
+        label: "Изменить пароль",
+        className: styles.link,
+      }),
+      logoutLink: new Link({
+        href: "#",
+        label: "Выйти",
+        className: styles.logout,
+      }),
+    });
+  }
+
+  override render() {
+    return `
+      <div class="{{styles.container}}">
+        <div class="{{styles.sidebar}}">
+          {{{roundButton}}}
+        </div>
+        <div class="{{styles.profileWrapper}}">
+          <div class="{{styles.profile}}">
+            <label for="avatar-upload" class="{{styles.avatar}}">
+              <input type="file" name="avatar" id="avatar-upload" class="{{styles.fileInput}}" />
+            </label>
+            <div class="{{styles.name}}">Иван</div>
+            <ul class="{{styles.infoList}}">
+              <li><span>Почта</span><span>pochta@yandex.ru</span></li>
+              <li><span>Логин</span><span>ivanivanov</span></li>
+              <li><span>Имя</span><span>Иван</span></li>
+              <li><span>Фамилия</span><span>Иванов</span></li>
+              <li><span>Имя в чате</span><span>Иван</span></li>
+              <li><span>Телефон</span><span>+7 (909) 967 30 30</span></li>
+            </ul>
+            <div class="{{styles.actions}}">
+              {{{changeDataLink}}}
+              {{{changePasswordLink}}}
+              {{{logoutLink}}}
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+}

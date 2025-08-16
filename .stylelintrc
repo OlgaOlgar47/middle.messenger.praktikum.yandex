@@ -6,16 +6,9 @@
     "no-empty-source": null,
     "selector-pseudo-element-colon-notation": null,
     "declaration-property-value-no-unknown": null,
-    "max-nesting-depth": null
+    "max-nesting-depth": null,
+    "@stylistic/string-quotes": "single",
+    "@stylistic/indentation": 2
   },
-  "ignoreFiles": [
-    "**/build/**",
-    "dist/**",
-    "src/theme/colors.sass",
-    "src/components/FooterNav/FooterNav.module.sass",
-    "src/components/Layout/Layout.module.sass",
-    "src/pages/ChatList/ChatList.module.sass",
-    "src/pages/Profile/Profile.module.sass",
-    "src/pages/Register/Register.module.sass"
-  ]
+  "ignoreFiles": ["**/build/**", "dist/**"]
 }

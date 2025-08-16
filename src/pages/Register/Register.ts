@@ -88,7 +88,7 @@ export class Register extends Block<RegisterProps> {
   }
 
   protected init(): void {
-    const inputs = this.lists.fields as Input[]; // Доступно после super
+    const inputs = this.lists.fields as Input[];
     this.props.events = {
       submit: createFormSubmitHandler(inputs, this.props.onSubmit),
     };

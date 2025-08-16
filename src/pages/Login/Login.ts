@@ -53,22 +53,10 @@ export class Login extends Block<LoginProps> {
   }
 
   protected init(): void {
-    const inputs = [this.children.InputLogin, this.children.InputPassword] as Input[]; // Собираем массив
+    const inputs = [this.children.InputLogin, this.children.InputPassword] as Input[];
     this.props.events = {
       submit: createFormSubmitHandler(inputs, this.props.onSubmit),
     };
-  }
-
-  protected componentDidMount(): void {
-    const form = this.element?.querySelector("form");
-    if (form) {
-      form.addEventListener("submit", (e: Event) => {
-        e.preventDefault();
-        const formData = new FormData(form as HTMLFormElement);
-        const data = Object.fromEntries(formData.entries());
-        console.log(data);
-      });
-    }
   }
 
   override render() {

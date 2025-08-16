@@ -28,9 +28,7 @@ export default class Block<T extends Record<string, any> = {}> {
   private _eventBus: EventBus;
 
   constructor(tagName: string = "div", propsAndChilds: T = {} as T) {
-    console.log("propsAndChilds: ", propsAndChilds);
     const { children, props, lists } = this.getChildren(propsAndChilds);
-    console.log("Constructor lists: ", lists);
 
     this._eventBus = new EventBus();
 
@@ -47,6 +45,7 @@ export default class Block<T extends Record<string, any> = {}> {
 
     this._registerEvents(this._eventBus);
     this._eventBus.emit(Block.EVENTS.INIT);
+    console.log("Block constructor props:", props);
   }
 
   protected addAttributes(): void {
@@ -78,8 +77,6 @@ export default class Block<T extends Record<string, any> = {}> {
         props[key as keyof T] = value;
       }
     });
-    console.log("lists from getChildren: ", lists);
-
     return { children, props, lists };
   }
 
@@ -156,8 +153,6 @@ export default class Block<T extends Record<string, any> = {}> {
   }
 
   private _render(): void {
-    console.log("Render called for", this.constructor.name);
-
     // Компиляция шаблона с помощью compile
     const fragment = this.compile(this.render(), this.props);
 

@@ -1,6 +1,4 @@
 {
-  "plugins": ["prettier-plugin-handlebars"],
-  "handlebars": true,
   "semi": true,
   "singleQuote": false,
   "jsxSingleQuote": false,

@@ -1,9 +1,10 @@
 {
-  "extends": ["airbnb", "prettier"],
+  "extends": ["airbnb-base", "prettier"],
   "parser": "@typescript-eslint/parser",
   "plugins": ["@typescript-eslint", "prettier"],
   "rules": {
     "prettier/prettier": "error",
+    "eol-last": ["error", "always"],
     "comma-dangle": "off",
     "import/prefer-default-export": "off",
     "quotes": ["error", "double"],
@@ -16,10 +17,7 @@
       { "js": "never", "ts": "never", "tsx": "never", "jsx": "never" }
     ],
     "no-underscore-dangle": "off",
-    "no-param-reassign": [
-      "error",
-      { "props": true, "ignorePropertyModificationsFor": ["target"] }
-    ],
+    "no-param-reassign": ["error", { "props": true, "ignorePropertyModificationsFor": ["target"] }],
     "implicit-arrow-linebreak": "off",
     "function-paren-newline": "off"
   },
@@ -36,10 +34,7 @@
     {
       "files": ["vite.config.*", "scripts/**"],
       "rules": {
-        "import/no-extraneous-dependencies": [
-          "error",
-          { "devDependencies": true }
-        ]
+        "import/no-extraneous-dependencies": ["error", { "devDependencies": true }]
       }
     }
   ]

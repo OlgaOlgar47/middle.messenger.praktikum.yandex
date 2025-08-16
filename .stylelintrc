@@ -10,6 +10,7 @@
   },
   "ignoreFiles": [
     "**/build/**",
+    "dist/**",
     "src/theme/colors.sass",
     "src/components/FooterNav/FooterNav.module.sass",
     "src/components/Layout/Layout.module.sass",

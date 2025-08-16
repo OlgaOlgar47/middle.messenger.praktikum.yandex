@@ -1,4 +1,3 @@
-import "./templates/partials";
 import { renderRoute } from "./router";
 import { Layout } from "./components/Layout";
 
@@ -10,23 +9,13 @@ export class App {
     this.init();
   }
 
-  // private updateView = (): void => {
-  //   if (!this.root) return;
-  //   const page = renderRoute();
-  //   const layout = new Layout({ content: page });
-  //   const layoutContent = layout.getContent();
-  //   if (layoutContent) {
-  //     this.root.appendChild(layoutContent);
-  //   }
-  // };
-
   private updateView = (): void => {
     if (!this.root) return;
-    const page = renderRoute(); // Получаем экземпляр Block
+    const page = renderRoute();
     if (page) {
-      const layoutInstance = new Layout({ content: page }); // Передаём page как content
+      const layoutInstance = new Layout({ content: page });
       this.root.innerHTML = "";
-      const layoutContent = layoutInstance.getContent(); // Предполагаю, getContent возвращает DOM
+      const layoutContent = layoutInstance.getContent();
       if (layoutContent) {
         this.root.appendChild(layoutContent);
       }

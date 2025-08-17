@@ -1,8 +1,8 @@
 import { AuthService } from "@/services/AuthService";
 import EventBus from "@/framework/EventBus";
+import type { LoginData, RegisterData } from "@/types";
 
 const authService = new AuthService();
-
 export const eventBus = new EventBus();
 
 class AuthController {
@@ -12,7 +12,7 @@ class AuthController {
     eventBus.on("auth:logout", this.logout.bind(this) as (args: unknown) => void);
   }
 
-  async login(data: { login: string; password: string }) {
+  async login(data: LoginData) {
     try {
       const response = await authService.login(data);
       eventBus.emit("auth:success", response);
@@ -21,7 +21,7 @@ class AuthController {
     }
   }
 
-  async register(data: { login: string; password: string; email: string }) {
+  async register(data: RegisterData) {
     try {
       const response = await authService.register(data);
       eventBus.emit("auth:register:success", response);

@@ -1,33 +1,26 @@
 import { HTTPTransport } from "@/framework/HTTPTransport";
+import type { RegisterData, LoginData, User, UpdateProfileData } from "@/types";
 
-const http = new HTTPTransport("/api/auth");
+const http = new HTTPTransport("/api");
 
 export class AuthService {
-  async login(data: { login: string; password: string }) {
-    return http.post("/login", { data });
+  async login(data: LoginData): Promise<User> {
+    return http.post("/auth/signin", { data });
   }
 
-  async logout() {
-    return http.post("/login");
+  async logout(): Promise<void> {
+    return http.post("/auth/logout");
   }
 
-  async register(data: Record<string, string>) {
-    return http.post("/register", { data });
+  async register(data: RegisterData): Promise<User> {
+    return http.post("/auth/signup", { data });
   }
 
-  async getUser(id: number) {
-    return http.get(`/user/${id}`);
+  async getUser(): Promise<User> {
+    return http.get("/auth/user");
   }
 
-  async updateUser(id: number, data: { name: string }) {
-    return http.put(`/user/${id}`, { data });
-  }
-
-  async deleteUser(id: number) {
-    return http.delete(`/user/${id}`);
-  }
-
-  async searchUsers(query: { name: string }) {
-    return http.get("/users", { data: query });
+  async updateProfile(data: UpdateProfileData): Promise<User> {
+    return http.put("/user/profile", { data });
   }
 }

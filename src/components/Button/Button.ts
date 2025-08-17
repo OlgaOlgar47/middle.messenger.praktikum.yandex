@@ -1,16 +1,23 @@
 import Block from "@/framework/Block";
 import styles from "./Button.module.sass";
 
-export class Button extends Block {
-  constructor(props: any) {
+export type ButtonProps = {
+  label: string;
+  type?: "button" | "submit" | "reset";
+  className?: string;
+  onClick?: (e: Event) => void;
+  events?: Record<string, (e: Event) => void>;
+  styles?: Record<string, string>;
+};
+
+export class Button extends Block<ButtonProps> {
+  constructor(props: ButtonProps) {
     super("button", {
       ...props,
       styles,
       events: {
         click: (e: Event) => {
-          if (props.onClick) {
-            props.onClick(e);
-          }
+          props.onClick?.(e);
         },
       },
     });

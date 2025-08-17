@@ -1,5 +1,11 @@
 export type Listener = (...args: unknown[]) => void;
 
+export type BaseProps = {
+  className?: string;
+  styles?: Record<string, string>;
+  events?: Record<string, (e: Event) => void>;
+};
+
 export type RegisterData = {
   first_name: string;
   second_name: string;

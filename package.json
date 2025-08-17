@@ -17,7 +17,9 @@
     "preview": "vite preview",
     "start": "vite build && vite preview --port 3000 --strictPort",
     "lint:eslint": "eslint \"src/**/*.{ts,tsx,js,jsx}\" --max-warnings=0",
-    "lint:styles": "stylelint \"src/**/*.{sass,scss}\" --fix"
+    "lint:styles": "stylelint \"src/**/*.{sass,scss}\"",
+    "lint:tsc": "tsc --noEmit",
+    "lint": "npm run lint:eslint && npm run lint:styles && npm run lint:tsc"
   },
   "husky": {
     "hooks": {

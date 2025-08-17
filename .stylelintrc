@@ -7,7 +7,13 @@
     "selector-pseudo-element-colon-notation": null,
     "declaration-property-value-no-unknown": null,
     "max-nesting-depth": null,
-    "@stylistic/string-quotes": "single"
+    "@stylistic/string-quotes": "single",
+    "@stylistic/indentation": [
+      2,
+      {
+        "ignoreAtRules": ["use", "import"]
+      }
+    ]
   },
   "ignoreFiles": [
     "**/build/**",

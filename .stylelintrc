@@ -1,13 +1,18 @@
 {
   "extends": ["stylelint-config-sass-guidelines"],
   "plugins": ["stylelint-scss", "@stylistic/stylelint-plugin"],
+  "customSyntax": "postcss-sass",
   "rules": {
     "scss/at-rule-no-unknown": true,
     "no-empty-source": null,
     "selector-pseudo-element-colon-notation": null,
     "declaration-property-value-no-unknown": null,
     "max-nesting-depth": null,
-    "@stylistic/string-quotes": "single"
+    "declaration-block-trailing-semicolon": null,
+    "property-no-unknown": null,
+    "length-zero-no-unit": null,
+    "@stylistic/string-quotes": "single",
+    "@stylistic/indentation": 2
   },
   "ignoreFiles": [
     "**/build/**",

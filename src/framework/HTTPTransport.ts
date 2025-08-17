@@ -1,7 +1,8 @@
 type HTTPMethod = "GET" | "POST" | "PUT" | "DELETE";
+
 type RequestOptions = {
   method: HTTPMethod;
-  data?: Record<string, any>;
+  data?: unknown;
   headers?: Record<string, string>;
   timeout?: number;
 };
@@ -13,19 +14,20 @@ export class HTTPTransport {
     this.baseURL = baseURL;
   }
 
-  private queryStringify(data: Record<string, any>): string {
-    if (!data) return "";
+  private queryStringify(data: unknown): string {
+    if (typeof data !== "object" || data === null) {
+      return "";
+    }
+
     return Object.entries(data)
-      .map(([key, value]) => `${key}=${encodeURIComponent(value.toString())}`)
+      .map(([key, value]) => `${key}=${encodeURIComponent(String(value))}`)
       .join("&");
   }
 
-  private request(url: string, options: RequestOptions): Promise<any> {
+  private request<ResponseT = unknown>(url: string, options: RequestOptions): Promise<ResponseT> {
     const { method, data, headers = {}, timeout = 5000 } = options;
-    const fullURL =
-      method === "GET" && data
-        ? `${this.baseURL}${url}?${this.queryStringify(data)}`
-        : `${this.baseURL}${url}`;
+    const query = method === "GET" && data ? `?${this.queryStringify(data)}` : "";
+    const fullURL = `${this.baseURL}${url}${query}`;
 
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
@@ -34,19 +36,20 @@ export class HTTPTransport {
       xhr.withCredentials = true;
 
       Object.entries(headers).forEach(([key, value]) => xhr.setRequestHeader(key, value));
+
       if (method !== "GET" && !headers["Content-Type"]) {
         xhr.setRequestHeader("Content-Type", "application/json");
       }
 
       xhr.onload = () => {
         if (xhr.status >= 200 && xhr.status < 300) {
-          let response: any;
+          let response: unknown;
           try {
             response = JSON.parse(xhr.responseText);
           } catch {
             response = xhr.responseText;
           }
-          resolve(response);
+          resolve(response as ResponseT);
         } else {
           reject(new Error(`Error ${xhr.status}: ${xhr.statusText}`));
         }
@@ -64,19 +67,31 @@ export class HTTPTransport {
     });
   }
 
-  get(url: string, options: Omit<RequestOptions, "method"> = {}): Promise<any> {
-    return this.request(url, { ...options, method: "GET" });
+  get<ResponseT = unknown>(
+    url: string,
+    options: Omit<RequestOptions, "method"> = {}
+  ): Promise<ResponseT> {
+    return this.request<ResponseT>(url, { ...options, method: "GET" });
   }
 
-  post(url: string, options: Omit<RequestOptions, "method"> = {}): Promise<any> {
-    return this.request(url, { ...options, method: "POST" });
+  post<ResponseT = unknown>(
+    url: string,
+    options: Omit<RequestOptions, "method"> = {}
+  ): Promise<ResponseT> {
+    return this.request<ResponseT>(url, { ...options, method: "POST" });
   }
 
-  put(url: string, options: Omit<RequestOptions, "method"> = {}): Promise<any> {
-    return this.request(url, { ...options, method: "PUT" });
+  put<ResponseT = unknown>(
+    url: string,
+    options: Omit<RequestOptions, "method"> = {}
+  ): Promise<ResponseT> {
+    return this.request<ResponseT>(url, { ...options, method: "PUT" });
   }
 
-  delete(url: string, options: Omit<RequestOptions, "method"> = {}): Promise<any> {
-    return this.request(url, { ...options, method: "DELETE" });
+  delete<ResponseT = unknown>(
+    url: string,
+    options: Omit<RequestOptions, "method"> = {}
+  ): Promise<ResponseT> {
+    return this.request<ResponseT>(url, { ...options, method: "DELETE" });
   }
 }

@@ -1,11 +1,19 @@
 import Block from "@/framework/Block";
 import { Link } from "@/components/Link";
 import { RoundButton } from "@/components/RoundButton";
+import type { BaseProps } from "@/types";
 
 import styles from "./Profile.module.sass";
 
-export class Profile extends Block {
-  constructor(props: any = {}) {
+export interface ProfileProps extends BaseProps {
+  roundButton?: RoundButton;
+  changeDataLink?: Link;
+  changePasswordLink?: Link;
+  logoutLink?: Link;
+}
+
+export class Profile extends Block<ProfileProps> {
+  constructor(props: ProfileProps) {
     super("div", {
       ...props,
       styles,

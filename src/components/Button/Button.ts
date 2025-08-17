@@ -1,14 +1,13 @@
 import Block from "@/framework/Block";
+import type { BaseProps } from "@/types";
+
 import styles from "./Button.module.sass";
 
-export type ButtonProps = {
+export interface ButtonProps extends BaseProps {
   label: string;
   type?: "button" | "submit" | "reset";
-  className?: string;
   onClick?: (e: Event) => void;
-  events?: Record<string, (e: Event) => void>;
-  styles?: Record<string, string>;
-};
+}
 
 export class Button extends Block<ButtonProps> {
   constructor(props: ButtonProps) {

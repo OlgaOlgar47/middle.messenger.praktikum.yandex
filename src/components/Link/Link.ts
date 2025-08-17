@@ -1,7 +1,14 @@
 import Block from "@/framework/Block";
+import type { BaseProps } from "@/types";
 
-export class Link extends Block {
-  constructor(props: any) {
+export interface LinkProps extends BaseProps {
+  href: string;
+  label: string;
+  onClick?: (e: Event) => void;
+}
+
+export class Link extends Block<LinkProps> {
+  constructor(props: LinkProps) {
     super("a", {
       ...props,
       events: {

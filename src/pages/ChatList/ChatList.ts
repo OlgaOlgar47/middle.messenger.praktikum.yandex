@@ -2,6 +2,7 @@ import Block from "@/framework/Block";
 import { Input } from "@/components/Input";
 import { RoundButton } from "@/components/RoundButton";
 import { createFormSubmitHandler } from "@/utils/formUtils";
+import type { BaseProps } from "@/types";
 
 import styles from "./ChatList.module.sass";
 
@@ -19,19 +20,17 @@ interface Message {
   isOwn: boolean;
 }
 
-interface ChatListProps {
+interface ChatListProps extends BaseProps {
   onSubmit?: (formData: Record<string, string>) => void;
-  styles?: Record<string, string>;
   chats?: Chat[];
   messages?: Message[];
   searchInput?: Input;
   messageInput?: Input;
   roundButton?: RoundButton;
-  events?: Record<string, (e: Event) => void>;
 }
 
 export class ChatList extends Block<ChatListProps> {
-  constructor(props: any = {}) {
+  constructor(props: ChatListProps) {
     super("div", {
       ...props,
       styles,

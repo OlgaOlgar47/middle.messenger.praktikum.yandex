@@ -3,19 +3,19 @@ import Block from "@/framework/Block";
 import { createFormSubmitHandler } from "@/utils/formUtils";
 import { Input } from "@/components/Input";
 import { Button } from "@/components/Button";
+import type { BaseProps } from "@/types";
 
 import styles from "../styles/authForm.module.sass";
 
-interface ChangePasswordProps {
+export interface ChangePasswordProps extends BaseProps {
   onSubmit?: (formData: Record<string, string>) => void;
-  styles?: Record<string, string>;
   fields?: Input[];
   button?: Button;
-  events?: Record<string, (e: Event) => void>;
+  onClick?: (e: Event) => void;
 }
 
 export class ChangePassword extends Block<ChangePasswordProps> {
-  constructor(props: any = {}) {
+  constructor(props: ChangePasswordProps) {
     super("div", {
       ...props,
       styles,

@@ -1,9 +1,15 @@
 import Block from "@/framework/Block";
 import { Link } from "@/components/Link";
+import type { BaseProps } from "@/types";
+
 import styles from "./ServerError.module.sass";
 
-export class ServerError extends Block {
-  constructor(props: any = {}) {
+export interface ServerErrorProps extends BaseProps {
+  link?: Link;
+}
+
+export class ServerError extends Block<ServerErrorProps> {
+  constructor(props: ServerErrorProps) {
     super("div", {
       ...props,
       styles,

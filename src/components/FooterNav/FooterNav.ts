@@ -1,12 +1,12 @@
 import Block from "@/framework/Block";
-import { Link } from "../Link";
 import type { BaseProps } from "@/types";
+import { Link } from "../Link";
 
 import styles from "./FooterNav.module.sass";
 
-export type FooterNavProps = BaseProps & {
+export interface FooterNavProps extends BaseProps {
   links?: Link[];
-};
+}
 
 export class FooterNav extends Block<FooterNavProps> {
   constructor(props: FooterNavProps) {

@@ -1,9 +1,15 @@
 import Block from "@/framework/Block";
 import { Link } from "@/components/Link";
+import type { BaseProps } from "@/types";
+
 import styles from "./PageNotFound.module.sass";
 
-export class PageNotFound extends Block {
-  constructor(props: any = {}) {
+export interface PageNopFoundProps extends BaseProps {
+  link?: Link;
+}
+
+export class PageNotFound extends Block<PageNopFoundProps> {
+  constructor(props: PageNopFoundProps) {
     super("div", {
       ...props,
       styles,

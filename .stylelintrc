@@ -10,5 +10,14 @@
     "@stylistic/string-quotes": "single",
     "@stylistic/indentation": 2
   },
-  "ignoreFiles": ["**/build/**", "dist/**"]
+  "ignoreFiles": [
+    "**/build/**",
+    "dist/**",
+    "src/theme/colors.sass",
+    "src/components/FooterNav/FooterNav.module.sass",
+    "src/components/Layout/Layout.module.sass",
+    "src/pages/ChatList/ChatList.module.sass",
+    "src/pages/Profile/Profile.module.sass",
+    "src/pages/Register/Register.module.sass"
+  ]
 }

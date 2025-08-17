@@ -1,0 +1,13 @@
+{
+  "extends": ["stylelint-config-standard-scss"],
+  "customSyntax": "postcss-sass",
+  "plugins": ["stylelint-scss"],
+  "rules": {
+    "at-rule-no-unknown": null,
+    "scss/no-global-function-names": null,
+    "scss/at-rule-no-unknown": true,
+    "selector-class-pattern": null,
+    "color-hex-length": null,
+    "rule-empty-line-before": null
+  }
+}

@@ -5,6 +5,12 @@
   "rules": {
     "prettier/prettier": ["error", { "semi": true }],
     "eol-last": ["error", "always"],
+    "class-methods-use-this": [
+      "error",
+      {
+        "ignoreOverrideMethods": true // Игнорирует все override-методы, включая render
+      }
+    ],
     "comma-dangle": "off",
     "import/prefer-default-export": "off",
     "max-len": [2, 100],

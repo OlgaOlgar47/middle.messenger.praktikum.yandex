@@ -18,6 +18,7 @@ export class FooterNav extends Block {
       ],
     });
   }
+
   override render() {
     return `
       <nav class="{{styles.footer}}">

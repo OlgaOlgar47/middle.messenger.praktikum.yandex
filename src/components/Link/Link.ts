@@ -5,7 +5,11 @@ export class Link extends Block {
     super("a", {
       ...props,
       events: {
-        click: (e: Event) => props.onClick(e),
+        click: (e: Event) => {
+          if (typeof props.onClick === "function") {
+            props.onClick(e);
+          }
+        },
       },
     });
   }

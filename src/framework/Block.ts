@@ -1,5 +1,3 @@
-/* global document, HTMLElement, HTMLTemplateElement */
-
 import * as Handlebars from "handlebars";
 import EventBus from "./EventBus";
 
@@ -15,8 +13,10 @@ export default class Block<T extends Record<string, any> = {}> {
 
   private _element: HTMLElement | null = null;
 
+  // eslint-disable-next-line no-use-before-define
   protected children: Record<string, Block<any>>;
 
+  // eslint-disable-next-line no-use-before-define
   protected lists: Record<string, Array<Block<any> | string>>;
 
   private _meta: { tagName: string; props: T };
@@ -45,7 +45,6 @@ export default class Block<T extends Record<string, any> = {}> {
 
     this._registerEvents(this._eventBus);
     this._eventBus.emit(Block.EVENTS.INIT);
-    console.log("Block constructor props:", props);
   }
 
   protected addAttributes(): void {
@@ -228,16 +227,16 @@ export default class Block<T extends Record<string, any> = {}> {
     return this.element;
   }
 
-  private _makePropsProxy<T extends object>(props: T): T {
+  private _makePropsProxy<U extends object>(props: U): U {
     const self = this;
 
     return new Proxy(props, {
-      get(target: T, prop: string): any {
-        const value = target[prop as keyof T];
+      get(target: U, prop: string): any {
+        const value = target[prop as keyof U];
         return typeof value === "function" ? value.bind(target) : value;
       },
-      set(target: T, prop: string, value: any): boolean {
-        if (target[prop as keyof T] !== value) {
+      set(target: U, prop: string, value: any): boolean {
+        if (target[prop as keyof U] !== value) {
           const oldTarget = { ...target };
           (target as any)[prop] = value;
           self._eventBus.emit(Block.EVENTS.FLOW_CDU, oldTarget, target);
@@ -248,7 +247,7 @@ export default class Block<T extends Record<string, any> = {}> {
       deleteProperty(): never {
         throw new Error("No access");
       },
-    }) as T;
+    }) as U;
   }
 
   private _createDocumentElement(tagName: string): HTMLElement {
@@ -270,7 +269,7 @@ export default class Block<T extends Record<string, any> = {}> {
   }
 
   protected _addEvents(): void {
-    const events = this.props.events as Record<string, EventListener> | undefined;
+    const events = this.props.events as Record<string, (e: Event) => void> | undefined;
     if (events && this._element) {
       Object.entries(events).forEach(([eventType, listener]) => {
         this._element!.addEventListener(eventType, listener);

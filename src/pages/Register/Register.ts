@@ -2,9 +2,10 @@ import Block from "@/framework/Block";
 import { Input } from "@/components/Input";
 import { Button } from "@/components/Button";
 import { Link } from "@/components/Link";
+import { createFormSubmitHandler } from "@/utils/formUtils";
+
 import styles from "../styles/authForm.module.sass";
 import regStyles from "./Register.module.sass";
-import { createFormSubmitHandler } from "@/utils/formUtils";
 
 interface RegisterProps {
   onSubmit?: (formData: Record<string, string>) => void;

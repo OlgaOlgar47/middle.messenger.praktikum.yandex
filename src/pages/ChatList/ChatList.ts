@@ -1,8 +1,9 @@
 import Block from "@/framework/Block";
 import { Input } from "@/components/Input";
 import { RoundButton } from "@/components/RoundButton";
-import styles from "./ChatList.module.sass";
 import { createFormSubmitHandler } from "@/utils/formUtils";
+
+import styles from "./ChatList.module.sass";
 
 interface Chat {
   name: string;
@@ -128,8 +129,15 @@ export class ChatList extends Block<ChatListProps> {
         <div class="{{styles.chatList}}">
           <div class="{{styles.header}}">
             <img src="/images/logoURUS.svg" alt="Логотип" class="{{styles.logo}}" />
-            <span class="{{styles.title}}">Профиль <img src="/images/chevron-right.svg" alt="Chevron" class="{{styles.chevronIcon}}"></span>
-          </div> 
+            <span class="{{styles.title}}">
+              Профиль
+              <img
+                src="/images/chevron-right.svg"
+                alt="Chevron"
+                class="{{styles.chevronIcon}}"
+              >
+            </span>
+          </div>
           <div class="{{styles.searchContainer}}">
             {{{searchInput}}}
           </div>
@@ -159,7 +167,7 @@ export class ChatList extends Block<ChatListProps> {
             <div class="{{../styles.messageTime}}">{{time}}</div>
           </li>
           {{/each}}
-        </ul>      
+        </ul>
           <form class="{{styles.messageForm}}">
             <div class="{{styles.messageInputContainer}}">
               <img src="/images/attach.svg" alt="Attachment-icon" class="{{styles.logo}}" />

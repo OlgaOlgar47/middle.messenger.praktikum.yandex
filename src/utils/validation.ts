@@ -14,7 +14,8 @@ export const validationRules: Record<string, { regex: RegExp; errorMessage: stri
   login: {
     regex: /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
     errorMessage:
-      "Введите корректный email или логин (3-20 символов, латиница, цифры, дефис, подчеркивание, без пробелов)",
+      "Введите корректный email или логин (3-20 символов, латиница, цифры, дефис, " +
+      "подчеркивание, без пробелов)",
   },
   email: {
     regex: /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,

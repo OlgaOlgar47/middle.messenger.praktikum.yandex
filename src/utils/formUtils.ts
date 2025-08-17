@@ -10,19 +10,17 @@ export function createFormSubmitHandler(
     let isFormValid = true;
 
     inputs.forEach((input: Input) => {
-      const { isValid, error } = input.validate();
-      console.log(`Input "${input || "unknown"}": isValid=${isValid}, error="${error || "none"}"`);
+      const { isValid } = input.validate();
       if (!isValid) isFormValid = false;
       const inputEl = input.getContent()?.querySelector("input") as HTMLInputElement;
       if (inputEl) formData[inputEl.name] = inputEl.value;
     });
-
-    console.log(`Overall form: isValid=${isFormValid}, data=`, formData);
-
     if (isFormValid) {
+      // eslint-disable-next-line no-console
       console.log("Form data:", formData);
       onSubmit?.(formData);
     } else {
+      // eslint-disable-next-line no-console
       console.log("Форма невалидна");
     }
   };

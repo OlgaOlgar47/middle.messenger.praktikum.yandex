@@ -16,6 +16,7 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "start": "vite preview --port 3000",
+    "lint:eslint": "eslint \"src/**/*.{ts,tsx,js,jsx}\" --max-warnings=0",
     "lint:styles": "stylelint \"src/**/*.{sass,scss}\" --fix"
   },
   "husky": {

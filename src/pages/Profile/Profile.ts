@@ -1,7 +1,8 @@
 import Block from "@/framework/Block";
 import { Link } from "@/components/Link";
-import styles from "./Profile.module.sass";
 import { RoundButton } from "@/components/RoundButton";
+
+import styles from "./Profile.module.sass";
 
 export class Profile extends Block {
   constructor(props: any = {}) {

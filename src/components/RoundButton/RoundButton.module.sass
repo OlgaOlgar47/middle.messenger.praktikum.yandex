@@ -1,5 +1,5 @@
 @use 'sass:color'
-@use '@/theme/colors'
+@use '@/theme/colors' as *
 
 .button
   display: flex
@@ -8,14 +8,14 @@
   width: 38px
   height: 38px
   border-radius: 50%
-  background-color: colors.$secondary-color
+  background-color: $secondary-color
   border: none
   cursor: pointer
   padding: 0
   transition: background-color 0.3s ease
 
   &:hover
-    background-color: color.adjust(colors.$secondary-color, $lightness: -10%)
+    background-color: color.adjust($secondary-color, $lightness: -10%)
 
 .icon
   width: 24px

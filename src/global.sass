@@ -1,5 +1,5 @@
 @use 'sass:color'
-@use '@/theme/colors'
+@use '@/theme/colors' as *
 @import url('https://fonts.googleapis.com/css2?family=Onest:wght@300;400;500;600;700;800&display=swap')
 
 *
@@ -12,7 +12,7 @@ body
   height: 100%
   overflow: hidden
   font-family: 'Onest', sans-serif
-  background-color: colors.$background-color
+  background-color: $background-color
 
 #app
   height: 100%
@@ -31,8 +31,8 @@ input
   border-bottom: 1px solid #ccc
   font-size: 14px
   background-color: white
-  color: colors.$text-color
-  
+  color: $text-color
+
 label
   width: 100%
 
@@ -41,14 +41,14 @@ input:-webkit-autofill
   -webkit-box-shadow: 0 0 0 1000px #f0f0f0 inset !important
   -webkit-text-fill-color: #000 !important
 
-ul 
+ul
   list-style: none
 
 button
   font-family: 'Onest', sans-serif
   width: 100%
   padding: 10px
-  background-color: colors.$primary-color
+  background-color: $primary-color
   color: white
   border: none
   border-radius: 5px
@@ -56,4 +56,4 @@ button
   cursor: pointer
 
   &:hover
-    background-color: color.adjust(colors.$primary-color, $lightness: -10%)
+    background-color: color.adjust($primary-color, $lightness: -10%)

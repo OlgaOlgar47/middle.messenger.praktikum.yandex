@@ -1,11 +1,11 @@
 @use 'sass:color'
-@use '@/theme/colors'
+@use '@/theme/colors' as *
 
 .button
   font-family: 'Onest', sans-serif
   width: 100%
   padding: 10px
-  background-color: colors.$primary-color
+  background-color: $primary-color
   color: white
   border: none
   border-radius: 5px
@@ -13,4 +13,4 @@
   cursor: pointer
 
   &:hover
-    background-color: color.adjust(colors.$primary-color, $lightness: -10%)
+    background-color: color.adjust($primary-color, $lightness: -10%)

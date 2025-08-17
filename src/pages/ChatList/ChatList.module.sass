@@ -1,5 +1,5 @@
-@use "sass:color"
-@use "@/theme/colors"
+@use 'sass:color'
+@use '@/theme/colors' as *
 
 .wrapper
   width: 100%
@@ -9,7 +9,6 @@
 .chat
   display: flex
   height: calc(100vh - 40px)
-  flex-grow: 1;
   flex-direction: column
   justify-content: flex-end
   flex-grow: 1
@@ -51,14 +50,14 @@
   display: flex
   align-items: center
   padding: 10px
-  border-bottom: 1px solid colors.$border-color
+  border-bottom: 1px solid $border-color
   border-radius: 7px
   cursor: pointer
   background-color: transparent
   transition: background-color 0.2s
 
   &.isActive
-    background-color: colors.$active-color
+    background-color: $active-color
 
 .avatar
   width: 40px
@@ -74,8 +73,8 @@
 
 .searchContainer
   margin: 10px 0
-  
-.searchInputWithIcon 
+
+.searchInputWithIcon
   font-family: inherit
   padding-left: 36px
   background-image: url('/images/search.svg')
@@ -86,8 +85,8 @@
   outline: none
   border-bottom: none
 
-  &::placeholder 
-    color: colors.$border-color
+  &::placeholder
+    color: $border-color
 
 .timeBlock
   display: flex
@@ -99,7 +98,7 @@
 
 .name
   font-size: 14px
-  color: colors.$text-color
+  color: $text-color
   font-weight: 500
   margin-bottom: 2px
   white-space: nowrap
@@ -108,14 +107,14 @@
 
 .message
   font-size: 12px
-  color: colors.$secondary-text-color
+  color: $secondary-text-color
   white-space: nowrap
   overflow: hidden
   text-overflow: ellipsis
 
 .time
   font-size: 12px
-  color: colors.$secondary-text-color
+  color: $secondary-text-color
   margin-right: 10px
   white-space: nowrap
   flex-shrink: 0
@@ -123,8 +122,8 @@
 .unread
   width: 20px
   height: 20px
-  background-color: colors.$secondary-color
-  color: colors.$primary-color
+  background-color: $secondary-color
+  color: $primary-color
   border-radius: 50%
   display: flex
   align-items: center
@@ -156,7 +155,7 @@
   border-radius: 10px
   padding: 1rem
 
-.messageList 
+.messageList
   list-style: none
   padding: 0
   margin: 0
@@ -170,11 +169,11 @@
 .isOwn
   align-items: flex-end
 
-  .messageText 
+  .messageText
     background: #e6ffe6
     color: #222
     align-self: flex-end
-  
+
 
   .messageTime
     color: #6cff6c
@@ -186,7 +185,7 @@
   padding: 10px 16px
   font-size: 16px
   max-width: 60vw
-  box-shadow: 0 2px 6px rgba(0,0,0,0.03)
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03)
   margin-bottom: 2px
 
 

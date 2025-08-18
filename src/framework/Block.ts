@@ -160,6 +160,7 @@ export default class Block<T extends Record<string, any> = {}> {
 
     // Замена старого элемента на новый
     if (this._element && newElement) {
+      this._removeEvents();
       this._element.replaceWith(newElement);
     }
     this._element = newElement || this._element;
@@ -275,5 +276,14 @@ export default class Block<T extends Record<string, any> = {}> {
         this._element!.addEventListener(eventType, listener);
       });
     }
+  }
+
+  private _removeEvents() {
+    const { events = {} } = this.props;
+    Object.keys(events).forEach((eventName) => {
+      if (events[eventName] !== undefined) {
+        this._element?.removeEventListener(eventName, events[eventName]);
+      }
+    });
   }
 }

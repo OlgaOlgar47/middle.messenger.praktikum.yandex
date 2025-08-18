@@ -167,7 +167,7 @@ export class ChatList extends Block<ChatListProps> {
           </li>
           {{/each}}
         </ul>
-          <form class="{{styles.messageForm}}">
+          <form novalidate class="{{styles.messageForm}}">
             <div class="{{styles.messageInputContainer}}">
               <img src="/images/attach.svg" alt="Attachment-icon" class="{{styles.logo}}" />
               {{{messageInput}}}

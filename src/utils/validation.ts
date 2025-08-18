@@ -44,6 +44,9 @@ export const validationRules: Record<string, { regex: RegExp; errorMessage: stri
 };
 
 export function validateField(name: string, value: string): { isValid: boolean; error?: string } {
+  if (!value.trim()) {
+    return { isValid: false, error: "Поле обязательно для заполнения" };
+  }
   if (name === "password" || name === "oldPassword" || name === "newPassword") {
     if (value.length < 8 || value.length > 40)
       return { isValid: false, error: "Длина должна быть от 8 до 40 символов" };

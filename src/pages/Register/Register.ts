@@ -98,7 +98,7 @@ export class Register extends Block<RegisterProps> {
   override render() {
     return `
       <div class="{{styles.formPage}} {{regStyles.registerForm}}">
-        <form class="{{styles.form}}">
+        <form novalidate class="{{styles.form}}">
           <header class="{{styles.header}}">
             <img src="/images/logoURUS.svg" alt="Логотип" class="{{styles.logo}}" />
             <h1 class="{{styles.title}}">Регистрация</h1>

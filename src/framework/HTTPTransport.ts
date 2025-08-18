@@ -7,6 +7,11 @@ type RequestOptions = {
   timeout?: number;
 };
 
+type HTTPMethodFn = <R = unknown>(
+  url: string,
+  options?: Omit<RequestOptions, "method">
+) => Promise<R>;
+
 export class HTTPTransport {
   private baseURL: string;
 
@@ -67,31 +72,11 @@ export class HTTPTransport {
     });
   }
 
-  get<ResponseT = unknown>(
-    url: string,
-    options: Omit<RequestOptions, "method"> = {}
-  ): Promise<ResponseT> {
-    return this.request<ResponseT>(url, { ...options, method: "GET" });
-  }
+  get: HTTPMethodFn = (url, options = {}) => this.request(url, { ...options, method: "GET" });
 
-  post<ResponseT = unknown>(
-    url: string,
-    options: Omit<RequestOptions, "method"> = {}
-  ): Promise<ResponseT> {
-    return this.request<ResponseT>(url, { ...options, method: "POST" });
-  }
+  post: HTTPMethodFn = (url, options = {}) => this.request(url, { ...options, method: "POST" });
 
-  put<ResponseT = unknown>(
-    url: string,
-    options: Omit<RequestOptions, "method"> = {}
-  ): Promise<ResponseT> {
-    return this.request<ResponseT>(url, { ...options, method: "PUT" });
-  }
+  put: HTTPMethodFn = (url, options = {}) => this.request(url, { ...options, method: "PUT" });
 
-  delete<ResponseT = unknown>(
-    url: string,
-    options: Omit<RequestOptions, "method"> = {}
-  ): Promise<ResponseT> {
-    return this.request<ResponseT>(url, { ...options, method: "DELETE" });
-  }
+  delete: HTTPMethodFn = (url, options = {}) => this.request(url, { ...options, method: "DELETE" });
 }

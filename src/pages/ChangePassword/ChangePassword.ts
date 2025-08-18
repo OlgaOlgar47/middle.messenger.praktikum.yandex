@@ -56,7 +56,7 @@ export class ChangePassword extends Block<ChangePasswordProps> {
   override render() {
     return `
       <div class="{{styles.formPage}}">
-        <form class="{{styles.form}}">
+        <form novalidate class="{{styles.form}}">
           <header class="{{styles.header}}">
             <h1 class="{{styles.title}}">Изменить пароль</h1>
           </header>

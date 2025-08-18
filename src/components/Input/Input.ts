@@ -58,7 +58,26 @@ export class Input extends Block<InputProps> {
     return { isValid, error };
   }
 
+  protected componentDidMount(): void {
+    const inputEl = this.element?.querySelector("input") as HTMLInputElement | null;
+    if (inputEl) {
+      inputEl.addEventListener("blur", (e) => this.handleBlur(e));
+    }
+
+    this.errorElement = this.element?.querySelector(
+      `.${(this.props.styles || styles).error}`
+    ) as HTMLElement | null;
+  }
+
   private showError(error?: string): void {
+    const input = this.element?.querySelector("input") as HTMLInputElement;
+    if (input?.name === "message") return;
+
+    if (!this.errorElement) {
+      this.errorElement = this.element?.querySelector(
+        `.${(this.props.styles || styles).error}`
+      ) as HTMLElement | null;
+    }
     if (this.errorElement) {
       this.errorElement.textContent = error || "";
       this.errorElement.style.display = error ? "block" : "none";

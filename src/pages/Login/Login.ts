@@ -62,7 +62,7 @@ export class Login extends Block<LoginProps> {
   override render() {
     return `
       <div class="{{styles.formPage}}">
-        <form class="{{styles.form}}">
+        <form novalidate class="{{styles.form}}">
           <header class="{{styles.header}}">
             <img
               src="/images/logoURUS.svg"

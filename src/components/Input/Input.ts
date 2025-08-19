@@ -31,7 +31,7 @@ export class Input extends Block<InputProps> {
         input: (e: Event) => {
           props.onInput?.(e);
         },
-        blur: (e: Event) => {
+        focusout: (e: Event) => {
           this.handleBlur(e);
           props.events?.blur?.(e);
         },
@@ -56,17 +56,6 @@ export class Input extends Block<InputProps> {
     const { isValid, error } = validateField(input.name, input.value);
     this.showError(error);
     return { isValid, error };
-  }
-
-  protected componentDidMount(): void {
-    const inputEl = this.element?.querySelector("input") as HTMLInputElement | null;
-    if (inputEl) {
-      inputEl.addEventListener("blur", (e) => this.handleBlur(e));
-    }
-
-    this.errorElement = this.element?.querySelector(
-      `.${(this.props.styles || styles).error}`
-    ) as HTMLElement | null;
   }
 
   private showError(error?: string): void {

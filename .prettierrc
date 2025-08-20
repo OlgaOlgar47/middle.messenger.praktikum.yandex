@@ -1,13 +1,10 @@
 {
-  "plugins": ["prettier-plugin-handlebars"],
-  "handlebars": true,
   "semi": true,
   "singleQuote": false,
   "jsxSingleQuote": false,
   "bracketSpacing": true,
   "trailingComma": "es5",
   "tabWidth": 2,
-  "arrowParens": "avoid",
-  "printWidth": 80,
-  "endOfLine": "crlf"
+  "printWidth": 100,
+  "endOfLine": "lf"
 }

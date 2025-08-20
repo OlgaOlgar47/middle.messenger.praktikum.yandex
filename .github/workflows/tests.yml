@@ -28,17 +28,6 @@ jobs:
       - name: Install testing libs
         uses: mig4/setup-bats@v1
 
-      - name: Install dependencies
-        run: npm install
-
-      - name: Build project
-        run: npm run build
-
-      - name: Start server
-        run: npm run preview &
-        env:
-          CI: true
-
       - name: Wait for server
         run: sleep 5
 

@@ -1,15 +1,29 @@
-import "./templates/partials";
 import { renderRoute } from "./router";
-import { renderLayout } from "./components/Layout";
+import { Layout } from "./components/Layout";
 
-export function App() {
-  function updateView() {
-    const root = document.querySelector("#app");
-    if (!root) return;
-    const page = renderRoute();
-    root.innerHTML = renderLayout(page);
+export class App {
+  private root: HTMLElement | null;
+
+  constructor() {
+    this.root = document.querySelector("#app");
+    this.init();
   }
 
-  window.addEventListener("hashchange", updateView);
-  updateView();
+  private updateView = (): void => {
+    if (!this.root) return;
+    const page = renderRoute();
+    if (page) {
+      const layoutInstance = new Layout({ content: page });
+      this.root.innerHTML = "";
+      const layoutContent = layoutInstance.getContent();
+      if (layoutContent) {
+        this.root.appendChild(layoutContent);
+      }
+    }
+  };
+
+  private init(): void {
+    window.addEventListener("hashchange", this.updateView);
+    this.updateView();
+  }
 }

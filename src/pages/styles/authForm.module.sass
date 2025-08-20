@@ -1,5 +1,5 @@
-@use "sass:color"
-@use "@/theme/colors"
+@use 'sass:color'
+@use '@/theme/colors' as *
 
 .formPage
   display: flex
@@ -8,6 +8,20 @@
   height: 100vh
   padding: 10px
   box-sizing: border-box
+
+.form
+  box-sizing: border-box
+  display: flex
+  flex-direction: column
+  align-items: center
+  padding: 20px
+  background-color: white
+  border-radius: 10px
+  width: 100%
+  max-width: 360px
+  max-height: 90vh
+  overflow-y: auto
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2)
 
 .title
   text-align: center
@@ -29,23 +43,10 @@
 li
   margin-bottom: 15px
 
-button
-  width: 100%
-  padding: 10px
-  background-color: colors.$primary-color
-  color: white
-  border: none
-  border-radius: 5px
-  font-size: 16px
-  cursor: pointer
-
-  &:hover
-    background-color: color.adjust(colors.$primary-color, $lightness: -10%)
-
 .link
   margin-top: 10px
   font-size: 12px
-  color: colors.$secondary-color
+  color: $secondary-color
   text-decoration: none
 
   &:hover

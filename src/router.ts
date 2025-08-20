@@ -1,14 +1,15 @@
-import { renderLoginPage } from "./pages/Login";
-import { renderRegisterPage } from "./pages/Register";
-import { renderChatsListPage } from "./pages/ChatList";
-import { renderProfilePage } from "./pages/Profile";
-import { renderSettingsPage } from "./pages/Settings";
-import { renderPageNotFound } from "./pages/PageNotFound";
-import { renderServerErrorPage } from "./pages/ServerErrorPage";
-import { renderChangePasswordPage } from "./pages/ChangePassword";
+import { Login } from "./pages/Login";
+import { Register } from "./pages/Register";
+import { ChatList } from "./pages/ChatList";
+import { Profile } from "./pages/Profile";
+import { Settings } from "./pages/Settings";
+import { PageNotFound } from "./pages/PageNotFound";
+import { ServerError } from "./pages/ServerError";
+import { ChangePassword } from "./pages/ChangePassword";
+import type Block from "./framework/Block";
 
-export function renderRoute(): string {
-  let hash = window.location.hash;
+export function renderRoute(): Block | string {
+  const { hash } = window.location;
 
   if (!hash || hash === "#/") {
     window.location.replace("#/login");
@@ -17,21 +18,21 @@ export function renderRoute(): string {
 
   switch (hash) {
     case "#/register":
-      return renderRegisterPage();
+      return new Register({});
     case "#/chats":
-      return renderChatsListPage();
+      return new ChatList({});
     case "#/profile":
-      return renderProfilePage();
+      return new Profile({});
     case "#/settings":
-      return renderSettingsPage();
+      return new Settings({});
     case "#/changePassword":
-      return renderChangePasswordPage();
+      return new ChangePassword({});
     case "#/404":
-      return renderPageNotFound();
+      return new PageNotFound({});
     case "#/500":
-      return renderServerErrorPage();
+      return new ServerError({});
     case "#/login":
     default:
-      return renderLoginPage();
+      return new Login({});
   }
 }

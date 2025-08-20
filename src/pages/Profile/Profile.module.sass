@@ -1,13 +1,13 @@
-@use "sass:color"
-@use "@/theme/colors"
+@use 'sass:color'
+@use '@/theme/colors' as *
 
 .container
   display: flex
-  width: 100%;
+  width: 100%
   height: calc(100vh - 40px)
-  overflow-y: auto 
+  overflow-y: auto
 
-.profileWrapper 
+.profileWrapper
   display: flex
   flex-direction: column
   justify-content: center
@@ -16,10 +16,10 @@
   flex-grow: 1
 
 .profile
-  width: 40% 
+  width: 40%
   flex-grow: 1
   padding: 20px
-  background: colors.$background-color
+  background: $background-color
   display: flex
   flex-direction: column
   align-items: center
@@ -39,16 +39,16 @@
   background-repeat: no-repeat
   background-position: center
   background-size: 50%
-  cursor: pointer 
+  cursor: pointer
 
 .fileInput
   display: none
 
 .link
-  color: colors.$secondary-color
+  color: $secondary-color
 
 .logout
-  color: colors.$error-color
+  color: $error-color
 
 .name
   font-weight: bold
@@ -72,9 +72,6 @@
   flex-direction: column
   gap: 10px
   margin-top: 20px
-
-.logout
-  color: red
 
 .sidebar
   width: 64px

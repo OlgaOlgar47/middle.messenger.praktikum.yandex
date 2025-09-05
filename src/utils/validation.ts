@@ -12,10 +12,8 @@ export const validationRules: Record<string, { regex: RegExp; errorMessage: stri
     errorMessage: "Первая буква заглавная, латиница/кириллица, только дефис, без пробелов/цифр",
   },
   login: {
-    regex: /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-    errorMessage:
-      "Введите корректный email или логин (3-20 символов, латиница, цифры, дефис, " +
-      "подчеркивание, без пробелов)",
+    regex: /^([a-zA-Z0-9_-]{3,20}|[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$/,
+    errorMessage: "Логин (3-20 символов) или email",
   },
   email: {
     regex: /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,

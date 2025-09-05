@@ -4,6 +4,8 @@ import { Input } from "@/components/Input";
 import { Button } from "@/components/Button";
 import { Link } from "@/components/Link";
 import { createFormSubmitHandler } from "@/utils/formUtils";
+import { AuthController } from "@/controllers/AuthController";
+import { Toast } from "@/utils/toast";
 
 import styles from "@/pages/styles/authForm.module.sass";
 
@@ -44,7 +46,7 @@ export class Login extends Block<LoginProps> {
         className: styles.button,
       }),
       RegisterLink: new Link({
-        href: "#/register",
+        href: "/sign-up",
         label: "Нет аккаунта?",
         className: styles.link,
       }),
@@ -55,8 +57,22 @@ export class Login extends Block<LoginProps> {
   protected init(): void {
     const inputs = [this.children.InputLogin, this.children.InputPassword] as Input[];
     this.props.events = {
-      submit: createFormSubmitHandler(inputs, this.props.onSubmit),
+      submit: createFormSubmitHandler(inputs, this.handleSubmit.bind(this)),
     };
+  }
+
+  private async handleSubmit(formData: Record<string, string>) {
+    try {
+      await AuthController.login({
+        login: formData.login,
+        password: formData.password,
+      });
+      Toast.success("Успешный вход!");
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Ошибка входа. Проверьте данные.";
+      Toast.error(errorMessage);
+    }
   }
 
   override render() {

@@ -3,6 +3,8 @@ import { Input } from "@/components/Input";
 import { Button } from "@/components/Button";
 import { Link } from "@/components/Link";
 import { createFormSubmitHandler } from "@/utils/formUtils";
+import { AuthController } from "@/controllers/AuthController";
+import { Toast } from "@/utils/toast";
 
 import styles from "../styles/authForm.module.sass";
 import regStyles from "./Register.module.sass";
@@ -11,7 +13,7 @@ interface RegisterProps {
   onSubmit?: (formData: Record<string, string>) => void;
   styles?: Record<string, string>;
   regStyles?: Record<string, string>;
-  fields?: Input[]; // Массив inputs (теперь в lists)
+  fields?: Input[];
   button?: Button;
   link?: Link;
   events?: Record<string, (e: Event) => void>;
@@ -80,7 +82,7 @@ export class Register extends Block<RegisterProps> {
         className: styles.button,
       }),
       link: new Link({
-        href: "#/login",
+        href: "/",
         label: "Войдите",
         className: styles.link,
       }),
@@ -91,8 +93,31 @@ export class Register extends Block<RegisterProps> {
   protected init(): void {
     const inputs = this.lists.fields as Input[];
     this.props.events = {
-      submit: createFormSubmitHandler(inputs, this.props.onSubmit),
+      submit: createFormSubmitHandler(inputs, this.handleSubmit.bind(this)),
     };
+  }
+
+  private async handleSubmit(formData: Record<string, string>) {
+    // Проверяем совпадение паролей
+    if (formData.password !== formData.confirmPassword) {
+      Toast.error("Пароли не совпадают");
+      return;
+    }
+
+    try {
+      await AuthController.register({
+        first_name: formData.first_name,
+        second_name: formData.second_name,
+        login: formData.login,
+        email: formData.email,
+        password: formData.password,
+        phone: formData.phone,
+      });
+      Toast.success("Регистрация успешна!");
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Ошибка регистрации";
+      Toast.error(errorMessage);
+    }
   }
 
   override render() {

@@ -1,3 +1,5 @@
+import { getApiUrl } from "@/config/api";
+
 type HTTPMethod = "GET" | "POST" | "PUT" | "DELETE";
 
 type RequestOptions = {
@@ -15,8 +17,8 @@ type HTTPMethodFn = <R = unknown>(
 export class HTTPTransport {
   private baseURL: string;
 
-  constructor(baseURL: string = "/api") {
-    this.baseURL = baseURL;
+  constructor(baseURL?: string) {
+    this.baseURL = baseURL || getApiUrl();
   }
 
   private queryStringify(data: unknown): string {
@@ -42,21 +44,36 @@ export class HTTPTransport {
 
       Object.entries(headers).forEach(([key, value]) => xhr.setRequestHeader(key, value));
 
-      if (method !== "GET" && !headers["Content-Type"]) {
+      if (method !== "GET" && data && !(data instanceof FormData) && !headers["Content-Type"]) {
         xhr.setRequestHeader("Content-Type", "application/json");
       }
 
       xhr.onload = () => {
         if (xhr.status >= 200 && xhr.status < 300) {
           let response: unknown;
-          try {
-            response = JSON.parse(xhr.responseText);
-          } catch {
-            response = xhr.responseText;
+          if (!xhr.responseText || xhr.responseText.trim() === "") {
+            response = null;
+          } else {
+            try {
+              response = JSON.parse(xhr.responseText);
+            } catch {
+              response = xhr.responseText;
+            }
           }
           resolve(response as ResponseT);
         } else {
-          reject(new Error(`Error ${xhr.status}: ${xhr.statusText}`));
+          let errorMessage = `Error ${xhr.status}: ${xhr.statusText}`;
+          try {
+            const errorResponse = JSON.parse(xhr.responseText);
+            if (errorResponse.reason) {
+              errorMessage = errorResponse.reason;
+            } else if (errorResponse.message) {
+              errorMessage = errorResponse.message;
+            }
+          } catch {
+            // Если не удалось парсить JSON, используем стандартное сообщение
+          }
+          reject(new Error(errorMessage));
         }
       };
 
@@ -67,7 +84,7 @@ export class HTTPTransport {
       if (method === "GET" || !data) {
         xhr.send();
       } else {
-        xhr.send(JSON.stringify(data));
+        xhr.send(data instanceof FormData ? data : JSON.stringify(data));
       }
     });
   }

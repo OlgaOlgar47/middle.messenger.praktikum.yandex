@@ -2,6 +2,8 @@ import Block from "@/framework/Block";
 import { Link } from "@/components/Link";
 import { RoundButton } from "@/components/RoundButton";
 import type { BaseProps } from "@/types";
+import { AuthController } from "@/controllers/AuthController";
+import { Toast } from "@/utils/toast";
 
 import styles from "./Profile.module.sass";
 
@@ -32,8 +34,24 @@ export class Profile extends Block<ProfileProps> {
         href: "#",
         label: "Выйти",
         className: styles.logout,
+        events: {
+          click: (e: Event) => {
+            e.preventDefault();
+            this.handleLogout();
+          },
+        },
       }),
     });
+  }
+
+  private async handleLogout() {
+    try {
+      await AuthController.logout();
+      Toast.success("Вы успешно вышли из системы");
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Ошибка при выходе";
+      Toast.error(errorMessage);
+    }
   }
 
   override render() {

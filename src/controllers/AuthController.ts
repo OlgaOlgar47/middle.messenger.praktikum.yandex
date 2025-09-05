@@ -1,43 +1,37 @@
-import { AuthService } from "@/services/AuthService";
-import EventBus from "@/framework/EventBus";
-import type { LoginData, RegisterData } from "@/types";
+import { AuthAPI } from "@/api/auth";
+import { router } from "@/App";
+import { Store } from "@/store";
 
-const authService = new AuthService();
-export const eventBus = new EventBus();
-
-class AuthController {
-  constructor() {
-    eventBus.on("auth:login", this.login.bind(this) as (args: unknown) => void);
-    eventBus.on("auth:register", this.register.bind(this) as (args: unknown) => void);
-    eventBus.on("auth:logout", this.logout.bind(this) as (args: unknown) => void);
-  }
-
-  async login(data: LoginData) {
+export const AuthController = {
+  async fetchUser() {
     try {
-      const response = await authService.login(data);
-      eventBus.emit("auth:success", response);
+      const user = await AuthAPI.me();
+      Store.set("user", user);
+      return user;
     } catch (error) {
-      eventBus.emit("auth:error", error);
+      // Логируем ошибку для отладки
+      console.error("Ошибка fetchUser:", error);
+      throw error;
     }
-  }
+  },
 
-  async register(data: RegisterData) {
-    try {
-      const response = await authService.register(data);
-      eventBus.emit("auth:register:success", response);
-    } catch (error) {
-      eventBus.emit("auth:register:error", error);
-    }
-  }
+  async login(data: { login: string; password: string }) {
+    await AuthAPI.signin(data);
+    // После успешного входа получаем данные пользователя
+    await this.fetchUser();
+    router.go("/messenger");
+  },
+
+  async register(data: any) {
+    await AuthAPI.signup(data);
+    // После регистрации пользователь автоматически авторизован
+    // Не нужно вызывать fetchUser() - это вызовет ошибку "User already in system"
+    router.go("/messenger");
+  },
 
   async logout() {
-    try {
-      await authService.logout();
-      eventBus.emit("auth:logout:success");
-    } catch (error) {
-      eventBus.emit("auth:logout:error", error);
-    }
-  }
-}
-
-export const authController = new AuthController();
+    await AuthAPI.logout();
+    Store.set("user", null);
+    router.go("/");
+  },
+};

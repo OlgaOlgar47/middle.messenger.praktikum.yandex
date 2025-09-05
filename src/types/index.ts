@@ -37,3 +37,19 @@ export type UpdateProfileData = {
   email: string;
   phone: string;
 };
+
+export type ChangePasswordData = {
+  oldPassword: string;
+  newPassword: string;
+};
+
+export type AvatarResponse = {
+  id: number;
+  first_name: string;
+  second_name: string;
+  display_name: string;
+  login: string;
+  email: string;
+  phone: string;
+  avatar: string;
+};

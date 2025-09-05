@@ -4,6 +4,7 @@
   "plugins": ["@typescript-eslint", "prettier"],
   "rules": {
     "no-undef": "off",
+    "no-constructor-return": "off",
     "prettier/prettier": ["error", { "semi": true }],
     "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
     "eol-last": ["error", "always"],

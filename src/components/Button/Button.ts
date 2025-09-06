@@ -6,6 +6,7 @@ import styles from "./Button.module.sass";
 export interface ButtonProps extends BaseProps {
   label: string;
   type?: "button" | "submit" | "reset";
+  disabled?: boolean;
   onClick?: (e: Event) => void;
 }
 
@@ -24,7 +25,7 @@ export class Button extends Block<ButtonProps> {
 
   override render() {
     return `
-      <button class="{{styles.button}}" type="{{type}}">
+      <button class="{{styles.button}}" type="{{type}}" {{#if disabled}}disabled{{/if}}>
         {{label}}
       </button>
     `;

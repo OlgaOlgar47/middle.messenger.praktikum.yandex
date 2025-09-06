@@ -1,6 +1,7 @@
 import Block from "@/framework/Block";
 import { Input } from "@/components/Input";
 import { Button } from "@/components/Button";
+import { BackButton } from "@/components/BackButton";
 import { createFormSubmitHandler } from "@/utils/formUtils";
 import type { BaseProps, User, UpdateProfileData } from "@/types";
 import { UserController } from "@/controllers/UserController";
@@ -15,6 +16,7 @@ interface SettingsProps extends BaseProps {
   onSubmit?: (formData: Record<string, string>) => void;
   fields?: Input[];
   button?: Button;
+  backButton?: BackButton;
   settingsStyles?: unknown;
   originalUser?: User | null;
 }
@@ -35,6 +37,12 @@ export class Settings extends Block<SettingsProps> {
         className: styles.button,
         disabled: true,
       }),
+      backButton: new BackButton({
+        label: "Назад",
+        onClick: () => {
+          window.location.href = "/profile";
+        },
+      }),
       events: {},
     });
   }
@@ -44,13 +52,18 @@ export class Settings extends Block<SettingsProps> {
     const fields = this.createFields(this.props.user);
     this.setProps({ fields });
 
-    // Добавляем обработчики для отслеживания изменений
-    this.addChangeListeners(fields);
-
     // Создаем обработчики событий
     this.props.events = {
       submit: createFormSubmitHandler(fields, this.handleSubmit.bind(this)),
     };
+
+    // Добавляем обработчики для отслеживания изменений
+    this.addChangeListeners(fields);
+
+    // Если user уже есть, обновляем поля
+    if (this.props.user) {
+      this.updateFields(this.props.user);
+    }
   }
 
   // Создаем поля формы (убираем дублирование)
@@ -125,7 +138,7 @@ export class Settings extends Block<SettingsProps> {
     // Обновляем поля в компоненте
     this.setProps({ fields: newFields });
 
-    // Пересоздаем обработчики событий
+    // Создаем обработчики событий
     this.props.events = {
       submit: createFormSubmitHandler(newFields, this.handleSubmit.bind(this)),
     };
@@ -191,6 +204,12 @@ export class Settings extends Block<SettingsProps> {
   }
 
   private async handleSubmit(formData: Record<string, string>) {
+    // Предотвращаем двойной сабмит
+    const submitButton = this.element?.querySelector('button[type="submit"]') as HTMLButtonElement;
+    if (submitButton?.disabled) {
+      return;
+    }
+
     // Проверяем, есть ли изменения
     const { originalUser } = this.props;
     if (!originalUser) {
@@ -198,16 +217,9 @@ export class Settings extends Block<SettingsProps> {
       return;
     }
 
-    // Сравниваем данные
-    const hasChanges = Object.keys(formData).some((key) => {
-      const currentValue = formData[key];
-      const originalValue = String(originalUser[key as keyof User] || "");
-      return currentValue !== originalValue;
-    });
-
-    if (!hasChanges) {
-      Toast.info("Нет изменений для сохранения");
-      return;
+    // Блокируем кнопку на время отправки
+    if (submitButton) {
+      submitButton.disabled = true;
     }
 
     try {
@@ -222,12 +234,14 @@ export class Settings extends Block<SettingsProps> {
 
       await UserController.updateProfile(updateData);
       Toast.success("Профиль успешно обновлен");
-
-      // Перенаправляем обратно в профиль
-      window.location.hash = "/profile";
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Ошибка при обновлении профиля";
       Toast.error(errorMessage);
+
+      // Разблокируем кнопку при ошибке
+      if (submitButton) {
+        submitButton.disabled = false;
+      }
     }
   }
 
@@ -243,7 +257,8 @@ export class Settings extends Block<SettingsProps> {
               <li>{{{this}}}</li>
             {{/each}}
           </ul>
-            {{{button}}}
+          {{{button}}}
+          {{{backButton}}}
         </form>
       </div>
     `;

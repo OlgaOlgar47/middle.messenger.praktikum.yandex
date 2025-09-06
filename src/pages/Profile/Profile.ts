@@ -1,6 +1,6 @@
 import Block from "@/framework/Block";
 import { Link } from "@/components/Link";
-import { RoundButton } from "@/components/RoundButton";
+import { BackButton } from "@/components/BackButton";
 import type { BaseProps, User } from "@/types";
 import { AuthController } from "@/controllers/AuthController";
 import { Toast } from "@/utils/toast";
@@ -10,7 +10,7 @@ import styles from "./Profile.module.sass";
 
 export interface ProfileProps extends BaseProps {
   user?: User | null;
-  roundButton?: RoundButton;
+  backButton?: BackButton;
   changeDataLink?: Link;
   changePasswordLink?: Link;
   logoutLink?: Link;
@@ -21,7 +21,12 @@ export class Profile extends Block<ProfileProps> {
     super("div", {
       ...props,
       styles,
-      roundButton: new RoundButton({ icon: "arrow-left" }),
+      backButton: new BackButton({
+        label: "Назад",
+        onClick: () => {
+          window.location.href = "/#/chats";
+        },
+      }),
       changeDataLink: new Link({
         href: "/settings",
         label: "Изменить данные",
@@ -62,9 +67,6 @@ export class Profile extends Block<ProfileProps> {
     if (!user) {
       return `
         <div class="{{styles.container}}">
-          <div class="{{styles.sidebar}}">
-            {{{roundButton}}}
-          </div>
           <div class="{{styles.profileWrapper}}">
             <div class="{{styles.profile}}">
               <div class="{{styles.loading}}">Загрузка...</div>
@@ -76,9 +78,6 @@ export class Profile extends Block<ProfileProps> {
 
     return `
       <div class="{{styles.container}}">
-        <div class="{{styles.sidebar}}">
-          {{{roundButton}}}
-        </div>
         <div class="{{styles.profileWrapper}}">
           <div class="{{styles.profile}}">
             <label for="avatar-upload" class="{{styles.avatar}}">
@@ -102,6 +101,7 @@ export class Profile extends Block<ProfileProps> {
               {{{changeDataLink}}}
               {{{changePasswordLink}}}
               {{{logoutLink}}}
+              {{{backButton}}}
             </div>
           </div>
         </div>

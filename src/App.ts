@@ -4,6 +4,7 @@ import { Register } from "./pages/Register";
 import { ChatList } from "./pages/ChatList";
 import { ConnectedProfile } from "./pages/Profile";
 import { ConnectedSettings } from "./pages/Settings";
+import { ChangePassword } from "./pages/ChangePassword";
 import { PageNotFound } from "./pages/PageNotFound";
 import { ServerError } from "./pages/ServerError";
 import { AuthController } from "./controllers/AuthController";
@@ -15,6 +16,7 @@ router
   .use("/sign-up", Register)
   .use("/register", Register)
   .use("/settings", ConnectedSettings)
+  .use("/changePassword", ChangePassword)
   .use("/messenger", ChatList)
   .use("/profile", ConnectedProfile)
   .use("/404", PageNotFound)
@@ -34,7 +36,11 @@ export class App {
       }
     } catch {
       // Пользователь НЕ авторизован - проверяем доступ к приватным страницам
-      if (["/messenger", "/settings", "/profile"].includes(window.location.pathname)) {
+      if (
+        ["/messenger", "/settings", "/profile", "/changePassword"].includes(
+          window.location.pathname
+        )
+      ) {
         router.go("/");
       }
     }

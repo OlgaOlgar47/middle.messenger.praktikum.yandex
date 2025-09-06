@@ -234,6 +234,9 @@ export class Settings extends Block<SettingsProps> {
 
       await UserController.updateProfile(updateData);
       Toast.success("Профиль успешно обновлен");
+      setTimeout(() => {
+        window.location.href = "/profile";
+      }, 1000);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Ошибка при обновлении профиля";
       Toast.error(errorMessage);

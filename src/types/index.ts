@@ -25,7 +25,7 @@ export type User = {
   display_name: string;
   phone: string;
   login: string;
-  avatar: string | null;
+  avatar: string;
   email: string;
 };
 

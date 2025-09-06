@@ -7,6 +7,7 @@ interface InputProps {
   type?: string;
   name: string;
   placeholder?: string;
+  value?: string;
   className?: string;
   required?: boolean;
   ariaLabel?: string;
@@ -83,6 +84,7 @@ export class Input extends Block<InputProps> {
           type="{{type}}"
           name="{{name}}"
           placeholder="{{placeholder}}"
+          value="{{value}}"
           class="{{styles.input}} {{className}}"
           {{#if required}}required{{/if}}
           {{#if ariaLabel}}aria-label="{{ariaLabel}}"{{/if}}

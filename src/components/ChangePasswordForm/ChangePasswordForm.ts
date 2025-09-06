@@ -1,8 +1,5 @@
 import Block from "@/framework/Block";
-import { Input } from "@/components/Input";
-import { Button } from "@/components/Button";
 import { UserController } from "@/controllers/UserController";
-import { createFormSubmitHandler } from "@/utils/formUtils";
 
 import styles from "./ChangePasswordForm.module.sass";
 
@@ -17,25 +14,26 @@ export class ChangePasswordForm extends Block<ChangePasswordFormProps> {
     super("form", {
       ...props,
       styles,
-      events: {
-        submit: (e: Event) => {
-          e.preventDefault();
-          this.handleSubmit();
-        },
-      },
     });
   }
 
   protected init(): void {
-    const inputs = [
-      this.children.oldPassword,
-      this.children.newPassword,
-      this.children.confirmPassword,
-    ] as Input[];
+    // Обработчик submit настраивается через createFormSubmitHandler
+    const form = this.element as HTMLFormElement;
+    if (form) {
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        this.handleFormSubmit();
+      });
+    }
+  }
 
-    this.props.events = {
-      submit: createFormSubmitHandler(inputs, this.handleSubmit.bind(this)),
-    };
+  private async handleFormSubmit() {
+    const form = this.element as HTMLFormElement;
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries()) as Record<string, string>;
+
+    await this.handleSubmit(data);
   }
 
   private async handleSubmit(formData: Record<string, string>) {

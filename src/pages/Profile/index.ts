@@ -1,1 +1,1 @@
-export { Profile } from "./Profile";
+export { Profile, ConnectedProfile } from "./Profile";

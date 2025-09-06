@@ -3,6 +3,7 @@
   "parser": "@typescript-eslint/parser",
   "plugins": ["@typescript-eslint", "prettier"],
   "rules": {
+    "no-console": "off",
     "no-undef": "off",
     "no-constructor-return": "off",
     "prettier/prettier": ["error", { "semi": true }],

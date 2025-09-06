@@ -10,7 +10,7 @@ export const AuthController = {
       return user;
     } catch (error) {
       // Логируем ошибку для отладки
-      console.error("Ошибка fetchUser:", error);
+      console.error("❌ Ошибка fetchUser:", error);
       throw error;
     }
   },

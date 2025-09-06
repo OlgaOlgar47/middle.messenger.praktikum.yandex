@@ -1,13 +1,15 @@
 import Block from "@/framework/Block";
 import { Link } from "@/components/Link";
 import { RoundButton } from "@/components/RoundButton";
-import type { BaseProps } from "@/types";
+import type { BaseProps, User } from "@/types";
 import { AuthController } from "@/controllers/AuthController";
 import { Toast } from "@/utils/toast";
+import { connect } from "@/store/connect";
 
 import styles from "./Profile.module.sass";
 
 export interface ProfileProps extends BaseProps {
+  user?: User | null;
   roundButton?: RoundButton;
   changeDataLink?: Link;
   changePasswordLink?: Link;
@@ -21,12 +23,12 @@ export class Profile extends Block<ProfileProps> {
       styles,
       roundButton: new RoundButton({ icon: "arrow-left" }),
       changeDataLink: new Link({
-        href: "#/settings",
+        href: "/settings",
         label: "Изменить данные",
         className: styles.link,
       }),
       changePasswordLink: new Link({
-        href: "#/changePassword",
+        href: "/changePassword",
         label: "Изменить пароль",
         className: styles.link,
       }),
@@ -55,6 +57,23 @@ export class Profile extends Block<ProfileProps> {
   }
 
   override render() {
+    const { user } = this.props || {};
+
+    if (!user) {
+      return `
+        <div class="{{styles.container}}">
+          <div class="{{styles.sidebar}}">
+            {{{roundButton}}}
+          </div>
+          <div class="{{styles.profileWrapper}}">
+            <div class="{{styles.profile}}">
+              <div class="{{styles.loading}}">Загрузка...</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
     return `
       <div class="{{styles.container}}">
         <div class="{{styles.sidebar}}">
@@ -64,15 +83,20 @@ export class Profile extends Block<ProfileProps> {
           <div class="{{styles.profile}}">
             <label for="avatar-upload" class="{{styles.avatar}}">
               <input type="file" name="avatar" id="avatar-upload" class="{{styles.fileInput}}" />
+              ${
+                user.avatar
+                  ? `<img src="${user.avatar}" alt="Аватар" class="{{styles.avatarImage}}" />`
+                  : ""
+              }
             </label>
-            <div class="{{styles.name}}">Иван</div>
+            <div class="{{styles.name}}">${user.display_name || user.first_name}</div>
             <ul class="{{styles.infoList}}">
-              <li><span>Почта</span><span>pochta@yandex.ru</span></li>
-              <li><span>Логин</span><span>ivanivanov</span></li>
-              <li><span>Имя</span><span>Иван</span></li>
-              <li><span>Фамилия</span><span>Иванов</span></li>
-              <li><span>Имя в чате</span><span>Иван</span></li>
-              <li><span>Телефон</span><span>+7 (909) 967 30 30</span></li>
+              <li><span>Почта</span><span>${user.email}</span></li>
+              <li><span>Логин</span><span>${user.login}</span></li>
+              <li><span>Имя</span><span>${user.first_name}</span></li>
+              <li><span>Фамилия</span><span>${user.second_name}</span></li>
+              <li><span>Имя в чате</span><span>${user.display_name || user.first_name}</span></li>
+              <li><span>Телефон</span><span>${user.phone}</span></li>
             </ul>
             <div class="{{styles.actions}}">
               {{{changeDataLink}}}
@@ -85,3 +109,10 @@ export class Profile extends Block<ProfileProps> {
     `;
   }
 }
+
+// HOC для подключения к store
+const mapStateToProps = (state: { user: any }) => ({
+  user: state.user as User | null,
+});
+
+export const ConnectedProfile = connect(mapStateToProps)(Profile);

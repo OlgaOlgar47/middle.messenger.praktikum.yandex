@@ -17,10 +17,19 @@ class Store extends EventBus {
   }
 
   public set(path: string, value: unknown) {
-    setByPath(this.state as Indexed, path, value);
+    console.log("🔧 Store.set called:", { path, value, currentState: this.state });
+    this.state = setByPath(this.state as Indexed, path, value) as State;
+    console.log("🔧 Store.set result:", this.state);
     this.emit(StoreEvents.Updated);
   }
 }
 
 const store = new Store();
+
+// Добавляем глобальную функцию для отладки
+(window as any).getStoreState = () => {
+  console.log("📊 Current store state:", store.getState());
+  return store.getState();
+};
+
 export default store;

@@ -6,7 +6,6 @@ import { AuthController } from "@/controllers/AuthController";
 import { UserController } from "@/controllers/UserController";
 import { Toast } from "@/utils/toast";
 import { connect } from "@/store/connect";
-import { getApiUrl } from "@/config/api";
 
 import styles from "./Profile.module.sass";
 
@@ -101,11 +100,6 @@ export class Profile extends Block<ProfileProps> {
 
   override render() {
     const { user } = this.props || {};
-    console.log("🖼️ Profile render - user:", user);
-    if (user?.avatar) {
-      const avatarUrl = `https://ya-praktikum.tech/api/v2/resources${user.avatar}`;
-      console.log("🖼️ Avatar URL:", avatarUrl);
-    }
 
     if (!user) {
       return `
@@ -133,7 +127,9 @@ export class Profile extends Block<ProfileProps> {
               />
               ${
                 user.avatar
-                  ? `<img src="https://ya-praktikum.tech/api/v2/resources${user.avatar}" alt="Аватар" class="{{styles.avatarImage}}" />`
+                  ? `<img src="https://ya-praktikum.tech/api/v2/resources${user.avatar}"
+                       alt="Аватар"
+                       class="{{styles.avatarImage}}" />`
                   : ""
               }
             </label>

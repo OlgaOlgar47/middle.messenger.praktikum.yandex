@@ -1,4 +1,4 @@
-import { UsersAPI } from "@/api/auth";
+import { UsersAPI } from "@/api/users";
 import { Store } from "@/store";
 import { Toast } from "@/utils/toast";
 import type { UpdateProfileData, ChangePasswordData } from "@/types";
@@ -25,10 +25,12 @@ export const UserController = {
       formData.append("avatar", file);
 
       const response = await UsersAPI.updateAvatar(formData);
+      console.log("🖼️ Avatar update response:", response);
 
       // Обновляем данные пользователя в store
       const currentUser = Store.getState().user;
       if (currentUser) {
+        console.log("🖼️ Updating user avatar in store:", response.avatar);
         Store.set("user", { ...currentUser, avatar: response.avatar });
       }
 

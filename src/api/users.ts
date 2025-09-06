@@ -1,10 +1,15 @@
-// api/users.ts (минимум)
 import { HTTPTransport } from "@/framework/HTTPTransport";
+import type { UpdateProfileData, ChangePasswordData, AvatarResponse, User } from "@/types";
 
-const http = new HTTPTransport("/api"); // или полный baseURL
+const http = new HTTPTransport();
+
 export const UsersAPI = {
-  updateProfile: (data: any) => http.put("/user/profile", { data }),
-  updateAvatar: (form: FormData) => http.put("/user/profile/avatar", { data: form }),
-  changePassword: (data: { oldPassword: string; newPassword: string }) =>
-    http.put("/user/password", { data }),
+  getUser: (): Promise<User> => http.get("/auth/user"),
+
+  updateProfile: (data: UpdateProfileData): Promise<User> => http.put("/user/profile", { data }),
+
+  updateAvatar: (form: FormData): Promise<AvatarResponse> =>
+    http.put("/user/profile/avatar", { data: form }),
+
+  changePassword: (data: ChangePasswordData): Promise<void> => http.put("/user/password", { data }),
 };

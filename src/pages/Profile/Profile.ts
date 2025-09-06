@@ -3,8 +3,10 @@ import { Link } from "@/components/Link";
 import { BackButton } from "@/components/BackButton";
 import type { BaseProps, User } from "@/types";
 import { AuthController } from "@/controllers/AuthController";
+import { UserController } from "@/controllers/UserController";
 import { Toast } from "@/utils/toast";
 import { connect } from "@/store/connect";
+import { getApiUrl } from "@/config/api";
 
 import styles from "./Profile.module.sass";
 
@@ -48,6 +50,14 @@ export class Profile extends Block<ProfileProps> {
           },
         },
       }),
+      events: {
+        change: (e: Event) => {
+          const target = e.target as HTMLInputElement;
+          if (target.name === "avatar") {
+            this.handleAvatarChange(e);
+          }
+        },
+      },
     });
   }
 
@@ -61,8 +71,41 @@ export class Profile extends Block<ProfileProps> {
     }
   }
 
+  private async handleAvatarChange(event: Event) {
+    const target = event.target as HTMLInputElement;
+    const file = target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    // Проверяем тип файла
+    if (!file.type.startsWith("image/")) {
+      Toast.error("Пожалуйста, выберите изображение");
+      return;
+    }
+
+    // Проверяем размер файла (максимум 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      Toast.error("Размер файла не должен превышать 5MB");
+      return;
+    }
+
+    try {
+      await UserController.updateAvatar(file);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Ошибка при обновлении аватара";
+      Toast.error(errorMessage);
+    }
+  }
+
   override render() {
     const { user } = this.props || {};
+    console.log("🖼️ Profile render - user:", user);
+    if (user?.avatar) {
+      const avatarUrl = `https://ya-praktikum.tech/api/v2/resources${user.avatar}`;
+      console.log("🖼️ Avatar URL:", avatarUrl);
+    }
 
     if (!user) {
       return `
@@ -81,10 +124,16 @@ export class Profile extends Block<ProfileProps> {
         <div class="{{styles.profileWrapper}}">
           <div class="{{styles.profile}}">
             <label for="avatar-upload" class="{{styles.avatar}}">
-              <input type="file" name="avatar" id="avatar-upload" class="{{styles.fileInput}}" />
+              <input
+                type="file"
+                name="avatar"
+                id="avatar-upload"
+                class="{{styles.fileInput}}"
+                accept="image/*"
+              />
               ${
                 user.avatar
-                  ? `<img src="${user.avatar}" alt="Аватар" class="{{styles.avatarImage}}" />`
+                  ? `<img src="https://ya-praktikum.tech/api/v2/resources${user.avatar}" alt="Аватар" class="{{styles.avatarImage}}" />`
                   : ""
               }
             </label>

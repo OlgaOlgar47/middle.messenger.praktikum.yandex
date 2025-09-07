@@ -7,6 +7,7 @@ export interface ButtonProps extends BaseProps {
   label: string;
   type?: "button" | "submit" | "reset";
   disabled?: boolean;
+  id?: string;
   onClick?: (e: Event) => void;
 }
 
@@ -25,7 +26,12 @@ export class Button extends Block<ButtonProps> {
 
   override render() {
     return `
-      <button class="{{styles.button}}" type="{{type}}" {{#if disabled}}disabled{{/if}}>
+      <button
+        class="{{styles.button}}"
+        type="{{type}}"
+        {{#if id}}id="{{id}}"{{/if}}
+        {{#if disabled}}disabled{{/if}}
+      >
         {{label}}
       </button>
     `;

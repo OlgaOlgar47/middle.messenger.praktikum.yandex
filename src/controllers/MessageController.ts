@@ -23,7 +23,7 @@ export class MessageController {
 
       // Устанавливаем обработчики сообщений
       webSocketService.onMessages((messages: Message[]) => {
-        // Загружаем историю сообщений
+        // Загружаем историю сообщений (может быть пустой массив)
         store.set(`messagesByChat.${chatId}`, messages);
       });
 

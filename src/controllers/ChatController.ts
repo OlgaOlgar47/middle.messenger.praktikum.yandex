@@ -5,6 +5,7 @@ import {
   type AddUserToChatData,
   type DeleteUserFromChatData,
 } from "@/api/chats";
+import { UsersAPI } from "@/api/users";
 import { Store } from "@/store";
 import { Toast } from "@/utils/toast";
 
@@ -51,9 +52,57 @@ export const ChatController = {
     }
   },
 
+  // Добавить пользователя в чат по логину
+  async addUsersToChat(chatId: number, logins: string[]): Promise<void> {
+    try {
+      // Сначала ищем пользователей по логинам
+      const users = await Promise.all(
+        logins.map(async (login) => {
+          const foundUsers = await UsersAPI.searchUsers(login);
+          if (foundUsers.length === 0) {
+            throw new Error(`Пользователь с логином "${login}" не найден`);
+          }
+          return foundUsers[0];
+        })
+      );
+
+      // Добавляем найденных пользователей в чат
+      const userIds = users.map((user) => user.id);
+      const data: AddUserToChatData = { users: userIds, chatId };
+      await ChatsAPI.addUsersToChat(data);
+      Toast.success("Пользователи добавлены в чат");
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Ошибка добавления пользователей";
+      Toast.error(errorMessage);
+      throw error;
+    }
+  },
+
   // Удалить пользователя из чата
   async removeUserFromChat(chatId: number, userId: number): Promise<void> {
     try {
+      const data: DeleteUserFromChatData = { users: [userId], chatId };
+      await ChatsAPI.deleteUsersFromChat(data);
+      Toast.success("Пользователь удален из чата");
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Ошибка удаления пользователя";
+      Toast.error(errorMessage);
+      throw error;
+    }
+  },
+
+  // Удалить пользователя из чата по логину
+  async removeUserFromChatByLogin(chatId: number, login: string): Promise<void> {
+    try {
+      // Сначала ищем пользователя по логину
+      const foundUsers = await UsersAPI.searchUsers(login);
+      if (foundUsers.length === 0) {
+        throw new Error(`Пользователь с логином "${login}" не найден`);
+      }
+
+      // Удаляем найденного пользователя из чата
+      const userId = foundUsers[0].id;
       const data: DeleteUserFromChatData = { users: [userId], chatId };
       await ChatsAPI.deleteUsersFromChat(data);
       Toast.success("Пользователь удален из чата");

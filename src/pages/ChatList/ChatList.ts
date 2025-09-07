@@ -19,6 +19,12 @@ interface ChatListProps extends BaseProps {
   roundButton?: RoundButton;
   createChatButton?: Button;
   createChatModal?: Modal;
+  addUserButton?: Button;
+  addUserModal?: Modal;
+  removeUserButton?: Button;
+  removeUserModal?: Modal;
+  chatMenuButton?: Button;
+  chatMenuDropdown?: HTMLElement;
   selectedChatId?: number;
 }
 
@@ -44,8 +50,10 @@ export class ChatList extends Block<ChatListProps> {
       }),
       roundButton: new RoundButton({
         icon: "arrow-right",
-        events: {
-          click: () => this.handleSendMessage(),
+        type: "submit",
+        onClick: (e: Event) => {
+          e.preventDefault();
+          this.handleSendMessage();
         },
       }),
       createChatButton: new Button({
@@ -54,7 +62,6 @@ export class ChatList extends Block<ChatListProps> {
         events: {
           click: (e: Event) => {
             e.preventDefault();
-            console.log("🔘 Кнопка 'Создать чат' нажата");
             this.openCreateChatModal();
           },
         },
@@ -65,6 +72,31 @@ export class ChatList extends Block<ChatListProps> {
         inputPlaceholder: "Введите название чата",
         submitButtonLabel: "Создать",
         onSubmit: (title: string) => this.handleCreateChat(title),
+      }),
+      chatMenuButton: new Button({
+        label: "⋮",
+        className: styles.chatMenuButton,
+        id: "chat-menu-button",
+        events: {
+          click: (e: Event) => {
+            e.preventDefault();
+            this.toggleChatMenu();
+          },
+        },
+      }),
+      addUserModal: new Modal({
+        title: "Добавить пользователя в чат",
+        inputLabel: "Логин пользователя",
+        inputPlaceholder: "Введите логин пользователя",
+        submitButtonLabel: "Добавить",
+        onSubmit: (login: string) => this.handleAddUser(login),
+      }),
+      removeUserModal: new Modal({
+        title: "Удалить пользователя из чата",
+        inputLabel: "Логин пользователя",
+        inputPlaceholder: "Введите логин пользователя",
+        submitButtonLabel: "Удалить",
+        onSubmit: (login: string) => this.handleRemoveUser(login),
       }),
       events: {
         click: (e: Event) => this.handleChatClick(e),
@@ -81,21 +113,16 @@ export class ChatList extends Block<ChatListProps> {
       // Кнопка создания чата
       const createButton = this.element?.querySelector("button");
       if (createButton) {
-        console.log("🔍 Create button found, adding event listener");
         createButton.addEventListener("click", (e) => {
-          console.log("🔘 Create button click event fired!");
           e.preventDefault();
           this.openCreateChatModal();
         });
-      } else {
-        console.log("❌ Create button not found in DOM");
       }
     }, 100);
   }
 
   // Метод для HOC - пересоздаем кнопку при обновлении store
   public updateFields() {
-    console.log("🔄 updateFields called");
     // Кнопка уже создана в конструкторе, ничего не делаем
   }
 
@@ -108,19 +135,66 @@ export class ChatList extends Block<ChatListProps> {
   }
 
   private openCreateChatModal() {
-    console.log("🔘 openCreateChatModal called");
-    console.log("🔘 createChatModal:", this.children.createChatModal);
-    console.log("🔘 createChatModal type:", typeof this.children.createChatModal);
     (this.children.createChatModal as Modal)?.open();
   }
 
+  private openAddUserModal() {
+    if (!this.props.selectedChatId) {
+      return;
+    }
+    (this.children.addUserModal as Modal)?.open();
+  }
+
+  private openRemoveUserModal() {
+    if (!this.props.selectedChatId) {
+      return;
+    }
+    (this.children.removeUserModal as Modal)?.open();
+  }
+
+  private toggleChatMenu() {
+    const dropdown = this.element?.querySelector(`.${styles.chatMenuDropdown}`) as HTMLElement;
+    if (dropdown) {
+      const isVisible = dropdown.style.display === "block";
+      dropdown.style.display = isVisible ? "none" : "block";
+      dropdown.style.visibility = isVisible ? "hidden" : "visible";
+    }
+  }
+
+  private closeChatMenu() {
+    const dropdown = this.element?.querySelector(`.${styles.chatMenuDropdown}`) as HTMLElement;
+    if (dropdown) {
+      dropdown.style.display = "none";
+    }
+  }
+
   private async handleCreateChat(title: string) {
-    console.log("🔘 handleCreateChat called with title:", title);
     try {
       await ChatController.createChat(title);
-      console.log("✅ Чат создан успешно");
     } catch (error) {
-      console.error("❌ Ошибка создания чата:", error);
+      console.error("Ошибка создания чата:", error);
+    }
+  }
+
+  private async handleAddUser(login: string) {
+    if (!this.props.selectedChatId) {
+      return;
+    }
+    try {
+      await ChatController.addUsersToChat(this.props.selectedChatId, [login]);
+    } catch (error) {
+      console.error("Ошибка добавления пользователя:", error);
+    }
+  }
+
+  private async handleRemoveUser(login: string) {
+    if (!this.props.selectedChatId) {
+      return;
+    }
+    try {
+      await ChatController.removeUserFromChatByLogin(this.props.selectedChatId, login);
+    } catch (error) {
+      console.error("Ошибка удаления пользователя:", error);
     }
   }
 
@@ -153,6 +227,7 @@ export class ChatList extends Block<ChatListProps> {
         // Привязываем события к кнопке отправки после рендера чата
         setTimeout(() => {
           this.attachMessageEvents();
+          this.attachChatMenuEvents();
         }, 100);
       } catch (error) {
         console.error("Ошибка подключения к чату:", error);
@@ -161,51 +236,29 @@ export class ChatList extends Block<ChatListProps> {
   }
 
   private handleSendMessage() {
-    console.log("🔘 handleSendMessage called");
-    console.log("🔘 this.props.selectedChatId:", this.props.selectedChatId);
-
-    // Ищем поле ввода напрямую в DOM
+    // Ищем поле ввода
     const inputElement = this.element?.querySelector('input[name="message"]') as HTMLInputElement;
-    console.log("🔘 inputElement from DOM:", inputElement);
-
     const message = inputElement?.value?.trim();
-    console.log("🔘 message:", message);
 
     if (message && this.props.selectedChatId) {
-      console.log("🔘 Sending message:", message, "to chat:", this.props.selectedChatId);
       // Отправляем сообщение через WebSocket
       messageController.sendMessage(message);
       inputElement.value = "";
-      console.log("🔘 Message sent successfully");
-    } else {
-      console.log("❌ No message or selectedChatId");
-      console.log("❌ message:", message);
-      console.log("❌ selectedChatId:", this.props.selectedChatId);
     }
   }
 
   private attachMessageEvents() {
     // Ищем все кнопки в форме
     const buttons = this.element?.querySelectorAll("button");
-    console.log("🔍 Found buttons:", buttons?.length);
 
     buttons?.forEach((button, index) => {
-      console.log(
-        `🔍 Button ${index}:`,
-        button.textContent?.trim(),
-        "type:",
-        button.getAttribute("type")
-      );
-
       // Ищем кнопку отправки по тексту, типу или позиции в форме
       if (
         button.textContent?.trim() === "→" ||
         button.getAttribute("type") === "submit" ||
         (index === 1 && button.closest("form")) // Вторая кнопка в форме
       ) {
-        console.log("🔍 Send button found, adding event listener");
         button.addEventListener("click", (e) => {
-          console.log("🔘 Send button click event fired!");
           e.preventDefault();
           this.handleSendMessage();
         });
@@ -215,21 +268,52 @@ export class ChatList extends Block<ChatListProps> {
     // Форма отправки сообщений
     const messageForm = this.element?.querySelector("form");
     if (messageForm) {
-      console.log("🔍 Message form found, adding event listener");
       messageForm.addEventListener("submit", (e) => {
-        console.log("🔘 Message form submit event fired!");
         e.preventDefault();
         this.handleSendMessage();
       });
-    } else {
-      console.log("❌ Message form not found in DOM");
     }
+  }
+
+  private attachChatMenuEvents() {
+    // Ищем кнопку меню чата по ID
+    const chatMenuButton = this.element?.querySelector("#chat-menu-button");
+    if (chatMenuButton) {
+      chatMenuButton.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.toggleChatMenu();
+      });
+    }
+
+    // Простое делегирование событий - как было раньше
+    this.element?.addEventListener("click", (e) => {
+      const target = e.target as HTMLElement;
+
+      if (target.id === "add-user-button" || target.closest("#add-user-button")) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.closeChatMenu();
+        this.openAddUserModal();
+      } else if (target.id === "remove-user-button" || target.closest("#remove-user-button")) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.closeChatMenu();
+        this.openRemoveUserModal();
+      }
+    });
+
+    // Закрываем меню при клике вне его
+    document.addEventListener("click", (e) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest(`.${styles.chatMenuDropdown}`) && !target.closest("#chat-menu-button")) {
+        this.closeChatMenu();
+      }
+    });
   }
 
   private updateMessages() {
     // Сообщения обновляются через store и HOC, нам не нужно вызывать setProps
-    console.log("📨 updateMessages called - messages will be updated via store");
-
     // Прокручиваем к последнему сообщению
     setTimeout(() => {
       const messageList = this.element?.querySelector(`.${styles.messageList}`);
@@ -273,6 +357,7 @@ export class ChatList extends Block<ChatListProps> {
 
     return `
       <div class="{{styles.wrapper}}">
+        <div class="{{styles.chatContainer}}">
         <div class="{{styles.chatList}}">
           <div class="{{styles.header}}">
             <img src="/images/logoURUS.svg" alt="Логотип" class="{{styles.logo}}" />
@@ -337,9 +422,24 @@ export class ChatList extends Block<ChatListProps> {
             selectedChatId
               ? `
             <div class="{{styles.chatHeader}}">
-              <h3>${selectedChat?.title || `Чат ${selectedChatId}`}</h3>
+              <div class="{{styles.chatTitle}}">${
+                selectedChat?.title || `Чат ${selectedChatId}`
+              }</div>
+              <div class="{{styles.chatMenu}}">
+                {{{chatMenuButton}}}
+                <div class="{{styles.chatMenuDropdown}}" style="display: none;">
+                  <div class="{{styles.addUserMenuItem}}" id="add-user-button">
+                    <div class="{{styles.addUserIcon}}">+</div>
+                    <span>Добавить пользователя</span>
+                  </div>
+                  <div class="{{styles.removeUserMenuItem}}" id="remove-user-button">
+                    <div class="{{styles.removeUserIcon}}">×</div>
+                    <span>Удалить пользователя</span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <ul class="{{styles.messageList}}">
+        <ul class="{{styles.messageList}}">
               ${
                 messages.length > 0
                   ? messages
@@ -350,20 +450,20 @@ export class ChatList extends Block<ChatListProps> {
                 }">
                   <div class="{{styles.messageText}}">${message.content}</div>
                   <div class="{{styles.messageTime}}">${this.formatTime(message.time)}</div>
-                </li>
+          </li>
               `
                       )
                       .join("")
                   : '<li class="{{styles.noMessages}}">Сообщения будут отображаться здесь</li>'
               }
-            </ul>
-            <form novalidate class="{{styles.messageForm}}">
-              <div class="{{styles.messageInputContainer}}">
-                <img src="/images/attach.svg" alt="Attachment-icon" class="{{styles.logo}}" />
-                {{{messageInput}}}
-                {{{roundButton}}}
-              </div>
-            </form>
+        </ul>
+          <form novalidate class="{{styles.messageForm}}">
+            <div class="{{styles.messageInputContainer}}">
+              <img src="/images/attach.svg" alt="Attachment-icon" class="{{styles.logo}}" />
+              {{{messageInput}}}
+              {{{roundButton}}}
+            </div>
+          </form>
           `
               : `
             <div class="{{styles.noChatSelected}}">
@@ -371,9 +471,12 @@ export class ChatList extends Block<ChatListProps> {
             </div>
           `
           }
+          </div>
         </div>
       </div>
       {{{createChatModal}}}
+      {{{addUserModal}}}
+      {{{removeUserModal}}}
     `;
   }
 }
@@ -385,6 +488,7 @@ const mapStateToProps = (state: {
   messagesByChat: Record<number, Message[]>;
 }) => {
   const id = state.selectedChatId;
+
   return {
     chats: state.chats,
     selectedChatId: id,

@@ -12,4 +12,6 @@ export const UsersAPI = {
     http.put("/user/profile/avatar", { data: form }),
 
   changePassword: (data: ChangePasswordData): Promise<void> => http.put("/user/password", { data }),
+
+  searchUsers: (login: string): Promise<User[]> => http.post("/user/search", { data: { login } }),
 };

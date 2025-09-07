@@ -11,14 +11,12 @@ export function connect<T extends any>(mapStateToProps: (state: State) => Record
 
         // Инициализируем компонент данными из store
         const initialState = mapStateToProps(store.getState());
-        console.log("🚀 HOC initialization, initialState:", initialState);
         // @ts-expect-error setProps может не существовать в типе
         this.setProps({ ...initialState });
 
         // Если есть метод updateFields и user уже есть в store, обновляем поля
         // @ts-expect-error updateFields может не существовать в типе
         if (this.updateFields && initialState.user) {
-          console.log("🚀 HOC initialization calling updateFields with user:", initialState.user);
           // @ts-expect-error updateFields может не существовать в типе
           this.updateFields(initialState.user);
         }
@@ -33,7 +31,6 @@ export function connect<T extends any>(mapStateToProps: (state: State) => Record
           // Если есть метод updateFields и user изменился, обновляем поля
           // @ts-expect-error updateFields может не существовать в типе
           if (this.updateFields && newProps.user) {
-            console.log("🔄 HOC calling updateFields with user:", newProps.user);
             // @ts-expect-error updateFields может не существовать в типе
             this.updateFields(newProps.user);
           }

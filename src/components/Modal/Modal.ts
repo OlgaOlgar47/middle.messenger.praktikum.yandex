@@ -54,23 +54,14 @@ export class Modal extends Block<ModalProps> {
 
   private handleSubmit(e: Event) {
     e.preventDefault();
-    console.log("🔘 handleSubmit called");
 
     // Ищем поле ввода напрямую в DOM модального окна
     const inputElement = this.element?.querySelector("input") as HTMLInputElement;
-    console.log("🔘 inputElement from DOM:", inputElement);
-
     const value = inputElement?.value?.trim();
-    console.log("🔘 Input value:", value);
 
     if (value && this.props.onSubmit) {
-      console.log("🔘 Calling onSubmit with value:", value);
       this.props.onSubmit(value);
       this.handleClose();
-    } else {
-      console.log("❌ No value or onSubmit callback");
-      console.log("❌ value:", value);
-      console.log("❌ onSubmit:", this.props.onSubmit);
     }
   }
 
@@ -89,16 +80,12 @@ export class Modal extends Block<ModalProps> {
   }
 
   public open() {
-    console.log("🔘 Modal.open() called");
-    console.log("🔘 Current isOpen:", this.props.isOpen);
     this.setProps({ isOpen: true });
-    console.log("🔘 After setProps isOpen:", this.props.isOpen);
 
     // Добавляем модальное окно в body
     setTimeout(() => {
       const modalElement = this.element;
       if (modalElement && document.body) {
-        console.log("🔘 Adding modal to body");
         document.body.appendChild(modalElement);
 
         // Привязываем события к кнопкам
@@ -129,10 +116,8 @@ export class Modal extends Block<ModalProps> {
     // Привязываем событие к кнопке закрытия
     const closeButton = this.element?.querySelector('[data-action="close"]');
     if (closeButton) {
-      console.log("🔘 Attaching close button event");
       closeButton.addEventListener("click", (e) => {
         e.preventDefault();
-        console.log("🔘 Close button clicked");
         this.handleClose();
       });
     }
@@ -143,7 +128,6 @@ export class Modal extends Block<ModalProps> {
       return "";
     }
 
-    console.log("🔘 Modal is open, rendering modal");
     return `
       <div class="{{styles.backdrop}}">
         <div class="{{styles.modal}}">

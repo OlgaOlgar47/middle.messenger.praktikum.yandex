@@ -4,9 +4,9 @@ import store from "@/store/Store";
 export class WebSocketService {
   private socket: WebSocket | null = null;
 
-  private chatId: number | null = null;
+  private _chatId: number | null = null;
 
-  private token: string | null = null;
+  private _token: string | null = null;
 
   private onMessageCallback: ((messages: Message[]) => void) | null = null;
 
@@ -25,8 +25,8 @@ export class WebSocketService {
       this.disconnect();
     }
 
-    this.chatId = chatId;
-    this.token = token;
+    this._chatId = chatId;
+    this._token = token;
 
     const userId = this.getCurrentUserId();
     const wsUrl = `wss://ya-praktikum.tech/ws/chats/${userId}/${chatId}/${token}`;
@@ -53,8 +53,8 @@ export class WebSocketService {
       this.socket.close();
       this.socket = null;
     }
-    this.chatId = null;
-    this.token = null;
+    this._chatId = null;
+    this._token = null;
   }
 
   // Отправка сообщения
@@ -148,6 +148,16 @@ export class WebSocketService {
   // Проверка состояния подключения
   isConnected(): boolean {
     return this.socket !== null && this.socket.readyState === WebSocket.OPEN;
+  }
+
+  // Получение текущего chatId
+  getCurrentChatId(): number | null {
+    return this._chatId;
+  }
+
+  // Получение текущего token
+  getCurrentToken(): string | null {
+    return this._token;
   }
 }
 

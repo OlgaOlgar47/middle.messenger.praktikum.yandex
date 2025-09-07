@@ -177,42 +177,45 @@
   list-style: none
   padding: 0
   margin: 0
+  display: flex
+  flex-direction: column
+  gap: 8px
 
 .messageItem
   display: flex
   flex-direction: column
   align-items: flex-start
-  margin: 8px 0
+  margin: 4px 0
 
-.isOwn
-  align-items: flex-end
+  &.isOwn
+    align-items: flex-end
 
-  .messageText
-    background: #e6ffe6
-    color: #222
-    align-self: flex-end
+    .messageText
+      background: #DCF8C6
+      color: #000
+      border-radius: 18px 18px 4px 18px
 
-
-  .messageTime
-    color: #6cff6c
-    align-self: flex-end
+    .messageTime
+      color: #667781
+      margin-right: 8px
+      margin-left: 0
 
 .messageText
-  background: #f1f0f0
-  border-radius: 16px
-  padding: 10px 16px
-  font-size: 16px
-  max-width: 60vw
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03)
-  margin-bottom: 2px
-
+  background: #FFFFFF
+  border-radius: 18px 18px 18px 4px
+  padding: 8px 12px
+  font-size: 14px
+  max-width: 70%
+  word-wrap: break-word
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1)
+  border: 1px solid #E5E5EA
 
 .messageTime
-  font-size: 13px
-  color: #9eb89e
+  font-size: 11px
+  color: #667781
   margin-top: 2px
   margin-left: 8px
-  text-align: right
+  text-align: left
 
 .noChats
   text-align: center

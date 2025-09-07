@@ -3,17 +3,13 @@ import { Input } from "@/components/Input";
 import { RoundButton } from "@/components/RoundButton";
 import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
-import type { BaseProps, Chat } from "@/types";
+import type { BaseProps, Chat, Message } from "@/types";
 import { ChatController } from "@/controllers/ChatController";
+import { messageController } from "@/controllers/MessageController";
 import { connect } from "@/store/connect";
+import store from "@/store/Store";
 
 import styles from "./ChatList.module.sass";
-
-interface Message {
-  text: string;
-  time: string;
-  isOwn: boolean;
-}
 
 interface ChatListProps extends BaseProps {
   chats?: Chat[];
@@ -80,18 +76,19 @@ export class ChatList extends Block<ChatListProps> {
     // Загружаем чаты при инициализации
     this.loadChats();
 
-    // Привязываем события к кнопке после рендера
+    // Привязываем события к кнопкам после рендера
     setTimeout(() => {
-      const button = this.element?.querySelector("button");
-      if (button) {
-        console.log("🔍 Button found, adding event listener");
-        button.addEventListener("click", (e) => {
-          console.log("🔘 Direct button click event fired!");
+      // Кнопка создания чата
+      const createButton = this.element?.querySelector("button");
+      if (createButton) {
+        console.log("🔍 Create button found, adding event listener");
+        createButton.addEventListener("click", (e) => {
+          console.log("🔘 Create button click event fired!");
           e.preventDefault();
           this.openCreateChatModal();
         });
       } else {
-        console.log("❌ Button not found in DOM");
+        console.log("❌ Create button not found in DOM");
       }
     }, 100);
   }
@@ -137,23 +134,119 @@ export class ChatList extends Block<ChatListProps> {
     }
   }
 
-  private selectChat(chatId: number) {
+  private async selectChat(chatId: number) {
     this.setProps({ selectedChatId: chatId });
-    // Здесь можно добавить логику для загрузки сообщений чата
+
+    // Подключаемся к чату через WebSocket
+    try {
+      await messageController.connectToChat(chatId);
+      // Обновляем сообщения
+      this.updateMessages();
+
+      // Привязываем события к кнопке отправки после рендера чата
+      setTimeout(() => {
+        this.attachMessageEvents();
+      }, 100);
+    } catch (error) {
+      console.error("Ошибка подключения к чату:", error);
+    }
   }
 
   private handleSendMessage() {
-    const { messageInput } = this.props;
-    if (messageInput) {
-      const inputElement = messageInput.element?.querySelector("input") as HTMLInputElement;
-      const message = inputElement?.value?.trim();
+    console.log("🔘 handleSendMessage called");
+    console.log("🔘 this.props.selectedChatId:", this.props.selectedChatId);
 
-      if (message && this.props.selectedChatId) {
-        // Здесь будет логика отправки сообщения
-        console.log("Отправка сообщения:", message, "в чат:", this.props.selectedChatId);
-        inputElement.value = "";
-      }
+    // Ищем поле ввода напрямую в DOM
+    const inputElement = this.element?.querySelector('input[name="message"]') as HTMLInputElement;
+    console.log("🔘 inputElement from DOM:", inputElement);
+
+    const message = inputElement?.value?.trim();
+    console.log("🔘 message:", message);
+
+    if (message && this.props.selectedChatId) {
+      console.log("🔘 Sending message:", message, "to chat:", this.props.selectedChatId);
+      // Отправляем сообщение через WebSocket
+      messageController.sendMessage(message);
+      inputElement.value = "";
+      console.log("🔘 Message sent successfully");
+    } else {
+      console.log("❌ No message or selectedChatId");
+      console.log("❌ message:", message);
+      console.log("❌ selectedChatId:", this.props.selectedChatId);
     }
+  }
+
+  private attachMessageEvents() {
+    // Ищем все кнопки в форме
+    const buttons = this.element?.querySelectorAll("button");
+    console.log("🔍 Found buttons:", buttons?.length);
+
+    buttons?.forEach((button, index) => {
+      console.log(
+        `🔍 Button ${index}:`,
+        button.textContent?.trim(),
+        "type:",
+        button.getAttribute("type")
+      );
+
+      // Ищем кнопку отправки по тексту, типу или позиции в форме
+      if (
+        button.textContent?.trim() === "→" ||
+        button.getAttribute("type") === "submit" ||
+        (index === 1 && button.closest("form")) // Вторая кнопка в форме
+      ) {
+        console.log("🔍 Send button found, adding event listener");
+        button.addEventListener("click", (e) => {
+          console.log("🔘 Send button click event fired!");
+          e.preventDefault();
+          this.handleSendMessage();
+        });
+      }
+    });
+
+    // Форма отправки сообщений
+    const messageForm = this.element?.querySelector("form");
+    if (messageForm) {
+      console.log("🔍 Message form found, adding event listener");
+      messageForm.addEventListener("submit", (e) => {
+        console.log("🔘 Message form submit event fired!");
+        e.preventDefault();
+        this.handleSendMessage();
+      });
+    } else {
+      console.log("❌ Message form not found in DOM");
+    }
+  }
+
+  private updateMessages() {
+    const messages = messageController.getMessages();
+    this.setProps({ messages });
+
+    // Прокручиваем к последнему сообщению
+    setTimeout(() => {
+      const messageList = this.element?.querySelector(`.${styles.messageList}`);
+      if (messageList) {
+        messageList.scrollTop = messageList.scrollHeight;
+      }
+    }, 100);
+  }
+
+  private getCurrentUserId(): number {
+    // Получаем ID текущего пользователя из store
+    const state = store.getState();
+
+    if (state.user && state.user.id) {
+      return state.user.id;
+    }
+
+    // Fallback на localStorage
+    const userData = localStorage.getItem("user");
+    if (userData) {
+      const user = JSON.parse(userData);
+      return user.id;
+    }
+
+    return 0; // Fallback значение
   }
 
   private formatTime(timeString: string): string {
@@ -165,7 +258,10 @@ export class ChatList extends Block<ChatListProps> {
   }
 
   override render() {
-    const { chats = [], selectedChatId } = this.props;
+    const { chats = [], selectedChatId, messages = [] } = this.props;
+
+    // Находим выбранный чат
+    const selectedChat = chats.find((chat) => chat.id === selectedChatId);
 
     return `
       <div class="{{styles.wrapper}}">
@@ -233,10 +329,25 @@ export class ChatList extends Block<ChatListProps> {
             selectedChatId
               ? `
             <div class="{{styles.chatHeader}}">
-              <h3>Чат ${selectedChatId}</h3>
+              <h3>${selectedChat?.title || `Чат ${selectedChatId}`}</h3>
             </div>
             <ul class="{{styles.messageList}}">
-              <li class="{{styles.noMessages}}">Сообщения будут отображаться здесь</li>
+              ${
+                messages.length > 0
+                  ? messages
+                      .map(
+                        (message) => `
+                <li class="{{styles.messageItem}} ${
+                  message.user_id === this.getCurrentUserId() ? "{{styles.isOwn}}" : ""
+                }">
+                  <div class="{{styles.messageText}}">${message.content}</div>
+                  <div class="{{styles.messageTime}}">${this.formatTime(message.time)}</div>
+                </li>
+              `
+                      )
+                      .join("")
+                  : '<li class="{{styles.noMessages}}">Сообщения будут отображаться здесь</li>'
+              }
             </ul>
             <form novalidate class="{{styles.messageForm}}">
               <div class="{{styles.messageInputContainer}}">
@@ -262,6 +373,7 @@ export class ChatList extends Block<ChatListProps> {
 // HOC для подключения к store
 const mapStateToProps = (state: any) => ({
   chats: (state.chats || []) as Chat[],
+  messages: (state.messages || []) as Message[],
 });
 
 export const ConnectedChatList = connect(mapStateToProps)(ChatList);

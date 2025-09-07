@@ -98,3 +98,21 @@ export type ChatUser = {
   avatar: string | null;
   role: string;
 };
+
+export type Message = {
+  id: number;
+  user_id: number;
+  chat_id: number;
+  type: string;
+  time: string;
+  content: string;
+  file?: {
+    id: number;
+    user_id: number;
+  };
+};
+
+export type SendMessageData = {
+  content: string;
+  type?: string;
+};

@@ -53,3 +53,48 @@ export type AvatarResponse = {
   phone: string;
   avatar: string;
 };
+
+export type Chat = {
+  id: number;
+  title: string;
+  avatar: string | null;
+  unread_count: number;
+  last_message: {
+    user: {
+      first_name: string;
+      second_name: string;
+      avatar: string | null;
+      email: string;
+      login: string;
+      phone: string;
+    };
+    time: string;
+    content: string;
+  } | null;
+};
+
+export type CreateChatData = {
+  title: string;
+};
+
+export type AddUserToChatData = {
+  users: number[];
+  chatId: number;
+};
+
+export type DeleteUserFromChatData = {
+  users: number[];
+  chatId: number;
+};
+
+export type ChatUser = {
+  id: number;
+  first_name: string;
+  second_name: string;
+  display_name: string | null;
+  login: string;
+  email: string;
+  phone: string;
+  avatar: string | null;
+  role: string;
+};

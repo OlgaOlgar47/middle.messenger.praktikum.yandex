@@ -1,6 +1,6 @@
 import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
-import { ChatList } from "./pages/ChatList";
+import { ConnectedChatList } from "./pages/ChatList";
 import { ConnectedProfile } from "./pages/Profile";
 import { ConnectedSettings } from "./pages/Settings";
 import { PageNotFound } from "./pages/PageNotFound";
@@ -20,7 +20,7 @@ export function renderRoute(): Block | string {
     case "#/register":
       return new Register({});
     case "#/chats":
-      return new ChatList({});
+      return new (ConnectedChatList as any)({});
     case "#/profile":
       return new (ConnectedProfile as any)({});
     case "#/settings":

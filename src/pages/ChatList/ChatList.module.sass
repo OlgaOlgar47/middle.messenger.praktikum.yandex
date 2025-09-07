@@ -74,6 +74,24 @@
 .searchContainer
   margin: 10px 0
 
+.createChatContainer
+  margin: 10px 0
+  padding: 10px 0
+
+.createChatButton
+  width: 100%
+  background-color: $secondary-color
+  color: white
+  border: none
+  border-radius: 5px
+  padding: 10px
+  font-size: 14px
+  cursor: pointer
+  transition: background-color 0.2s
+
+  &:hover
+    background-color: color.adjust($secondary-color, $lightness: -10%)
+
 .searchInputWithIcon
   font-family: inherit
   padding-left: 36px
@@ -195,3 +213,35 @@
   margin-top: 2px
   margin-left: 8px
   text-align: right
+
+.noChats
+  text-align: center
+  color: $secondary-text-color
+  font-size: 14px
+  padding: 20px
+  font-style: italic
+
+.noChatSelected
+  display: flex
+  align-items: center
+  justify-content: center
+  height: 100%
+  color: $secondary-text-color
+  font-size: 16px
+
+.chatHeader
+  padding: 20px
+  border-bottom: 1px solid $border-color
+  background-color: white
+
+  h3
+    margin: 0
+    font-size: 18px
+    color: $text-color
+
+.noMessages
+  text-align: center
+  color: $secondary-text-color
+  font-size: 14px
+  padding: 20px
+  font-style: italic

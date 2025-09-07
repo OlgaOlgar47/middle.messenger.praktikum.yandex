@@ -1,7 +1,7 @@
 import Router from "./framework/Router";
 import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
-import { ChatList } from "./pages/ChatList";
+import { ConnectedChatList } from "./pages/ChatList";
 import { ConnectedProfile } from "./pages/Profile";
 import { ConnectedSettings } from "./pages/Settings";
 import { ChangePassword } from "./pages/ChangePassword";
@@ -17,7 +17,7 @@ router
   .use("/register", Register)
   .use("/settings", ConnectedSettings)
   .use("/changePassword", ChangePassword)
-  .use("/messenger", ChatList)
+  .use("/messenger", ConnectedChatList)
   .use("/profile", ConnectedProfile)
   .use("/404", PageNotFound)
   .use("/500", ServerError);

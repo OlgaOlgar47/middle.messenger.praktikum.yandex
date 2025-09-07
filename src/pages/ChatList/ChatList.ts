@@ -135,21 +135,29 @@ export class ChatList extends Block<ChatListProps> {
   }
 
   private async selectChat(chatId: number) {
-    this.setProps({ selectedChatId: chatId });
+    // Обновляем store
+    store.set("selectedChatId", chatId);
+    store.set(`messagesByChat.${chatId}`, []);
 
-    // Подключаемся к чату через WebSocket
-    try {
-      await messageController.connectToChat(chatId);
-      // Обновляем сообщения
-      this.updateMessages();
+    // Даем время на обновление UI
+    setTimeout(async () => {
+      // Отключаемся от предыдущего чата
+      messageController.disconnectFromChat();
 
-      // Привязываем события к кнопке отправки после рендера чата
-      setTimeout(() => {
-        this.attachMessageEvents();
-      }, 100);
-    } catch (error) {
-      console.error("Ошибка подключения к чату:", error);
-    }
+      // Подключаемся к чату через WebSocket
+      try {
+        await messageController.connectToChat(chatId);
+        // Обновляем сообщения
+        this.updateMessages();
+
+        // Привязываем события к кнопке отправки после рендера чата
+        setTimeout(() => {
+          this.attachMessageEvents();
+        }, 100);
+      } catch (error) {
+        console.error("Ошибка подключения к чату:", error);
+      }
+    }, 50);
   }
 
   private handleSendMessage() {
@@ -219,8 +227,8 @@ export class ChatList extends Block<ChatListProps> {
   }
 
   private updateMessages() {
-    const messages = messageController.getMessages();
-    this.setProps({ messages });
+    // Сообщения обновляются через store и HOC, нам не нужно вызывать setProps
+    console.log("📨 updateMessages called - messages will be updated via store");
 
     // Прокручиваем к последнему сообщению
     setTimeout(() => {
@@ -371,9 +379,17 @@ export class ChatList extends Block<ChatListProps> {
 }
 
 // HOC для подключения к store
-const mapStateToProps = (state: any) => ({
-  chats: (state.chats || []) as Chat[],
-  messages: (state.messages || []) as Message[],
-});
+const mapStateToProps = (state: {
+  selectedChatId?: number;
+  chats: Chat[];
+  messagesByChat: Record<number, Message[]>;
+}) => {
+  const id = state.selectedChatId;
+  return {
+    chats: state.chats,
+    selectedChatId: id,
+    messages: id !== undefined ? (state.messagesByChat[id] ?? []) : [],
+  };
+};
 
 export const ConnectedChatList = connect(mapStateToProps)(ChatList);

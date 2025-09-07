@@ -23,13 +23,14 @@ export class MessageController {
 
       // Устанавливаем обработчики сообщений
       webSocketService.onMessages((messages: Message[]) => {
-        this.messages = [...this.messages, ...messages];
-        this.notifyMessageUpdate();
+        // Загружаем историю сообщений
+        store.set(`messagesByChat.${chatId}`, messages);
       });
 
       webSocketService.onNewMessage((message: Message) => {
-        this.messages.push(message);
-        this.notifyMessageUpdate();
+        // Добавляем новое сообщение
+        const prev = store.getState().messagesByChat[chatId] || [];
+        store.set(`messagesByChat.${chatId}`, [...prev, message]);
       });
 
       console.log(`✅ Подключен к чату ${chatId}`);
@@ -89,16 +90,6 @@ export class MessageController {
     if (this.currentChatId) {
       webSocketService.getOldMessages(this.messages.length);
     }
-  }
-
-  // Уведомление об обновлении сообщений
-  private notifyMessageUpdate(): void {
-    // Здесь можно добавить логику для уведомления компонентов
-    // о том, что сообщения обновились
-    console.log("📨 Сообщения обновлены:", this.messages.length);
-
-    // Уведомляем store об обновлении сообщений
-    store.set("messages", this.messages);
   }
 
   // Проверка подключения

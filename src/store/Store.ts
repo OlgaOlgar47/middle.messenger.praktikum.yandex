@@ -1,16 +1,24 @@
 import EventBus from "@/framework/EventBus";
 import { set as setByPath } from "@/utils/set";
+import type { Chat, Message } from "@/types";
 
 export const StoreEvents = { Updated: "updated" };
 
 type Indexed = Record<string, any>;
 export type State = {
   user: null | Indexed;
-  // добавляй нужное: chats, messages, isLoading, error и т.д.
+  chats: Chat[];
+  selectedChatId: number | undefined;
+  messagesByChat: Record<number, Message[]>;
 };
 
 class Store extends EventBus {
-  private state: State = { user: null };
+  private state: State = {
+    user: null,
+    chats: [],
+    selectedChatId: undefined,
+    messagesByChat: {},
+  };
 
   public getState(): State {
     return this.state;

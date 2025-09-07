@@ -121,10 +121,7 @@ export class Modal extends Block<ModalProps> {
     // Привязываем событие к кнопке submit (универсально)
     const submitButton = this.element?.querySelector('button[type="submit"]');
     if (submitButton) {
-      console.log("🔘 Attaching submit button event");
       submitButton.addEventListener("click", (e) => {
-        e.preventDefault();
-        console.log("🔘 Submit button clicked");
         this.handleSubmit(e);
       });
     }
@@ -142,9 +139,7 @@ export class Modal extends Block<ModalProps> {
   }
 
   override render() {
-    console.log("🔘 Modal.render() called, isOpen:", this.props.isOpen);
     if (!this.props.isOpen) {
-      console.log("🔘 Modal not open, returning empty string");
       return "";
     }
 

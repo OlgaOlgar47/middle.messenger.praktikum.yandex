@@ -13,7 +13,7 @@ export function connect<T extends any>(mapStateToProps: (state: State) => Record
         const initialState = mapStateToProps(store.getState());
         console.log("🚀 HOC initialization, initialState:", initialState);
         // @ts-expect-error setProps может не существовать в типе
-        this.setProps({ ...initialState });
+        this.setProps({ ...(this.props ?? {}), ...initialState });
 
         // Если есть метод updateFields и user уже есть в store, обновляем поля
         // @ts-expect-error updateFields может не существовать в типе
@@ -28,8 +28,9 @@ export function connect<T extends any>(mapStateToProps: (state: State) => Record
           // вызываем обновление компонента, передав данные из хранилища
           const newProps = mapStateToProps(store.getState());
           console.log("🔄 HOC store updated, newProps:", newProps);
+
           // @ts-expect-error setProps может не существовать в типе
-          this.setProps({ ...newProps });
+          this.setProps({ ...(this.props ?? {}), ...newProps });
 
           // Если есть метод updateFields и user изменился, обновляем поля
           // @ts-expect-error updateFields может не существовать в типе

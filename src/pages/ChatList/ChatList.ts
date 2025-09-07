@@ -2,6 +2,7 @@ import Block from "@/framework/Block";
 import { Input } from "@/components/Input";
 import { RoundButton } from "@/components/RoundButton";
 import { Button } from "@/components/Button";
+import { Modal } from "@/components/Modal";
 import type { BaseProps, Chat } from "@/types";
 import { ChatController } from "@/controllers/ChatController";
 import { connect } from "@/store/connect";
@@ -21,12 +22,12 @@ interface ChatListProps extends BaseProps {
   messageInput?: Input;
   roundButton?: RoundButton;
   createChatButton?: Button;
+  createChatModal?: Modal;
   selectedChatId?: number;
 }
 
 export class ChatList extends Block<ChatListProps> {
   constructor(props: ChatListProps) {
-    console.log("🏗️ ChatList constructor called");
     super("div", {
       ...props,
       styles,
@@ -58,9 +59,16 @@ export class ChatList extends Block<ChatListProps> {
           click: (e: Event) => {
             e.preventDefault();
             console.log("🔘 Кнопка 'Создать чат' нажата");
-            this.handleCreateChat();
+            this.openCreateChatModal();
           },
         },
+      }),
+      createChatModal: new Modal({
+        title: "Создать новый чат",
+        inputLabel: "Название чата",
+        inputPlaceholder: "Введите название чата",
+        submitButtonLabel: "Создать",
+        onSubmit: (title: string) => this.handleCreateChat(title),
       }),
       events: {
         click: (e: Event) => this.handleChatClick(e),
@@ -71,6 +79,21 @@ export class ChatList extends Block<ChatListProps> {
   protected init(): void {
     // Загружаем чаты при инициализации
     this.loadChats();
+
+    // Привязываем события к кнопке после рендера
+    setTimeout(() => {
+      const button = this.element?.querySelector("button");
+      if (button) {
+        console.log("🔍 Button found, adding event listener");
+        button.addEventListener("click", (e) => {
+          console.log("🔘 Direct button click event fired!");
+          e.preventDefault();
+          this.openCreateChatModal();
+        });
+      } else {
+        console.log("❌ Button not found in DOM");
+      }
+    }, 100);
   }
 
   // Метод для HOC - пересоздаем кнопку при обновлении store
@@ -87,21 +110,20 @@ export class ChatList extends Block<ChatListProps> {
     }
   }
 
-  private async handleCreateChat() {
-    console.log("🔄 handleCreateChat вызван");
-    // eslint-disable-next-line no-alert
-    const title = window.prompt("Введите название чата:");
-    console.log("📝 Введенное название:", title);
-    if (title && title.trim()) {
-      try {
-        console.log("🚀 Создаем чат с названием:", title.trim());
-        await ChatController.createChat(title.trim());
-        console.log("✅ Чат создан успешно");
-      } catch (error) {
-        console.error("❌ Ошибка создания чата:", error);
-      }
-    } else {
-      console.log("❌ Название чата не введено или пустое");
+  private openCreateChatModal() {
+    console.log("🔘 openCreateChatModal called");
+    console.log("🔘 createChatModal:", this.children.createChatModal);
+    console.log("🔘 createChatModal type:", typeof this.children.createChatModal);
+    (this.children.createChatModal as Modal)?.open();
+  }
+
+  private async handleCreateChat(title: string) {
+    console.log("🔘 handleCreateChat called with title:", title);
+    try {
+      await ChatController.createChat(title);
+      console.log("✅ Чат создан успешно");
+    } catch (error) {
+      console.error("❌ Ошибка создания чата:", error);
     }
   }
 
@@ -144,7 +166,6 @@ export class ChatList extends Block<ChatListProps> {
 
   override render() {
     const { chats = [], selectedChatId } = this.props;
-    console.log("🎨 ChatList render - createChatButton:", !!this.props.createChatButton);
 
     return `
       <div class="{{styles.wrapper}}">
@@ -233,6 +254,7 @@ export class ChatList extends Block<ChatListProps> {
           }
         </div>
       </div>
+      {{{createChatModal}}}
     `;
   }
 }

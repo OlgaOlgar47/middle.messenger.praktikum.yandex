@@ -41,6 +41,7 @@ export class ChatList extends Block<ChatListProps> {
         name: "query",
         placeholder: "Поиск",
         className: styles.searchInputWithIcon,
+        required: false,
       }),
       messageInput: new Input({
         type: "text",
@@ -71,6 +72,7 @@ export class ChatList extends Block<ChatListProps> {
         inputLabel: "Название чата",
         inputPlaceholder: "Введите название чата",
         submitButtonLabel: "Создать",
+        buttonType: "add",
         onSubmit: (title: string) => this.handleCreateChat(title),
       }),
       chatMenuButton: new Button({
@@ -89,6 +91,7 @@ export class ChatList extends Block<ChatListProps> {
         inputLabel: "Логин пользователя",
         inputPlaceholder: "Введите логин пользователя",
         submitButtonLabel: "Добавить",
+        buttonType: "add",
         onSubmit: (login: string) => this.handleAddUser(login),
       }),
       removeUserModal: new Modal({
@@ -96,21 +99,19 @@ export class ChatList extends Block<ChatListProps> {
         inputLabel: "Логин пользователя",
         inputPlaceholder: "Введите логин пользователя",
         submitButtonLabel: "Удалить",
+        buttonType: "remove",
         onSubmit: (login: string) => this.handleRemoveUser(login),
       }),
       events: {
-        click: (e: Event) => this.handleChatClick(e),
+        click: (e: Event) => this.handleClick(e),
       },
     });
   }
 
   protected init(): void {
-    // Загружаем чаты при инициализации
     this.loadChats();
 
-    // Привязываем события к кнопкам после рендера
     setTimeout(() => {
-      // Кнопка создания чата
       const createButton = this.element?.querySelector("button");
       if (createButton) {
         createButton.addEventListener("click", (e) => {
@@ -121,10 +122,7 @@ export class ChatList extends Block<ChatListProps> {
     }, 100);
   }
 
-  // Метод для HOC - пересоздаем кнопку при обновлении store
-  public updateFields() {
-    // Кнопка уже создана в конструкторе, ничего не делаем
-  }
+  public updateFields() {}
 
   private async loadChats() {
     try {
@@ -198,10 +196,18 @@ export class ChatList extends Block<ChatListProps> {
     }
   }
 
-  private handleChatClick(event: Event) {
+  private handleClick(event: Event) {
     const target = event.target as HTMLElement;
-    const chatItem = target.closest("[data-chat-id]");
 
+    // клик на профиль
+    if (target.id === "profile-button" || target.closest("#profile-button")) {
+      event.preventDefault();
+      window.location.href = "/profile";
+      return;
+    }
+
+    // клик на чат
+    const chatItem = target.closest("[data-chat-id]");
     if (chatItem) {
       const chatId = parseInt(chatItem.getAttribute("data-chat-id") || "0", 10);
       this.selectChat(chatId);
@@ -209,22 +215,17 @@ export class ChatList extends Block<ChatListProps> {
   }
 
   private async selectChat(chatId: number) {
-    // Обновляем store
     store.set("selectedChatId", chatId);
     store.set(`messagesByChat.${chatId}`, []);
 
-    // Даем время на обновление UI
     setTimeout(async () => {
-      // Отключаемся от предыдущего чата
       messageController.disconnectFromChat();
 
       // Подключаемся к чату через WebSocket
       try {
         await messageController.connectToChat(chatId);
-        // Обновляем сообщения
         this.updateMessages();
 
-        // Привязываем события к кнопке отправки после рендера чата
         setTimeout(() => {
           this.attachMessageEvents();
           this.attachChatMenuEvents();
@@ -236,7 +237,6 @@ export class ChatList extends Block<ChatListProps> {
   }
 
   private handleSendMessage() {
-    // Ищем поле ввода
     const inputElement = this.element?.querySelector('input[name="message"]') as HTMLInputElement;
     const message = inputElement?.value?.trim();
 
@@ -248,7 +248,6 @@ export class ChatList extends Block<ChatListProps> {
   }
 
   private attachMessageEvents() {
-    // Ищем все кнопки в форме
     const buttons = this.element?.querySelectorAll("button");
 
     buttons?.forEach((button, index) => {
@@ -256,7 +255,7 @@ export class ChatList extends Block<ChatListProps> {
       if (
         button.textContent?.trim() === "→" ||
         button.getAttribute("type") === "submit" ||
-        (index === 1 && button.closest("form")) // Вторая кнопка в форме
+        (index === 1 && button.closest("form"))
       ) {
         button.addEventListener("click", (e) => {
           e.preventDefault();
@@ -265,7 +264,6 @@ export class ChatList extends Block<ChatListProps> {
       }
     });
 
-    // Форма отправки сообщений
     const messageForm = this.element?.querySelector("form");
     if (messageForm) {
       messageForm.addEventListener("submit", (e) => {
@@ -276,7 +274,6 @@ export class ChatList extends Block<ChatListProps> {
   }
 
   private attachChatMenuEvents() {
-    // Ищем кнопку меню чата по ID
     const chatMenuButton = this.element?.querySelector("#chat-menu-button");
     if (chatMenuButton) {
       chatMenuButton.addEventListener("click", (e) => {
@@ -290,7 +287,6 @@ export class ChatList extends Block<ChatListProps> {
     document.addEventListener("click", (e) => {
       const target = e.target as HTMLElement;
 
-      // Проверяем, что клик произошел внутри нашего компонента
       if (!this.element?.contains(target)) {
         return;
       }
@@ -308,7 +304,6 @@ export class ChatList extends Block<ChatListProps> {
       }
     });
 
-    // Закрываем меню при клике вне его
     document.addEventListener("click", (e) => {
       const target = e.target as HTMLElement;
       if (!target.closest(`.${styles.chatMenuDropdown}`) && !target.closest("#chat-menu-button")) {
@@ -318,8 +313,6 @@ export class ChatList extends Block<ChatListProps> {
   }
 
   private updateMessages() {
-    // Сообщения обновляются через store и HOC, нам не нужно вызывать setProps
-    // Прокручиваем к последнему сообщению
     setTimeout(() => {
       const messageList = this.element?.querySelector(`.${styles.messageList}`);
       if (messageList) {
@@ -329,21 +322,19 @@ export class ChatList extends Block<ChatListProps> {
   }
 
   private getCurrentUserId(): number {
-    // Получаем ID текущего пользователя из store
     const state = store.getState();
 
     if (state.user && state.user.id) {
       return state.user.id;
     }
 
-    // Fallback на localStorage
     const userData = localStorage.getItem("user");
     if (userData) {
       const user = JSON.parse(userData);
       return user.id;
     }
 
-    return 0; // Fallback значение
+    return 0;
   }
 
   private formatTime(timeString: string): string {
@@ -357,7 +348,6 @@ export class ChatList extends Block<ChatListProps> {
   override render() {
     const { chats = [], selectedChatId, messages = [] } = this.props;
 
-    // Находим выбранный чат
     const selectedChat = chats.find((chat) => chat.id === selectedChatId);
 
     return `
@@ -366,7 +356,7 @@ export class ChatList extends Block<ChatListProps> {
         <div class="{{styles.chatList}}">
           <div class="{{styles.header}}">
             <img src="/images/logoURUS.svg" alt="Логотип" class="{{styles.logo}}" />
-            <span class="{{styles.title}}">
+            <span class="{{styles.title}}" id="profile-button">
               Профиль
               <img
                 src="/images/chevron-right.svg"

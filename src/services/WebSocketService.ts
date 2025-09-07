@@ -1,5 +1,6 @@
 import type { Message, SendMessageData } from "@/types";
 import store from "@/store/Store";
+import { errorHandler } from "@/utils/errorHandler";
 
 export class WebSocketService {
   private socket: WebSocket | null = null;
@@ -125,17 +126,16 @@ export class WebSocketService {
 
   private handleError(error: Event): void {
     console.error("Ошибка WebSocket:", error);
+    errorHandler.handleError(new Error("WebSocket connection error"));
   }
 
   private getCurrentUserId(): number {
-    // Получаем ID текущего пользователя из store
     const state = store.getState();
 
     if (state.user && state.user.id) {
       return state.user.id;
     }
 
-    // Fallback на localStorage
     const userData = localStorage.getItem("user");
     if (userData) {
       const user = JSON.parse(userData);
@@ -145,17 +145,14 @@ export class WebSocketService {
     throw new Error("Пользователь не авторизован");
   }
 
-  // Проверка состояния подключения
   isConnected(): boolean {
     return this.socket !== null && this.socket.readyState === WebSocket.OPEN;
   }
 
-  // Получение текущего chatId
   getCurrentChatId(): number | null {
     return this._chatId;
   }
 
-  // Получение текущего token
   getCurrentToken(): string | null {
     return this._token;
   }

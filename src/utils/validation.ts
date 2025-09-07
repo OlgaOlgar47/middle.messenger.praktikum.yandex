@@ -39,9 +39,18 @@ export const validationRules: Record<string, { regex: RegExp; errorMessage: stri
     regex: /.+/,
     errorMessage: "Сообщение не должно быть пустым",
   },
+  query: {
+    regex: /.*/,
+    errorMessage: "",
+  },
 };
 
 export function validateField(name: string, value: string): { isValid: boolean; error?: string } {
+  // Поля поиска не обязательны для заполнения
+  if (!value.trim() && (name === "query" || name === "search")) {
+    return { isValid: true };
+  }
+
   if (!value.trim()) {
     return { isValid: false, error: "Поле обязательно для заполнения" };
   }

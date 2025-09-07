@@ -14,6 +14,7 @@ interface ModalProps extends BaseProps {
   inputPlaceholder?: string;
   submitButtonLabel?: string;
   cancelButtonLabel?: string;
+  buttonType?: "add" | "remove" | "default";
   input?: Input;
   submitButton?: Button;
   cancelButton?: Button;
@@ -45,6 +46,27 @@ export class Modal extends Block<ModalProps> {
     });
   }
 
+  protected init(): void {
+    super.init();
+    const button = this.children.submitButton as Button;
+    if (button) {
+      const newClassName = this.getButtonClassName(this.props.buttonType);
+      console.log("🎨 Modal init - buttonType:", this.props.buttonType, "className:", newClassName);
+      button.setProps({ className: newClassName });
+    }
+  }
+
+  private getButtonClassName(buttonType?: string): string {
+    switch (buttonType) {
+      case "add":
+        return styles.addButton;
+      case "remove":
+        return styles.removeButton;
+      default:
+        return styles.submitButton;
+    }
+  }
+
   private handleBackdropClick(e: Event) {
     const target = e.target as HTMLElement;
     if (target.classList.contains(styles.backdrop)) {
@@ -55,7 +77,6 @@ export class Modal extends Block<ModalProps> {
   private handleSubmit(e: Event) {
     e.preventDefault();
 
-    // Ищем поле ввода напрямую в DOM модального окна
     const inputElement = this.element?.querySelector("input") as HTMLInputElement;
     const value = inputElement?.value?.trim();
 
@@ -68,7 +89,6 @@ export class Modal extends Block<ModalProps> {
   private handleClose() {
     this.setProps({ isOpen: false });
 
-    // Удаляем модальное окно из body
     const modalElement = this.element;
     if (modalElement && modalElement.parentNode) {
       modalElement.parentNode.removeChild(modalElement);
@@ -82,18 +102,15 @@ export class Modal extends Block<ModalProps> {
   public open() {
     this.setProps({ isOpen: true });
 
-    // Добавляем модальное окно в body
     setTimeout(() => {
       const modalElement = this.element;
       if (modalElement && document.body) {
         document.body.appendChild(modalElement);
 
-        // Привязываем события к кнопкам
         this.attachEvents();
       }
     }, 0);
 
-    // Очищаем поле ввода при открытии
     const inputElement = this.props.input?.element?.querySelector("input") as HTMLInputElement;
     if (inputElement) {
       inputElement.value = "";
@@ -105,7 +122,6 @@ export class Modal extends Block<ModalProps> {
   }
 
   private attachEvents() {
-    // Привязываем событие к кнопке submit (универсально)
     const submitButton = this.element?.querySelector('button[type="submit"]');
     if (submitButton) {
       submitButton.addEventListener("click", (e) => {
@@ -113,7 +129,6 @@ export class Modal extends Block<ModalProps> {
       });
     }
 
-    // Привязываем событие к кнопке закрытия
     const closeButton = this.element?.querySelector('[data-action="close"]');
     if (closeButton) {
       closeButton.addEventListener("click", (e) => {

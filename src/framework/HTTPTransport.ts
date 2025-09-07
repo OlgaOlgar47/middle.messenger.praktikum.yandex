@@ -1,4 +1,5 @@
 import { getApiUrl } from "@/config/api";
+import { errorHandler } from "@/utils/errorHandler";
 
 type HTTPMethod = "GET" | "POST" | "PUT" | "DELETE";
 
@@ -73,7 +74,14 @@ export class HTTPTransport {
           } catch {
             // Если не удалось парсить JSON, используем стандартное сообщение
           }
-          reject(new Error(errorMessage));
+
+          const error = new Error(errorMessage);
+
+          if (xhr.status >= 500) {
+            errorHandler.handleError(error);
+          }
+
+          reject(error);
         }
       };
 

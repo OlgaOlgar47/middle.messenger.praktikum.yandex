@@ -286,9 +286,14 @@ export class ChatList extends Block<ChatListProps> {
       });
     }
 
-    // Простое делегирование событий - как было раньше
-    this.element?.addEventListener("click", (e) => {
+    // Делегирование событий на уровне документа для динамически созданных элементов
+    document.addEventListener("click", (e) => {
       const target = e.target as HTMLElement;
+
+      // Проверяем, что клик произошел внутри нашего компонента
+      if (!this.element?.contains(target)) {
+        return;
+      }
 
       if (target.id === "add-user-button" || target.closest("#add-user-button")) {
         e.preventDefault();

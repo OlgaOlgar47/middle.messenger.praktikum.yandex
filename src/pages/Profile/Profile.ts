@@ -42,11 +42,9 @@ export class Profile extends Block<ProfileProps> {
         href: "#",
         label: "Выйти",
         className: styles.logout,
-        events: {
-          click: (e: Event) => {
-            e.preventDefault();
-            this.handleLogout();
-          },
+        onClick: (e: Event) => {
+          e.preventDefault();
+          this.handleLogout();
         },
       }),
       events: {

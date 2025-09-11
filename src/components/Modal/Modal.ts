@@ -87,6 +87,7 @@ export class Modal extends Block<ModalProps> {
   }
 
   private handleClose() {
+    this.detachEvents(); // Удаляем все обработчики событий
     this.setProps({ isOpen: false });
 
     const modalElement = this.element;
@@ -121,20 +122,36 @@ export class Modal extends Block<ModalProps> {
     this.handleClose();
   }
 
+  private submitButtonHandler = (e: Event) => {
+    this.handleSubmit(e);
+  };
+
+  private closeButtonHandler = (e: Event) => {
+    e.preventDefault();
+    this.handleClose();
+  };
+
   private attachEvents() {
     const submitButton = this.element?.querySelector('button[type="submit"]');
     if (submitButton) {
-      submitButton.addEventListener("click", (e) => {
-        this.handleSubmit(e);
-      });
+      submitButton.addEventListener("click", this.submitButtonHandler);
     }
 
     const closeButton = this.element?.querySelector('[data-action="close"]');
     if (closeButton) {
-      closeButton.addEventListener("click", (e) => {
-        e.preventDefault();
-        this.handleClose();
-      });
+      closeButton.addEventListener("click", this.closeButtonHandler);
+    }
+  }
+
+  private detachEvents() {
+    const submitButton = this.element?.querySelector('button[type="submit"]');
+    if (submitButton) {
+      submitButton.removeEventListener("click", this.submitButtonHandler);
+    }
+
+    const closeButton = this.element?.querySelector('[data-action="close"]');
+    if (closeButton) {
+      closeButton.removeEventListener("click", this.closeButtonHandler);
     }
   }
 

@@ -1,5 +1,6 @@
 import { getApiUrl } from "@/config/api";
 import { errorHandler } from "@/utils/errorHandler";
+import { HttpStatus } from "@/utils/httpStatus";
 
 type HTTPMethod = "GET" | "POST" | "PUT" | "DELETE";
 
@@ -50,7 +51,7 @@ export class HTTPTransport {
       }
 
       xhr.onload = () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
+        if (xhr.status >= HttpStatus.Ok && xhr.status < 300) {
           let response: unknown;
           if (!xhr.responseText || xhr.responseText.trim() === "") {
             response = null;
@@ -77,7 +78,7 @@ export class HTTPTransport {
 
           const error = new Error(errorMessage);
 
-          if (xhr.status >= 500) {
+          if (xhr.status >= HttpStatus.InternalServerError) {
             errorHandler.handleError(error);
           }
 

@@ -1,11 +1,19 @@
 import { ServerError } from "@/pages/ServerError/ServerError";
+import { HttpStatus } from "@/utils/httpStatus";
 
 class ErrorHandler {
   private currentErrorPage: ServerError | null = null;
 
   isServerError(error: unknown): boolean {
     if (error instanceof Error) {
-      return /5\d{2}/.test(error.message) || error.message.includes("Internal Server Error");
+      const { message } = error;
+      return (
+        message.includes(`Error ${HttpStatus.InternalServerError}:`) ||
+        message.includes(`Error ${HttpStatus.BadGateway}:`) ||
+        message.includes(`Error ${HttpStatus.ServiceUnavailable}:`) ||
+        message.includes(`Error ${HttpStatus.GatewayTimeout}:`) ||
+        message.includes("Internal Server Error")
+      );
     }
     return false;
   }

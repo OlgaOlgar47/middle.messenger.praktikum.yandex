@@ -9,26 +9,20 @@ export class MessageController {
 
   private messages: Message[] = [];
 
-  // Подключение к чату
   async connectToChat(chatId: number): Promise<void> {
     try {
-      // Получаем токен для WebSocket
       const { token } = await messagesAPI.getChatToken(chatId);
 
-      // Подключаемся к WebSocket
       await webSocketService.connect(chatId, token);
 
       this.currentChatId = chatId;
       this.messages = [];
 
-      // Устанавливаем обработчики сообщений
       webSocketService.onMessages((messages: Message[]) => {
-        // Загружаем историю сообщений (может быть пустой массив)
         store.set(`messagesByChat.${chatId}`, messages);
       });
 
       webSocketService.onNewMessage((message: Message) => {
-        // Добавляем новое сообщение
         const prev = store.getState().messagesByChat[chatId] || [];
         store.set(`messagesByChat.${chatId}`, [...prev, message]);
       });
@@ -40,14 +34,12 @@ export class MessageController {
     }
   }
 
-  // Отключение от чата
   disconnectFromChat(): void {
     webSocketService.disconnect();
     this.currentChatId = null;
     this.messages = [];
   }
 
-  // Отправка сообщения
   sendMessage(content: string): void {
     console.log("🔘 MessageController.sendMessage called with:", content);
     console.log("🔘 currentChatId:", this.currentChatId);
@@ -80,24 +72,20 @@ export class MessageController {
     }
   }
 
-  // Получение сообщений текущего чата
   getMessages(): Message[] {
     return this.messages;
   }
 
-  // Загрузка старых сообщений
   loadOldMessages(): void {
     if (this.currentChatId) {
       webSocketService.getOldMessages(this.messages.length);
     }
   }
 
-  // Проверка подключения
   isConnected(): boolean {
     return webSocketService.isConnected();
   }
 
-  // Получение ID текущего чата
   getCurrentChatId(): number | null {
     return this.currentChatId;
   }

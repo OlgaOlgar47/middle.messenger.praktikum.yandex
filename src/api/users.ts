@@ -1,17 +1,32 @@
 import { HTTPTransport } from "@/framework/HTTPTransport";
 import type { UpdateProfileData, ChangePasswordData, AvatarResponse, User } from "@/types";
 
-const http = new HTTPTransport();
+export class UsersAPI {
+  private http: HTTPTransport;
 
-export const UsersAPI = {
-  getUser: (): Promise<User> => http.get("/auth/user"),
+  constructor(http?: HTTPTransport) {
+    this.http = http || new HTTPTransport();
+  }
 
-  updateProfile: (data: UpdateProfileData): Promise<User> => http.put("/user/profile", { data }),
+  getUser(): Promise<User> {
+    return this.http.get("/auth/user");
+  }
 
-  updateAvatar: (form: FormData): Promise<AvatarResponse> =>
-    http.put("/user/profile/avatar", { data: form }),
+  updateProfile(data: UpdateProfileData): Promise<User> {
+    return this.http.put("/user/profile", { data });
+  }
 
-  changePassword: (data: ChangePasswordData): Promise<void> => http.put("/user/password", { data }),
+  updateAvatar(form: FormData): Promise<AvatarResponse> {
+    return this.http.put("/user/profile/avatar", { data: form });
+  }
 
-  searchUsers: (login: string): Promise<User[]> => http.post("/user/search", { data: { login } }),
-};
+  changePassword(data: ChangePasswordData): Promise<void> {
+    return this.http.put("/user/password", { data });
+  }
+
+  searchUsers(login: string): Promise<User[]> {
+    return this.http.post("/user/search", { data: { login } });
+  }
+}
+
+export const usersAPI = new UsersAPI();

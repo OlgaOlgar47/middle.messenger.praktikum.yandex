@@ -1,7 +1,5 @@
 import { HTTPTransport } from "@/framework/HTTPTransport";
 
-const http = new HTTPTransport();
-
 export interface Chat {
   id: number;
   title: string;
@@ -47,23 +45,36 @@ export interface ChatUser {
   role: string;
 }
 
-export const ChatsAPI = {
-  // Получить список чатов
-  getChats: (): Promise<Chat[]> => http.get("/chats"),
+export class ChatsAPI {
+  private http: HTTPTransport;
 
-  // Создать новый чат
-  createChat: (data: CreateChatData): Promise<{ id: number }> => http.post("/chats", { data }),
+  constructor(http?: HTTPTransport) {
+    this.http = http || new HTTPTransport();
+  }
 
-  // Добавить пользователя в чат
-  addUsersToChat: (data: AddUserToChatData): Promise<void> => http.put("/chats/users", { data }),
+  getChats(): Promise<Chat[]> {
+    return this.http.get("/chats");
+  }
 
-  // Удалить пользователя из чата
-  deleteUsersFromChat: (data: DeleteUserFromChatData): Promise<void> =>
-    http.delete("/chats/users", { data }),
+  createChat(data: CreateChatData): Promise<{ id: number }> {
+    return this.http.post("/chats", { data });
+  }
 
-  // Получить пользователей чата
-  getChatUsers: (chatId: number): Promise<ChatUser[]> => http.get(`/chats/${chatId}/users`),
+  addUsersToChat(data: AddUserToChatData): Promise<void> {
+    return this.http.put("/chats/users", { data });
+  }
 
-  // Получить токен для подключения к WebSocket
-  getChatToken: (chatId: number): Promise<{ token: string }> => http.post(`/chats/token/${chatId}`),
-};
+  deleteUsersFromChat(data: DeleteUserFromChatData): Promise<void> {
+    return this.http.delete("/chats/users", { data });
+  }
+
+  getChatUsers(chatId: number): Promise<ChatUser[]> {
+    return this.http.get(`/chats/${chatId}/users`);
+  }
+
+  getChatToken(chatId: number): Promise<{ token: string }> {
+    return this.http.post(`/chats/token/${chatId}`);
+  }
+}
+
+export const chatsAPI = new ChatsAPI();

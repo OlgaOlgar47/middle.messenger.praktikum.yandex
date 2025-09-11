@@ -1,7 +1,5 @@
 import { HTTPTransport } from "@/framework/HTTPTransport";
 
-const http = new HTTPTransport();
-
 export type SignInDTO = { login: string; password: string };
 export type SignUpDTO = {
   first_name: string;
@@ -12,9 +10,28 @@ export type SignUpDTO = {
   phone: string;
 };
 
-export const AuthAPI = {
-  signin: (data: SignInDTO) => http.post("/auth/signin", { data }),
-  signup: (data: SignUpDTO) => http.post("/auth/signup", { data }),
-  logout: () => http.post("/auth/logout"),
-  me: () => http.get("/auth/user"),
-};
+export class AuthAPI {
+  private http: HTTPTransport;
+
+  constructor(http?: HTTPTransport) {
+    this.http = http || new HTTPTransport();
+  }
+
+  signin(data: SignInDTO) {
+    return this.http.post("/auth/signin", { data });
+  }
+
+  signup(data: SignUpDTO) {
+    return this.http.post("/auth/signup", { data });
+  }
+
+  logout() {
+    return this.http.post("/auth/logout");
+  }
+
+  me() {
+    return this.http.get("/auth/user");
+  }
+}
+
+export const authAPI = new AuthAPI();

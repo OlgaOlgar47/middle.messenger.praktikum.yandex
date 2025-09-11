@@ -1,13 +1,12 @@
-import { UsersAPI } from "@/api/users";
+import { usersAPI } from "@/api/users";
 import { Store } from "@/store";
 import { Toast } from "@/utils/toast";
 import type { UpdateProfileData, ChangePasswordData } from "@/types";
 
 export const UserController = {
-  // Обновить профиль пользователя
   async updateProfile(data: UpdateProfileData) {
     try {
-      const updatedUser = await UsersAPI.updateProfile(data);
+      const updatedUser = await usersAPI.updateProfile(data);
       Store.set("user", updatedUser);
       Toast.success("Профиль успешно обновлен");
       return updatedUser;
@@ -18,15 +17,13 @@ export const UserController = {
     }
   },
 
-  // Обновить аватар пользователя
   async updateAvatar(file: File) {
     try {
       const formData = new FormData();
       formData.append("avatar", file);
 
-      const response = await UsersAPI.updateAvatar(formData);
+      const response = await usersAPI.updateAvatar(formData);
 
-      // Обновляем данные пользователя в store
       const currentUser = Store.getState().user;
       if (currentUser) {
         Store.set("user", { ...currentUser, avatar: response.avatar });
@@ -41,10 +38,9 @@ export const UserController = {
     }
   },
 
-  // Изменить пароль пользователя
   async changePassword(data: ChangePasswordData) {
     try {
-      await UsersAPI.changePassword(data);
+      await usersAPI.changePassword(data);
       Toast.success("Пароль успешно изменен");
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Ошибка изменения пароля";
@@ -53,7 +49,6 @@ export const UserController = {
     }
   },
 
-  // Получить текущего пользователя
   getCurrentUser() {
     return Store.getState().user;
   },

@@ -255,6 +255,8 @@ export class ChatList extends Block<ChatListProps> {
     if (message && this.props.selectedChatId) {
       messageController.sendMessage(message);
       inputElement.value = "";
+      // Скроллим вниз после отправки сообщения
+      this.scrollToBottom();
     }
   }
 
@@ -330,6 +332,15 @@ export class ChatList extends Block<ChatListProps> {
     }, 100);
   }
 
+  private scrollToBottom() {
+    setTimeout(() => {
+      const messageList = this.element?.querySelector(`.${styles.messageList}`);
+      if (messageList) {
+        messageList.scrollTop = messageList.scrollHeight;
+      }
+    }, 50);
+  }
+
   private getCurrentUserId(): number {
     const state = store.getState();
 
@@ -380,6 +391,11 @@ export class ChatList extends Block<ChatListProps> {
       selectedChatId !== undefined ? store.getState().messagesByChat[selectedChatId] || [] : [];
 
     const selectedChat = chats.find((chat) => chat.id === selectedChatId);
+
+    // Скроллим вниз после рендера, если есть сообщения
+    if (messages.length > 0 && !isLoadingMessages) {
+      setTimeout(() => this.scrollToBottom(), 0);
+    }
 
     return `
       <div class="{{styles.wrapper}}">

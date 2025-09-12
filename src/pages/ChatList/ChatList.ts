@@ -30,6 +30,8 @@ interface ChatListProps extends BaseProps {
 }
 
 export class ChatList extends Block<ChatListProps> {
+  private documentClickHandlers: Array<{ element: HTMLElement; handler: (e: Event) => void }> = [];
+
   constructor(props: ChatListProps = {}) {
     super("div", {
       ...props,
@@ -124,6 +126,10 @@ export class ChatList extends Block<ChatListProps> {
   }
 
   public updateFields() {}
+
+  public destroy() {
+    this.detachDocumentEvents();
+  }
 
   private async loadChats() {
     try {
@@ -223,11 +229,16 @@ export class ChatList extends Block<ChatListProps> {
     store.set("selectedChatId", chatId);
     store.set(`messagesByChat.${chatId}`, []);
 
-    (this.props as any).messages = [];
-    (this.props as any).selectedChatId = chatId;
-    (this.props as any).isLoadingMessages = true;
+    this.setProps({
+      messages: [],
+      selectedChatId: chatId,
+      isLoadingMessages: true,
+    });
 
-    (this as any)._render();
+    const messageList = this.element?.querySelector(`.${styles.messageList}`);
+    if (messageList) {
+      messageList.innerHTML = '<li class="{{styles.loader}}"> Загрузка...</li>';
+    }
 
     setTimeout(async () => {
       try {
@@ -243,7 +254,7 @@ export class ChatList extends Block<ChatListProps> {
       } catch (error) {
         console.error("Ошибка подключения к чату:", error);
         store.set("isLoadingMessages", false);
-        (this.props as any).isLoadingMessages = false;
+        this.setProps({ isLoadingMessages: false });
       }
     }, 20);
   }
@@ -295,7 +306,7 @@ export class ChatList extends Block<ChatListProps> {
       });
     }
 
-    document.addEventListener("click", (e) => {
+    const menuClickHandler = (e: Event) => {
       const target = e.target as HTMLElement;
 
       if (!this.element?.contains(target)) {
@@ -313,14 +324,29 @@ export class ChatList extends Block<ChatListProps> {
         this.closeChatMenu();
         this.openRemoveUserModal();
       }
-    });
+    };
 
-    document.addEventListener("click", (e) => {
+    const closeMenuHandler = (e: Event) => {
       const target = e.target as HTMLElement;
       if (!target.closest(`.${styles.chatMenuDropdown}`) && !target.closest("#chat-menu-button")) {
         this.closeChatMenu();
       }
+    };
+
+    document.addEventListener("click", menuClickHandler);
+    document.addEventListener("click", closeMenuHandler);
+
+    this.documentClickHandlers.push(
+      { element: document.body, handler: menuClickHandler },
+      { element: document.body, handler: closeMenuHandler }
+    );
+  }
+
+  private detachDocumentEvents() {
+    this.documentClickHandlers.forEach(({ element, handler }) => {
+      element.removeEventListener("click", handler);
     });
+    this.documentClickHandlers = [];
   }
 
   private updateMessages() {

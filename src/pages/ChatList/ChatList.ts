@@ -215,11 +215,29 @@ export class ChatList extends Block<ChatListProps> {
   }
 
   private async selectChat(chatId: number) {
+    console.log(`🔄 Переключение на чат ${chatId}`);
+
+    // Сначала отключаемся от текущего чата
+    messageController.disconnectFromChat();
+
+    // Принудительно очищаем сообщения для выбранного чата
     store.set("selectedChatId", chatId);
     store.set(`messagesByChat.${chatId}`, []);
 
+    // Принудительно обновляем props напрямую
+    (this.props as any).messages = [];
+    (this.props as any).selectedChatId = chatId;
+
+    console.log(
+      `🔧 Props обновлены: messages=${(this.props as any).messages.length}, ` +
+        `selectedChatId=${(this.props as any).selectedChatId}`
+    );
+
+    // Принудительно перерендериваем компонент
+    (this as any)._render();
+
     setTimeout(async () => {
-      messageController.disconnectFromChat();
+      console.log(`🔌 Подключение к чату ${chatId}`);
 
       // Подключаемся к чату через WebSocket
       try {
@@ -346,7 +364,16 @@ export class ChatList extends Block<ChatListProps> {
   }
 
   override render() {
-    const { chats = [], selectedChatId, messages = [] } = this.props;
+    const { chats = [], selectedChatId } = this.props;
+
+    // Получаем сообщения напрямую из store для текущего чата
+    const messages =
+      selectedChatId !== undefined ? store.getState().messagesByChat[selectedChatId] || [] : [];
+
+    console.log(
+      `🎨 Render: чат ${selectedChatId}, сообщений из store: ${messages.length}, ` +
+        `из props: ${this.props.messages?.length || 0}`
+    );
 
     const selectedChat = chats.find((chat) => chat.id === selectedChatId);
 
@@ -480,10 +507,24 @@ export class ChatList extends Block<ChatListProps> {
 const mapStateToProps = (state: State): Partial<ChatListProps> => {
   const id = state.selectedChatId;
 
+  // Если чат не выбран, возвращаем пустой массив сообщений
+  if (id === undefined) {
+    console.log("📊 mapStateToProps: чат не выбран, возвращаем пустые сообщения");
+    return {
+      chats: state.chats,
+      selectedChatId: undefined,
+      messages: [],
+    };
+  }
+
+  // Получаем сообщения для выбранного чата
+  const messages = state.messagesByChat[id] || [];
+  console.log(`📊 mapStateToProps: чат ${id}, сообщений: ${messages.length}`);
+
   return {
     chats: state.chats,
     selectedChatId: id,
-    messages: id !== undefined ? (state.messagesByChat[id] ?? []) : [],
+    messages,
   };
 };
 

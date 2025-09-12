@@ -18,13 +18,27 @@ export class MessageController {
       this.currentChatId = chatId;
       this.messages = [];
 
+      // Очищаем сообщения для текущего чата перед установкой колбэков
+      store.set(`messagesByChat.${chatId}`, []);
+
       webSocketService.onMessages((messages: Message[]) => {
-        store.set(`messagesByChat.${chatId}`, messages);
+        // Проверяем, что мы все еще подключены к тому же чату
+        if (this.currentChatId === chatId) {
+          console.log(`📨 Получены сообщения для чата ${chatId}: ${messages.length} шт.`);
+          store.set(`messagesByChat.${chatId}`, messages);
+        } else {
+          console.log(
+            `⚠️ Игнорируем сообщения для чата ${chatId}, текущий чат: ${this.currentChatId}`
+          );
+        }
       });
 
       webSocketService.onNewMessage((message: Message) => {
-        const prev = store.getState().messagesByChat[chatId] || [];
-        store.set(`messagesByChat.${chatId}`, [...prev, message]);
+        // Проверяем, что мы все еще подключены к тому же чату
+        if (this.currentChatId === chatId) {
+          const prev = store.getState().messagesByChat[chatId] || [];
+          store.set(`messagesByChat.${chatId}`, [...prev, message]);
+        }
       });
 
       console.log(`✅ Подключен к чату ${chatId}`);

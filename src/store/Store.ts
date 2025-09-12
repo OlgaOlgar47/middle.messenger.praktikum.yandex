@@ -10,6 +10,7 @@ export type State = {
   chats: Chat[];
   selectedChatId: number | undefined;
   messagesByChat: Record<number, Message[]>;
+  isLoadingMessages: boolean;
 };
 
 class Store extends EventBus {
@@ -18,6 +19,7 @@ class Store extends EventBus {
     chats: [],
     selectedChatId: undefined,
     messagesByChat: {},
+    isLoadingMessages: false,
   };
 
   public getState(): State {

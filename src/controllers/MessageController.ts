@@ -11,9 +11,14 @@ export class MessageController {
 
   async connectToChat(chatId: number): Promise<void> {
     try {
+      console.log(`🚀 Начинаем подключение к чату ${chatId}`);
+      const startTime = Date.now();
+
       const { token } = await messagesAPI.getChatToken(chatId);
+      console.log(`🔑 Получен токен за ${Date.now() - startTime}ms`);
 
       await webSocketService.connect(chatId, token);
+      console.log(`🔌 WebSocket подключен за ${Date.now() - startTime}ms`);
 
       this.currentChatId = chatId;
       this.messages = [];
@@ -21,11 +26,25 @@ export class MessageController {
       // Очищаем сообщения для текущего чата перед установкой колбэков
       store.set(`messagesByChat.${chatId}`, []);
 
+      // Таймаут для лоадера (на случай проблем с WebSocket)
+      const loaderTimeout = setTimeout(() => {
+        console.log(`⏰ Таймаут лоадера для чата ${chatId}`);
+        store.set("isLoadingMessages", false);
+      }, 5000); // 5 секунд
+
       webSocketService.onMessages((messages: Message[]) => {
         // Проверяем, что мы все еще подключены к тому же чату
         if (this.currentChatId === chatId) {
-          console.log(`📨 Получены сообщения для чата ${chatId}: ${messages.length} шт.`);
+          console.log(
+            `📨 Получены сообщения для чата ${chatId}: ${messages.length} шт. ` +
+              `за ${Date.now() - startTime}ms`
+          );
           store.set(`messagesByChat.${chatId}`, messages);
+
+          // Скрываем лоадер после получения сообщений (даже если их 0)
+          clearTimeout(loaderTimeout);
+          store.set("isLoadingMessages", false);
+          console.log(`✅ Лоадер скрыт после получения сообщений (${messages.length} шт.)`);
         } else {
           console.log(
             `⚠️ Игнорируем сообщения для чата ${chatId}, текущий чат: ${this.currentChatId}`
@@ -41,7 +60,7 @@ export class MessageController {
         }
       });
 
-      console.log(`✅ Подключен к чату ${chatId}`);
+      console.log(`✅ Полностью подключен к чату ${chatId} за ${Date.now() - startTime}ms`);
     } catch (error) {
       console.error("Ошибка подключения к чату:", error);
       Toast.error("Ошибка подключения к чату");

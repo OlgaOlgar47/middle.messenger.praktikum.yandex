@@ -26,6 +26,7 @@ interface ChatListProps extends BaseProps {
   chatMenuButton?: Button;
   chatMenuDropdown?: HTMLElement;
   selectedChatId?: number;
+  isLoadingMessages?: boolean;
 }
 
 export class ChatList extends Block<ChatListProps> {
@@ -220,6 +221,9 @@ export class ChatList extends Block<ChatListProps> {
     // Сначала отключаемся от текущего чата
     messageController.disconnectFromChat();
 
+    // Показываем лоадер
+    store.set("isLoadingMessages", true);
+
     // Принудительно очищаем сообщения для выбранного чата
     store.set("selectedChatId", chatId);
     store.set(`messagesByChat.${chatId}`, []);
@@ -227,10 +231,12 @@ export class ChatList extends Block<ChatListProps> {
     // Принудительно обновляем props напрямую
     (this.props as any).messages = [];
     (this.props as any).selectedChatId = chatId;
+    (this.props as any).isLoadingMessages = true;
 
     console.log(
       `🔧 Props обновлены: messages=${(this.props as any).messages.length}, ` +
-        `selectedChatId=${(this.props as any).selectedChatId}`
+        `selectedChatId=${(this.props as any).selectedChatId}, ` +
+        `loading=${(this.props as any).isLoadingMessages}`
     );
 
     // Принудительно перерендериваем компонент
@@ -242,16 +248,22 @@ export class ChatList extends Block<ChatListProps> {
       // Подключаемся к чату через WebSocket
       try {
         await messageController.connectToChat(chatId);
+
+        // НЕ скрываем лоадер здесь - он будет скрыт в MessageController после получения сообщений
         this.updateMessages();
 
+        // Уменьшаем задержку для прикрепления событий
         setTimeout(() => {
           this.attachMessageEvents();
           this.attachChatMenuEvents();
-        }, 100);
+        }, 50);
       } catch (error) {
         console.error("Ошибка подключения к чату:", error);
+        // Скрываем лоадер в случае ошибки
+        store.set("isLoadingMessages", false);
+        (this.props as any).isLoadingMessages = false;
       }
-    }, 50);
+    }, 20); // Уменьшаем задержку
   }
 
   private handleSendMessage() {
@@ -363,8 +375,27 @@ export class ChatList extends Block<ChatListProps> {
     });
   }
 
+  private renderMessages(messages: Message[]): string {
+    if (messages.length === 0) {
+      return '<li class="{{styles.noMessages}}">Сообщения будут отображаться здесь</li>';
+    }
+
+    return messages
+      .map(
+        (message) => `
+          <li class="{{styles.messageItem}} ${
+            message.user_id === this.getCurrentUserId() ? "{{styles.isOwn}}" : ""
+          }">
+            <div class="{{styles.messageText}}">${message.content}</div>
+            <div class="{{styles.messageTime}}">${this.formatTime(message.time)}</div>
+          </li>
+        `
+      )
+      .join("");
+  }
+
   override render() {
-    const { chats = [], selectedChatId } = this.props;
+    const { chats = [], selectedChatId, isLoadingMessages = false } = this.props;
 
     // Получаем сообщения напрямую из store для текущего чата
     const messages =
@@ -372,7 +403,7 @@ export class ChatList extends Block<ChatListProps> {
 
     console.log(
       `🎨 Render: чат ${selectedChatId}, сообщений из store: ${messages.length}, ` +
-        `из props: ${this.props.messages?.length || 0}`
+        `из props: ${this.props.messages?.length || 0}, загрузка: ${isLoadingMessages}`
     );
 
     const selectedChat = chats.find((chat) => chat.id === selectedChatId);
@@ -463,20 +494,9 @@ export class ChatList extends Block<ChatListProps> {
             </div>
         <ul class="{{styles.messageList}}">
               ${
-                messages.length > 0
-                  ? messages
-                      .map(
-                        (message) => `
-                <li class="{{styles.messageItem}} ${
-                  message.user_id === this.getCurrentUserId() ? "{{styles.isOwn}}" : ""
-                }">
-                  <div class="{{styles.messageText}}">${message.content}</div>
-                  <div class="{{styles.messageTime}}">${this.formatTime(message.time)}</div>
-          </li>
-              `
-                      )
-                      .join("")
-                  : '<li class="{{styles.noMessages}}">Сообщения будут отображаться здесь</li>'
+                isLoadingMessages
+                  ? '<li class="{{styles.loader}}"> Загрузка...</li>'
+                  : this.renderMessages(messages)
               }
         </ul>
           <form novalidate class="{{styles.messageForm}}">
@@ -514,17 +534,22 @@ const mapStateToProps = (state: State): Partial<ChatListProps> => {
       chats: state.chats,
       selectedChatId: undefined,
       messages: [],
+      isLoadingMessages: false,
     };
   }
 
   // Получаем сообщения для выбранного чата
   const messages = state.messagesByChat[id] || [];
-  console.log(`📊 mapStateToProps: чат ${id}, сообщений: ${messages.length}`);
+  console.log(
+    `📊 mapStateToProps: чат ${id}, сообщений: ${messages.length}, ` +
+      `загрузка: ${state.isLoadingMessages}`
+  );
 
   return {
     chats: state.chats,
     selectedChatId: id,
     messages,
+    isLoadingMessages: state.isLoadingMessages,
   };
 };
 

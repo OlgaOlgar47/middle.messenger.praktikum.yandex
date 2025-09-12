@@ -96,8 +96,10 @@ export class WebSocketService {
 
   private handleOpen(): void {
     console.log("WebSocket подключен");
-    // Загружаем последние 20 сообщений
-    this.getOldMessages(0);
+    // Загружаем последние 20 сообщений сразу после подключения
+    setTimeout(() => {
+      this.getOldMessages(0);
+    }, 10); // Небольшая задержка для стабильности
   }
 
   private handleMessage(event: MessageEvent): void {

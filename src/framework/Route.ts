@@ -5,13 +5,17 @@ import { isEqual, render } from "./utils";
 export default class Route {
   private _pathname: string;
 
-  private _blockClass: new () => Block;
+  private _blockClass: new (props?: Record<string, unknown>) => Block;
 
   private _block: Block | null = null;
 
   private _props: { rootQuery: string };
 
-  constructor(pathname: string, view: new () => Block, props: { rootQuery: string }) {
+  constructor(
+    pathname: string,
+    view: new (props?: Record<string, unknown>) => Block,
+    props: { rootQuery: string }
+  ) {
     this._pathname = pathname;
     this._blockClass = view;
     this._props = props;

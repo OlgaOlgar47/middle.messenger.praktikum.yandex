@@ -6,6 +6,7 @@ import { AuthController } from "@/controllers/AuthController";
 import { UserController } from "@/controllers/UserController";
 import { Toast } from "@/utils/toast";
 import { connect } from "@/store/connect";
+import type { State } from "@/store/Store";
 
 import styles from "./Profile.module.sass";
 
@@ -18,7 +19,7 @@ export interface ProfileProps extends BaseProps {
 }
 
 export class Profile extends Block<ProfileProps> {
-  constructor(props: ProfileProps) {
+  constructor(props: ProfileProps = {}) {
     super("div", {
       ...props,
       styles,
@@ -154,7 +155,7 @@ export class Profile extends Block<ProfileProps> {
 }
 
 // HOC для подключения к store
-const mapStateToProps = (state: { user: any }) => ({
+const mapStateToProps = (state: State): Partial<ProfileProps> => ({
   user: state.user as User | null,
 });
 

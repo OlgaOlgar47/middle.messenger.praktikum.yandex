@@ -4,7 +4,7 @@ import type { Chat, Message } from "@/types";
 
 export const StoreEvents = { Updated: "updated" };
 
-type Indexed = Record<string, any>;
+type Indexed = Record<string, unknown>;
 export type State = {
   user: null | Indexed;
   chats: Chat[];
@@ -32,7 +32,7 @@ class Store extends EventBus {
 
 const store = new Store();
 
-// Добавляем глобальную функцию для отладки
+// глобальная функция для отладки
 (window as any).getStoreState = () => {
   console.log("📊 Current store state:", store.getState());
   return store.getState();

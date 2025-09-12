@@ -1,3 +1,5 @@
+import type { BaseProps } from "./Block";
+import type Block from "./Block";
 import Route from "./Route";
 
 export default class Router {
@@ -18,8 +20,15 @@ export default class Router {
     Router.__instance = this;
   }
 
-  use(pathname: string, BlockClass: any) {
-    const route = new Route(pathname, BlockClass, { rootQuery: this._rootQuery });
+  use<T extends BaseProps = Record<string, unknown>>(
+    pathname: string,
+    BlockClass: new (props?: T) => Block<T>
+  ) {
+    const route = new Route(
+      pathname,
+      BlockClass as new (props?: Record<string, unknown>) => Block,
+      { rootQuery: this._rootQuery }
+    );
     this.routes.push(route);
     return this; // чейним .use().use()
   }

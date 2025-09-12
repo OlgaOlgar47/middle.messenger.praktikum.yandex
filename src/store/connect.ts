@@ -1,41 +1,59 @@
+import type { BaseProps } from "../framework/Block";
+import type Block from "../framework/Block";
 import store, { StoreEvents } from "./Store";
 import type { State } from "./Store";
 
-export function connect<T extends any>(mapStateToProps: (state: State) => Record<string, unknown>) {
-  return function WithStore(Component: T) {
-    // @ts-expect-error mixin class для учебного проекта
-    return class extends Component {
-      constructor(...args: any[]) {
-        // передаем все аргументы конструктора
+interface SetProps<P> {
+  setProps(props: Partial<P>): void;
+}
+
+interface UpdateFields<U = unknown> {
+  updateFields?(user: U): void;
+}
+
+/**
+ * mapStateToProps: (state) => часть пропсов для компонента
+ *
+ * TConstructor — тип конструктора компонента, который мы оборачиваем.
+ * Он гарантированно создаёт экземпляр Block<P> и реализует setProps/updateFields.
+ */
+export function connect<P extends BaseProps, U = unknown>(
+  mapStateToProps: (state: State) => Partial<P>
+) {
+  // eslint-disable-next-line func-names
+  return function <
+    TConstructor extends new (props?: Partial<P>) => Block<P> & SetProps<P> & UpdateFields<U>,
+  >(Component: TConstructor): TConstructor {
+    // приводим Component к явному конструкторному типу, чтобы TS понял super()
+    const Base = Component as unknown as new (
+      ...args: ConstructorParameters<TConstructor>
+    ) => InstanceType<TConstructor>;
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore — класс-выражение с dynamic extends: безопасно типизировано выше
+    return class WithStore extends Base {
+      constructor(...args: ConstructorParameters<TConstructor>) {
         super(...args);
 
-        // Инициализируем компонент данными из store
         const initialState = mapStateToProps(store.getState());
-        // @ts-expect-error setProps может не существовать в типе
-        this.setProps({ ...initialState });
+        // this гарантированно имеет setProps благодаря ограничению TConstructor
+        (this as unknown as SetProps<P>).setProps(initialState);
 
-        // Если есть метод updateFields и user уже есть в store, обновляем поля
-        // @ts-expect-error updateFields может не существовать в типе
-        if (this.updateFields && initialState.user) {
-          // @ts-expect-error updateFields может не существовать в типе
-          this.updateFields(initialState.user);
+        const maybeUser = (initialState as Record<string, unknown>)?.user as U | undefined;
+        if ((this as unknown as UpdateFields<U>).updateFields && maybeUser !== undefined) {
+          (this as unknown as UpdateFields<U>).updateFields!(maybeUser);
         }
 
-        // подписываемся на событие обновления store
         store.on(StoreEvents.Updated, () => {
-          // вызываем обновление компонента, передав данные из хранилища
           const newProps = mapStateToProps(store.getState());
-          // @ts-expect-error setProps может не существовать в типе
-          this.setProps({ ...newProps });
+          (this as unknown as SetProps<P>).setProps(newProps);
 
-          // Если есть метод updateFields и user изменился, обновляем поля
-          // @ts-expect-error updateFields может не существовать в типе
-          if (this.updateFields && newProps.user) {
-            // @ts-expect-error updateFields может не существовать в типе
-            this.updateFields(newProps.user);
+          const newUser = (newProps as Record<string, unknown>)?.user as U | undefined;
+          if ((this as unknown as UpdateFields<U>).updateFields && newUser !== undefined) {
+            (this as unknown as UpdateFields<U>).updateFields!(newUser);
           }
         });
       }
-    };
+    } as unknown as TConstructor;
   };
 }

@@ -14,7 +14,6 @@ export const router = new Router("#app"); // или Router.getInstance("#app")
 router
   .use("/", Login)
   .use("/sign-up", Register)
-  .use("/register", Register)
   .use("/settings", ConnectedSettings)
   .use("/changePassword", ChangePassword)
   .use("/messenger", ConnectedChatList)

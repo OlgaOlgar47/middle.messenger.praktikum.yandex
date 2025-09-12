@@ -7,7 +7,7 @@ import type { BaseProps, Chat, Message } from "@/types";
 import { ChatController } from "@/controllers/ChatController";
 import { messageController } from "@/controllers/MessageController";
 import { connect } from "@/store/connect";
-import store from "@/store/Store";
+import store, { type State } from "@/store/Store";
 
 import styles from "./ChatList.module.sass";
 
@@ -29,7 +29,7 @@ interface ChatListProps extends BaseProps {
 }
 
 export class ChatList extends Block<ChatListProps> {
-  constructor(props: ChatListProps) {
+  constructor(props: ChatListProps = {}) {
     super("div", {
       ...props,
       styles,
@@ -324,8 +324,8 @@ export class ChatList extends Block<ChatListProps> {
   private getCurrentUserId(): number {
     const state = store.getState();
 
-    if (state.user && state.user.id) {
-      return state.user.id;
+    if (state.user && (state.user as { id: number }).id) {
+      return (state.user as { id: number }).id;
     }
 
     const userData = localStorage.getItem("user");
@@ -477,11 +477,7 @@ export class ChatList extends Block<ChatListProps> {
 }
 
 // HOC для подключения к store
-const mapStateToProps = (state: {
-  selectedChatId?: number;
-  chats: Chat[];
-  messagesByChat: Record<number, Message[]>;
-}) => {
+const mapStateToProps = (state: State): Partial<ChatListProps> => {
   const id = state.selectedChatId;
 
   return {

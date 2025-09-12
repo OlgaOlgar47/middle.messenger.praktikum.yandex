@@ -18,7 +18,7 @@ export interface ChangePasswordProps extends BaseProps {
 }
 
 export class ChangePassword extends Block<ChangePasswordProps> {
-  constructor(props: ChangePasswordProps) {
+  constructor(props: ChangePasswordProps = {}) {
     const button = new Button({
       type: "submit",
       label: "Сохранить",

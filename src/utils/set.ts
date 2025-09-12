@@ -1,4 +1,4 @@
-type Indexed = Record<string, any>;
+type Indexed = Record<string, unknown>;
 
 export function set(object: Indexed, path: string, value: unknown): Indexed {
   if (typeof path !== "string") {
@@ -18,7 +18,7 @@ export function set(object: Indexed, path: string, value: unknown): Indexed {
     if (!(key in current) || typeof current[key] !== "object" || current[key] === null) {
       current[key] = {};
     }
-    current = current[key];
+    current = current[key] as Indexed;
   }
 
   current[keys[keys.length - 1]] = value;

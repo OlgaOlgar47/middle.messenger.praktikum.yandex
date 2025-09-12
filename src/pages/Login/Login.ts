@@ -20,7 +20,7 @@ interface LoginProps {
 }
 
 export class Login extends Block<LoginProps> {
-  constructor(props: LoginProps) {
+  constructor(props: LoginProps = {}) {
     super("div", {
       styles,
       ...props,

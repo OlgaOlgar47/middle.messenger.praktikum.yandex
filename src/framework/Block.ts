@@ -1,7 +1,12 @@
 import * as Handlebars from "handlebars";
 import EventBus from "./EventBus";
 
-export default class Block<T extends Record<string, any> = {}> {
+export interface BaseProps {
+  attributes?: Record<string, string>;
+  events?: Record<string, (e: Event) => void>;
+}
+
+export default class Block<T extends BaseProps = BaseProps> {
   static readonly EVENTS = {
     INIT: "init",
     FLOW_CDM: "flow:component-did-mount",
@@ -14,10 +19,10 @@ export default class Block<T extends Record<string, any> = {}> {
   private _element: HTMLElement | null = null;
 
   // eslint-disable-next-line no-use-before-define
-  protected children: Record<string, Block<any>>;
+  protected children: Record<string, Block<object>> = {};
 
   // eslint-disable-next-line no-use-before-define
-  protected lists: Record<string, Array<Block<any> | string>>;
+  protected lists: Record<string, Array<Block<object> | string>> = {};
 
   private _meta: { tagName: string; props: T };
 
@@ -57,13 +62,13 @@ export default class Block<T extends Record<string, any> = {}> {
   }
 
   public getChildren(propsAndChildren: T): {
-    children: Record<string, Block<any>>;
+    children: Record<string, Block<BaseProps>>;
     props: Partial<T>;
-    lists: Record<string, Block<any>[]>;
+    lists: Record<string, Block<BaseProps>[]>;
   } {
-    const children: Record<string, Block<any>> = {};
+    const children: Record<string, Block<BaseProps>> = {};
     const props: Partial<T> = {};
-    const lists: Record<string, Block<any>[]> = {};
+    const lists: Record<string, Block<BaseProps>[]> = {};
     Object.entries(propsAndChildren).forEach(([key, value]) => {
       if (value instanceof Block) {
         children[key] = value;
@@ -171,7 +176,7 @@ export default class Block<T extends Record<string, any> = {}> {
   }
 
   public compile(template: string, props: T = this.props): DocumentFragment {
-    const propsAndStubs: Record<string, unknown> = { ...props };
+    const propsAndStubs: Record<string, unknown> = { ...(props as object) };
 
     // Добавляем заглушки для children
     Object.entries(this.children).forEach(([key, child]) => {
@@ -232,14 +237,14 @@ export default class Block<T extends Record<string, any> = {}> {
     const self = this;
 
     return new Proxy(props, {
-      get(target: U, prop: string): any {
+      get(target: U, prop: string): unknown {
         const value = target[prop as keyof U];
         return typeof value === "function" ? value.bind(target) : value;
       },
-      set(target: U, prop: string, value: any): boolean {
+      set(target: U, prop: string, value: unknown): boolean {
         if (target[prop as keyof U] !== value) {
           const oldTarget = { ...target };
-          (target as any)[prop] = value;
+          (target as Record<string, unknown>)[prop] = value;
           self._eventBus.emit(Block.EVENTS.FLOW_CDU, oldTarget, target);
           self._setUpdate = true;
         }

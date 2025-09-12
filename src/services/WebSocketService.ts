@@ -132,8 +132,8 @@ export class WebSocketService {
   private getCurrentUserId(): number {
     const state = store.getState();
 
-    if (state.user && state.user.id) {
-      return state.user.id;
+    if (state.user && (state.user as { id: number }).id) {
+      return (state.user as { id: number }).id;
     }
 
     const userData = localStorage.getItem("user");

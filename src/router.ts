@@ -20,11 +20,11 @@ export function renderRoute(): Block | string {
     case "#/register":
       return new Register({});
     case "#/chats":
-      return new (ConnectedChatList as any)({});
+      return new ConnectedChatList({});
     case "#/profile":
-      return new (ConnectedProfile as any)({});
+      return new ConnectedProfile({});
     case "#/settings":
-      return new (ConnectedSettings as any)({});
+      return new ConnectedSettings({});
     case "#/changePassword":
       return new ChangePassword({});
     case "#/404":

@@ -1,6 +1,7 @@
 import { authAPI } from "@/api/auth";
 import { router } from "@/App";
 import { Store } from "@/store";
+import type { RegisterData } from "@/types";
 
 export const AuthController = {
   async fetchUser() {
@@ -20,7 +21,7 @@ export const AuthController = {
     router.go("/messenger");
   },
 
-  async register(data: any) {
+  async register(data: RegisterData) {
     await authAPI.signup(data);
     router.go("/messenger");
   },

@@ -6,6 +6,7 @@ import { createFormSubmitHandler } from "@/utils/formUtils";
 import type { BaseProps, User, UpdateProfileData } from "@/types";
 import { UserController } from "@/controllers/UserController";
 import { connect } from "@/store/connect";
+import type { State } from "@/store/Store";
 import { Toast } from "@/utils/toast";
 
 import styles from "../styles/authForm.module.sass";
@@ -22,7 +23,7 @@ interface SettingsProps extends BaseProps {
 }
 
 export class Settings extends Block<SettingsProps> {
-  constructor(props: SettingsProps) {
+  constructor(props: SettingsProps = {}) {
     const { user } = props || {};
 
     super("div", {
@@ -48,25 +49,20 @@ export class Settings extends Block<SettingsProps> {
   }
 
   protected init(): void {
-    // Создаем поля
     const fields = this.createFields(this.props.user);
     this.setProps({ fields });
 
-    // Создаем обработчики событий
     this.props.events = {
       submit: createFormSubmitHandler(fields, this.handleSubmit.bind(this)),
     };
 
-    // Добавляем обработчики для отслеживания изменений
     this.addChangeListeners(fields);
 
-    // Если user уже есть, обновляем поля
     if (this.props.user) {
       this.updateFields(this.props.user);
     }
   }
 
-  // Создаем поля формы (убираем дублирование)
   private createFields(user?: User | null): Input[] {
     return [
       new Input({
@@ -125,32 +121,24 @@ export class Settings extends Block<SettingsProps> {
     ];
   }
 
-  // Обновляем поля при изменении user
   public updateFields(user: User) {
     console.log("🔄 Settings updateFields called with user:", user);
 
-    // Сохраняем оригинальные данные для сравнения
     this.setProps({ originalUser: { ...user } });
 
-    // Пересоздаем поля с новыми данными
     const newFields = this.createFields(user);
 
-    // Обновляем поля в компоненте
     this.setProps({ fields: newFields });
 
-    // Создаем обработчики событий
     this.props.events = {
       submit: createFormSubmitHandler(newFields, this.handleSubmit.bind(this)),
     };
 
-    // Добавляем обработчики для отслеживания изменений
     this.addChangeListeners(newFields);
 
-    // Проверяем изменения после создания полей
     setTimeout(() => this.checkForChanges(), 100);
   }
 
-  // Добавляем обработчики изменений для отслеживания активности кнопки
   private addChangeListeners(inputs: Input[]) {
     inputs.forEach((input) => {
       const inputElement = input.element?.querySelector("input") as HTMLInputElement;
@@ -163,12 +151,9 @@ export class Settings extends Block<SettingsProps> {
     });
   }
 
-  // Проверяем, есть ли изменения в форме
   private checkForChanges() {
     const inputs = this.lists.fields as Input[];
     const { originalUser, button } = this.props;
-
-    // console.log("🔍 checkForChanges called");
 
     if (!originalUser || !inputs) {
       console.log("❌ Missing originalUser or inputs");
@@ -189,11 +174,9 @@ export class Settings extends Block<SettingsProps> {
       }
     });
 
-    // Обновляем состояние кнопки
     if (button) {
       button.setProps({ disabled: !hasChanges });
     } else {
-      // Попробуем найти кнопку через DOM
       const buttonElement = this.element?.querySelector(
         'button[type="submit"]'
       ) as HTMLButtonElement;
@@ -204,20 +187,17 @@ export class Settings extends Block<SettingsProps> {
   }
 
   private async handleSubmit(formData: Record<string, string>) {
-    // Предотвращаем двойной сабмит
     const submitButton = this.element?.querySelector('button[type="submit"]') as HTMLButtonElement;
     if (submitButton?.disabled) {
       return;
     }
 
-    // Проверяем, есть ли изменения
     const { originalUser } = this.props;
     if (!originalUser) {
       Toast.error("Ошибка: данные пользователя не загружены");
       return;
     }
 
-    // Блокируем кнопку на время отправки
     if (submitButton) {
       submitButton.disabled = true;
     }
@@ -241,7 +221,6 @@ export class Settings extends Block<SettingsProps> {
       const errorMessage = error instanceof Error ? error.message : "Ошибка при обновлении профиля";
       Toast.error(errorMessage);
 
-      // Разблокируем кнопку при ошибке
       if (submitButton) {
         submitButton.disabled = false;
       }
@@ -269,7 +248,7 @@ export class Settings extends Block<SettingsProps> {
 }
 
 // HOC для подключения к store
-const mapStateToProps = (state: { user: any }) => ({
+const mapStateToProps = (state: State): Partial<SettingsProps> => ({
   user: state.user as User | null,
 });
 

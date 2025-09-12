@@ -34,10 +34,4 @@ class Store extends EventBus {
 
 const store = new Store();
 
-// глобальная функция для отладки
-(window as any).getStoreState = () => {
-  console.log("📊 Current store state:", store.getState());
-  return store.getState();
-};
-
 export default store;

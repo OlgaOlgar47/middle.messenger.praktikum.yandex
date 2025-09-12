@@ -51,7 +51,6 @@ export class Modal extends Block<ModalProps> {
     const button = this.children.submitButton as Button;
     if (button) {
       const newClassName = this.getButtonClassName(this.props.buttonType);
-      console.log("🎨 Modal init - buttonType:", this.props.buttonType, "className:", newClassName);
       button.setProps({ className: newClassName });
     }
   }

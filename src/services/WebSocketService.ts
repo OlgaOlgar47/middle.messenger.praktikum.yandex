@@ -58,7 +58,6 @@ export class WebSocketService {
     this._token = null;
   }
 
-  // Отправка сообщения
   sendMessage(message: SendMessageData): void {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
       this.socket.send(
@@ -72,7 +71,6 @@ export class WebSocketService {
     }
   }
 
-  // Запрос старых сообщений
   getOldMessages(offset: number = 0): void {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
       this.socket.send(
@@ -84,22 +82,18 @@ export class WebSocketService {
     }
   }
 
-  // Установка колбэка для получения сообщений
   onMessages(callback: (messages: Message[]) => void): void {
     this.onMessageCallback = callback;
   }
 
-  // Установка колбэка для получения новых сообщений
   onNewMessage(callback: (message: Message) => void): void {
     this.onNewMessageCallback = callback;
   }
 
   private handleOpen(): void {
-    console.log("WebSocket подключен");
-    // Загружаем последние 20 сообщений сразу после подключения
     setTimeout(() => {
       this.getOldMessages(0);
-    }, 10); // Небольшая задержка для стабильности
+    }, 10);
   }
 
   private handleMessage(event: MessageEvent): void {
@@ -107,12 +101,10 @@ export class WebSocketService {
       const data = JSON.parse(event.data);
 
       if (Array.isArray(data)) {
-        // Массив сообщений (старые сообщения)
         if (this.onMessageCallback) {
           this.onMessageCallback(data);
         }
       } else if (data.type === "message") {
-        // Новое сообщение
         if (this.onNewMessageCallback) {
           this.onNewMessageCallback(data);
         }
@@ -122,9 +114,7 @@ export class WebSocketService {
     }
   }
 
-  private handleClose(): void {
-    console.log("WebSocket отключен");
-  }
+  private handleClose(): void {}
 
   private handleError(error: Event): void {
     console.error("Ошибка WebSocket:", error);

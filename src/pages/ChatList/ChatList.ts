@@ -216,54 +216,36 @@ export class ChatList extends Block<ChatListProps> {
   }
 
   private async selectChat(chatId: number) {
-    console.log(`🔄 Переключение на чат ${chatId}`);
-
-    // Сначала отключаемся от текущего чата
     messageController.disconnectFromChat();
 
-    // Показываем лоадер
     store.set("isLoadingMessages", true);
 
-    // Принудительно очищаем сообщения для выбранного чата
     store.set("selectedChatId", chatId);
     store.set(`messagesByChat.${chatId}`, []);
 
-    // Принудительно обновляем props напрямую
     (this.props as any).messages = [];
     (this.props as any).selectedChatId = chatId;
     (this.props as any).isLoadingMessages = true;
 
-    console.log(
-      `🔧 Props обновлены: messages=${(this.props as any).messages.length}, ` +
-        `selectedChatId=${(this.props as any).selectedChatId}, ` +
-        `loading=${(this.props as any).isLoadingMessages}`
-    );
-
-    // Принудительно перерендериваем компонент
     (this as any)._render();
 
     setTimeout(async () => {
-      console.log(`🔌 Подключение к чату ${chatId}`);
-
-      // Подключаемся к чату через WebSocket
       try {
         await messageController.connectToChat(chatId);
 
-        // НЕ скрываем лоадер здесь - он будет скрыт в MessageController после получения сообщений
         this.updateMessages();
 
-        // Уменьшаем задержку для прикрепления событий
         setTimeout(() => {
           this.attachMessageEvents();
           this.attachChatMenuEvents();
+          this.updateMessages();
         }, 50);
       } catch (error) {
         console.error("Ошибка подключения к чату:", error);
-        // Скрываем лоадер в случае ошибки
         store.set("isLoadingMessages", false);
         (this.props as any).isLoadingMessages = false;
       }
-    }, 20); // Уменьшаем задержку
+    }, 20);
   }
 
   private handleSendMessage() {
@@ -271,7 +253,6 @@ export class ChatList extends Block<ChatListProps> {
     const message = inputElement?.value?.trim();
 
     if (message && this.props.selectedChatId) {
-      // Отправляем сообщение через WebSocket
       messageController.sendMessage(message);
       inputElement.value = "";
     }
@@ -281,7 +262,6 @@ export class ChatList extends Block<ChatListProps> {
     const buttons = this.element?.querySelectorAll("button");
 
     buttons?.forEach((button, index) => {
-      // Ищем кнопку отправки по тексту, типу или позиции в форме
       if (
         button.textContent?.trim() === "→" ||
         button.getAttribute("type") === "submit" ||
@@ -313,7 +293,6 @@ export class ChatList extends Block<ChatListProps> {
       });
     }
 
-    // Делегирование событий на уровне документа для динамически созданных элементов
     document.addEventListener("click", (e) => {
       const target = e.target as HTMLElement;
 
@@ -397,14 +376,8 @@ export class ChatList extends Block<ChatListProps> {
   override render() {
     const { chats = [], selectedChatId, isLoadingMessages = false } = this.props;
 
-    // Получаем сообщения напрямую из store для текущего чата
     const messages =
       selectedChatId !== undefined ? store.getState().messagesByChat[selectedChatId] || [] : [];
-
-    console.log(
-      `🎨 Render: чат ${selectedChatId}, сообщений из store: ${messages.length}, ` +
-        `из props: ${this.props.messages?.length || 0}, загрузка: ${isLoadingMessages}`
-    );
 
     const selectedChat = chats.find((chat) => chat.id === selectedChatId);
 
@@ -492,20 +465,20 @@ export class ChatList extends Block<ChatListProps> {
                 </div>
               </div>
             </div>
-        <ul class="{{styles.messageList}}">
+            <ul class="{{styles.messageList}}">
               ${
                 isLoadingMessages
                   ? '<li class="{{styles.loader}}"> Загрузка...</li>'
                   : this.renderMessages(messages)
               }
-        </ul>
-          <form novalidate class="{{styles.messageForm}}">
-            <div class="{{styles.messageInputContainer}}">
-              <img src="/images/attach.svg" alt="Attachment-icon" class="{{styles.logo}}" />
-              {{{messageInput}}}
-              {{{roundButton}}}
-            </div>
-          </form>
+            </ul>
+            <form novalidate class="{{styles.messageForm}}">
+              <div class="{{styles.messageInputContainer}}">
+                <img src="/images/attach.svg" alt="Attachment-icon" class="{{styles.logo}}" />
+                {{{messageInput}}}
+                {{{roundButton}}}
+              </div>
+            </form>
           `
               : `
             <div class="{{styles.noChatSelected}}">
@@ -523,13 +496,10 @@ export class ChatList extends Block<ChatListProps> {
   }
 }
 
-// HOC для подключения к store
 const mapStateToProps = (state: State): Partial<ChatListProps> => {
   const id = state.selectedChatId;
 
-  // Если чат не выбран, возвращаем пустой массив сообщений
   if (id === undefined) {
-    console.log("📊 mapStateToProps: чат не выбран, возвращаем пустые сообщения");
     return {
       chats: state.chats,
       selectedChatId: undefined,
@@ -538,12 +508,7 @@ const mapStateToProps = (state: State): Partial<ChatListProps> => {
     };
   }
 
-  // Получаем сообщения для выбранного чата
   const messages = state.messagesByChat[id] || [];
-  console.log(
-    `📊 mapStateToProps: чат ${id}, сообщений: ${messages.length}, ` +
-      `загрузка: ${state.isLoadingMessages}`
-  );
 
   return {
     chats: state.chats,

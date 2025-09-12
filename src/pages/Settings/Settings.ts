@@ -122,8 +122,6 @@ export class Settings extends Block<SettingsProps> {
   }
 
   public updateFields(user: User) {
-    console.log("🔄 Settings updateFields called with user:", user);
-
     this.setProps({ originalUser: { ...user } });
 
     const newFields = this.createFields(user);
@@ -144,7 +142,6 @@ export class Settings extends Block<SettingsProps> {
       const inputElement = input.element?.querySelector("input") as HTMLInputElement;
       if (inputElement) {
         inputElement.addEventListener("input", () => {
-          console.log("🔄 Input changed:", inputElement.name, inputElement.value);
           this.checkForChanges();
         });
       }
@@ -156,7 +153,6 @@ export class Settings extends Block<SettingsProps> {
     const { originalUser, button } = this.props;
 
     if (!originalUser || !inputs) {
-      console.log("❌ Missing originalUser or inputs");
       return;
     }
 

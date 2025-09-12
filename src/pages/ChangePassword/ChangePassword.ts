@@ -54,7 +54,6 @@ export class ChangePassword extends Block<ChangePasswordProps> {
   }
 
   private createFields(): Input[] {
-    console.log("📝 createFields called");
     const fields = [
       new Input({
         type: "password",

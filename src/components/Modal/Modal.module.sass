@@ -1,3 +1,5 @@
+@use '@/theme/colors' as *
+
 .backdrop
   position: fixed
   top: 0
@@ -11,7 +13,7 @@
   z-index: 1000
 
 .modal
-  background: white
+  background: $white
   border-radius: 8px
   padding: 24px
   min-width: 400px
@@ -28,14 +30,14 @@
   margin: 0
   font-size: 18px
   font-weight: 600
-  color: #333
+  color: $text-dark
 
 .closeButton
   background: none
   border: none
   font-size: 24px
   cursor: pointer
-  color: #666
+  color: $text-medium
   padding: 0
   width: 24px
   height: 24px
@@ -44,7 +46,7 @@
   justify-content: center
 
   &:hover
-    color: #333
+    color: $text-dark
 
 .form
   display: flex
@@ -63,45 +65,45 @@
   justify-content: flex-end
 
 .submitButton
-  background-color: #007bff
-  color: white
+  background-color: $primary-blue
+  color: $white
   border: none
   padding: 8px 16px
   border-radius: 4px
   cursor: pointer
 
   &:hover
-    background-color: #0056b3
+    background-color: $primary-blue-hover
 
 .addButton
-  background-color: #18F71F
-  color: white
+  background-color: $secondary-color
+  color: $white
   border: none
   padding: 8px 16px
   border-radius: 4px
   cursor: pointer
 
   &:hover
-    background-color: #14E01A
+    background-color: $secondary-green-hover
 
 .removeButton
-  background-color: #FF2757
-  color: white
+  background-color: $error-color
+  color: $white
   border: none
   padding: 8px 16px
   border-radius: 4px
   cursor: pointer
 
   &:hover
-    background-color: #E01E4A
+    background-color: $error-red-hover
 
 .cancelButton
-  background-color: #6c757d
-  color: white
+  background-color: $gray-medium
+  color: $white
   border: none
   padding: 8px 16px
   border-radius: 4px
   cursor: pointer
 
   &:hover
-    background-color: #545b62
+    background-color: $gray-medium-hover

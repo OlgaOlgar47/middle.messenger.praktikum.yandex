@@ -16,12 +16,7 @@ export function createFormSubmitHandler(
       if (inputEl) formData[inputEl.name] = inputEl.value;
     });
     if (isFormValid) {
-      // eslint-disable-next-line no-console
-      console.log("Form data:", formData);
       onSubmit?.(formData);
-    } else {
-      // eslint-disable-next-line no-console
-      console.log("Форма невалидна");
     }
   };
 }

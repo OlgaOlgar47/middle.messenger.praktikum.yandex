@@ -24,7 +24,6 @@ export class Layout extends Block<LayoutProps> {
         <main class="{{styles.content}}">
           {{{content}}}
         </main>
-        {{{FooterNav}}}
       </div>
     `;
   }

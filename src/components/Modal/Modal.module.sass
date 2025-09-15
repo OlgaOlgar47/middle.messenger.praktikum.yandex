@@ -1,0 +1,109 @@
+@use '@/theme/colors' as *
+
+.backdrop
+  position: fixed
+  top: 0
+  left: 0
+  width: 100%
+  height: 100%
+  background-color: rgba(0, 0, 0, 0.5)
+  display: flex
+  justify-content: center
+  align-items: center
+  z-index: 1000
+
+.modal
+  background: $white
+  border-radius: 8px
+  padding: 24px
+  min-width: 400px
+  max-width: 500px
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15)
+
+.header
+  display: flex
+  justify-content: space-between
+  align-items: center
+  margin-bottom: 20px
+
+.title
+  margin: 0
+  font-size: 18px
+  font-weight: 600
+  color: $text-dark
+
+.closeButton
+  background: none
+  border: none
+  font-size: 24px
+  cursor: pointer
+  color: $text-medium
+  padding: 0
+  width: 24px
+  height: 24px
+  display: flex
+  align-items: center
+  justify-content: center
+
+  &:hover
+    color: $text-dark
+
+.form
+  display: flex
+  flex-direction: column
+  gap: 16px
+
+.inputContainer
+  margin-bottom: 8px
+
+.input
+  width: 100%
+
+.buttons
+  display: flex
+  gap: 12px
+  justify-content: flex-end
+
+.submitButton
+  background-color: $primary-blue
+  color: $white
+  border: none
+  padding: 8px 16px
+  border-radius: 4px
+  cursor: pointer
+
+  &:hover
+    background-color: $primary-blue-hover
+
+.addButton
+  background-color: $secondary-color
+  color: $white
+  border: none
+  padding: 8px 16px
+  border-radius: 4px
+  cursor: pointer
+
+  &:hover
+    background-color: $secondary-green-hover
+
+.removeButton
+  background-color: $error-color
+  color: $white
+  border: none
+  padding: 8px 16px
+  border-radius: 4px
+  cursor: pointer
+
+  &:hover
+    background-color: $error-red-hover
+
+.cancelButton
+  background-color: $gray-medium
+  color: $white
+  border: none
+  padding: 8px 16px
+  border-radius: 4px
+  cursor: pointer
+
+  &:hover
+    background-color: $gray-medium-hover

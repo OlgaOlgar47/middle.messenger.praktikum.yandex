@@ -19,7 +19,7 @@ export default class EventBus {
 
   emit(event: string, ...args: unknown[]): void {
     const list = this.listeners[event];
-    if (!list) throw new Error(`No such event: ${event}`);
+    if (!list) return;
 
     list.forEach((listener) => listener(...args));
   }

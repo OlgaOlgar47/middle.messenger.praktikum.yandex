@@ -1,8 +1,8 @@
 import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
-import { ChatList } from "./pages/ChatList";
-import { Profile } from "./pages/Profile";
-import { Settings } from "./pages/Settings";
+import { ConnectedChatList } from "./pages/ChatList";
+import { ConnectedProfile } from "./pages/Profile";
+import { ConnectedSettings } from "./pages/Settings";
 import { PageNotFound } from "./pages/PageNotFound";
 import { ServerError } from "./pages/ServerError";
 import { ChangePassword } from "./pages/ChangePassword";
@@ -20,11 +20,11 @@ export function renderRoute(): Block | string {
     case "#/register":
       return new Register({});
     case "#/chats":
-      return new ChatList({});
+      return new ConnectedChatList({});
     case "#/profile":
-      return new Profile({});
+      return new ConnectedProfile({});
     case "#/settings":
-      return new Settings({});
+      return new ConnectedSettings({});
     case "#/changePassword":
       return new ChangePassword({});
     case "#/404":

@@ -4,25 +4,107 @@
 .wrapper
   width: 100%
   display: flex
-  min-height: 100vh
+  height: 100vh
+  overflow: hidden
+
+.chatContainer
+  display: flex
+  flex: 1
+  min-height: 0
+
+.chatHeader
+  display: flex
+  align-items: center
+  justify-content: space-between
+  padding: 20px
+  background-color: $white
+  border-bottom: 1px solid $border-color
+
+.chatTitle
+  margin: 0
+  font-size: 18px
+  font-weight: 500
+  color: $text-color
+
+.chatMenu
+  position: relative
+
+.chatMenuButton
+  background: none
+  border: none
+  font-size: 20px
+  color: $secondary-color
+  cursor: pointer
+  padding: 8px
+  border-radius: 50%
+  transition: background-color 0.2s
+
+  &:hover
+    background-color: $hover-gray
+
+.chatMenuDropdown
+  position: absolute
+  top: 100%
+  right: 0
+  background: $white
+  border-radius: 8px
+  box-shadow: 0 4px 12px $dropdown-shadow
+  padding: 8px 0
+  min-width: 200px
+  z-index: 1000
+
+.addUserMenuItem, .removeUserMenuItem
+  display: flex
+  align-items: center
+  padding: 12px 16px
+  cursor: pointer
+  transition: background-color 0.2s
+
+  &:hover
+    background-color: $hover-light-gray
+
+
+.addUserIcon
+  width: 24px
+  height: 24px
+  background-color: $secondary-color
+  color: $white
+  border-radius: 50%
+  display: flex
+  align-items: center
+  justify-content: center
+  font-size: 16px
+  font-weight: bold
+  margin-right: 12px
+
+.removeUserIcon
+  width: 24px
+  height: 24px
+  background-color: $error-color
+  color: $white
+  border-radius: 50%
+  display: flex
+  align-items: center
+  justify-content: center
+  font-size: 16px
+  font-weight: bold
+  margin-right: 12px
 
 .chat
   display: flex
-  height: calc(100vh - 40px)
   flex-direction: column
-  justify-content: flex-end
   flex-grow: 1
-  overflow-y: auto
-  padding: 1rem
+  overflow: hidden
+  min-height: 0
 
 .chatList
   padding: 1.5rem
   display: flex
   flex-direction: column
   max-width: 400px
-  height: 100vh
-  background-color: #F6F6F7
-  border-right: 1px solid #E0E0E0
+  min-height: 0
+  background-color: $light-gray
+  border-right: 1px solid $medium-gray
 
 .header
   display: flex
@@ -37,7 +119,12 @@
 .title
   font-size: 14px
   font-weight: 500
-  color: #6B7280
+  color: $dark-gray
+  cursor: pointer
+  transition: color 0.2s
+
+  &:hover
+    color: $secondary-color
 
 .chatItems
   list-style: none
@@ -62,7 +149,7 @@
 .avatar
   width: 40px
   height: 40px
-  background-color: #e0e0e0
+  background-color: $avatar-gray
   border-radius: 50%
   margin-right: 10px
   flex-shrink: 0
@@ -73,6 +160,24 @@
 
 .searchContainer
   margin: 10px 0
+
+.createChatContainer
+  margin: 10px 0
+  padding: 10px 0
+
+.createChatButton
+  width: 100%
+  background-color: $secondary-color
+  color: $white
+  border: none
+  border-radius: 5px
+  padding: 10px
+  font-size: 14px
+  cursor: pointer
+  transition: background-color 0.2s
+
+  &:hover
+    background-color: color.adjust($secondary-color, $lightness: -10%)
 
 .searchInputWithIcon
   font-family: inherit
@@ -101,14 +206,14 @@
   color: $text-color
   font-weight: 500
   margin-bottom: 2px
-  white-space: nowrap
+  $white-space: nowrap
   overflow: hidden
   text-overflow: ellipsis
 
 .message
   font-size: 12px
   color: $secondary-text-color
-  white-space: nowrap
+  $white-space: nowrap
   overflow: hidden
   text-overflow: ellipsis
 
@@ -116,7 +221,7 @@
   font-size: 12px
   color: $secondary-text-color
   margin-right: 10px
-  white-space: nowrap
+  $white-space: nowrap
   flex-shrink: 0
 
 .unread
@@ -136,14 +241,13 @@
   display: flex
   align-items: center
   justify-content: center
-  color: #6B7280
+  color: $dark-gray
   font-size: 14px
 
 .messageInputContainer
   display: flex
   align-items: center
   gap: 1rem
-  margin: 1rem
 
 .label
   flex-grow: 1
@@ -151,47 +255,109 @@
 
 .messageInput
   font-family: inherit
-  background-color: #F6F6F7
+  background-color: $light-gray
   border-radius: 10px
   padding: 1rem
 
 .messageList
   list-style: none
-  padding: 0
+  padding: 20px
   margin: 0
+  display: flex
+  flex-direction: column
+  gap: 8px
+  flex: 1
+  overflow-y: auto
+  overflow-x: hidden
+  min-height: 0
+  scrollbar-width: thin
+  scrollbar-color: $scrollbar-color transparent
+
+  &::-webkit-scrollbar
+    width: 6px
+
+  &::-webkit-scrollbar-track
+    background: transparent
+
+  &::-webkit-scrollbar-thumb
+    background-color: $scrollbar-color
+    border-radius: 3px
+
+  &::-webkit-scrollbar-thumb:hover
+    background-color: $scrollbar-hover
+
+.messageForm
+  margin-top: auto
+  padding: 20px
+  background-color: $white
+  border-top: 1px solid $border-color
+  flex-shrink: 0
+  position: sticky
+  bottom: 0
+  z-index: 10
 
 .messageItem
   display: flex
   flex-direction: column
   align-items: flex-start
-  margin: 8px 0
+  margin: 4px 0
 
-.isOwn
-  align-items: flex-end
+  &.isOwn
+    align-items: flex-end
 
-  .messageText
-    background: #e6ffe6
-    color: #222
-    align-self: flex-end
+    .messageText
+      background: $message-bg-own
+      color: $primary-color
+      border-radius: 18px 18px 4px 18px
 
-
-  .messageTime
-    color: #6cff6c
-    align-self: flex-end
+    .messageTime
+      color: $message-time-color
+      margin-right: 8px
+      margin-left: 0
 
 .messageText
-  background: #f1f0f0
-  border-radius: 16px
-  padding: 10px 16px
-  font-size: 16px
-  max-width: 60vw
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03)
-  margin-bottom: 2px
-
+  background: $message-bg-other
+  border-radius: 18px 18px 18px 4px
+  padding: 8px 12px
+  font-size: 14px
+  max-width: 70%
+  word-wrap: break-word
+  box-shadow: 0 1px 2px $shadow-color
+  border: 1px solid $message-border
 
 .messageTime
-  font-size: 13px
-  color: #9eb89e
+  font-size: 11px
+  color: $message-time-color
   margin-top: 2px
   margin-left: 8px
-  text-align: right
+  text-align: left
+
+.noChats
+  text-align: center
+  color: $secondary-text-color
+  font-size: 14px
+  padding: 20px
+  font-style: italic
+
+.noChatSelected
+  display: flex
+  align-items: center
+  justify-content: center
+  height: 100%
+  color: $secondary-text-color
+  font-size: 16px
+
+
+.noMessages
+  text-align: center
+  color: $secondary-text-color
+  font-size: 14px
+  padding: 20px
+  font-style: italic
+
+.loader
+  text-align: center
+  color: $secondary-text-color
+  font-size: 14px
+  padding: 20px
+  font-style: italic

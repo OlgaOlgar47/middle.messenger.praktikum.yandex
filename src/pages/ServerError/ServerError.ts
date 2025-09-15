@@ -9,7 +9,7 @@ export interface ServerErrorProps extends BaseProps {
 }
 
 export class ServerError extends Block<ServerErrorProps> {
-  constructor(props: ServerErrorProps) {
+  constructor(props: ServerErrorProps = {}) {
     super("div", {
       ...props,
       styles,

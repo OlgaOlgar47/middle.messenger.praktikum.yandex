@@ -7,6 +7,7 @@ interface InputProps {
   type?: string;
   name: string;
   placeholder?: string;
+  value?: string;
   className?: string;
   required?: boolean;
   ariaLabel?: string;
@@ -46,6 +47,13 @@ export class Input extends Block<InputProps> {
 
   private handleBlur(e: Event): void {
     const input = e.target as HTMLInputElement;
+
+    // Для полей поиска не показываем ошибку при потере фокуса, если поле пустое
+    if ((input.name === "query" || input.name === "search") && !input.value.trim()) {
+      this.showError();
+      return;
+    }
+
     const { error } = validateField(input.name, input.value);
     this.showError(error);
   }
@@ -83,6 +91,7 @@ export class Input extends Block<InputProps> {
           type="{{type}}"
           name="{{name}}"
           placeholder="{{placeholder}}"
+          value="{{value}}"
           class="{{styles.input}} {{className}}"
           {{#if required}}required{{/if}}
           {{#if ariaLabel}}aria-label="{{ariaLabel}}"{{/if}}

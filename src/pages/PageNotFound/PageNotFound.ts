@@ -9,7 +9,7 @@ export interface PageNopFoundProps extends BaseProps {
 }
 
 export class PageNotFound extends Block<PageNopFoundProps> {
-  constructor(props: PageNopFoundProps) {
+  constructor(props: PageNopFoundProps = {}) {
     super("div", {
       ...props,
       styles,

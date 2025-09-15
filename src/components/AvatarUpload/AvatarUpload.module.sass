@@ -1,0 +1,44 @@
+.avatarUpload
+  display: inline-block
+  position: relative
+
+.label
+  display: block
+  cursor: pointer
+  position: relative
+  border-radius: 50%
+  overflow: hidden
+  transition: opacity 0.2s
+
+  &:hover .overlay
+    opacity: 1
+
+.avatar
+  width: 120px
+  height: 120px
+  object-fit: cover
+  border-radius: 50%
+  border: 2px solid #ddd
+
+.overlay
+  position: absolute
+  top: 0
+  left: 0
+  right: 0
+  bottom: 0
+  background-color: rgba(0, 0, 0, 0.5)
+  display: flex
+  align-items: center
+  justify-content: center
+  opacity: 0
+  transition: opacity 0.2s
+  border-radius: 50%
+
+.text
+  color: white
+  font-size: 14px
+  font-weight: 500
+  text-align: center
+
+.input
+  display: none

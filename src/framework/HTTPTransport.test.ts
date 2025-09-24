@@ -17,10 +17,8 @@ describe("HTTPTransport", () => {
       withCredentials: false,
     };
 
-    // Мокаем XMLHttpRequest
     (global as unknown as { XMLHttpRequest: unknown }).XMLHttpRequest = jest.fn(() => mockXHR);
 
-    // Простая заглушка для HTTPTransport
     httpTransport = {
       get: jest.fn(),
       post: jest.fn(),
@@ -126,7 +124,6 @@ describe("HTTPTransport", () => {
         "X-Custom-Header": "value",
       };
 
-      // Проверяем что заголовки можно установить
       expect(headers.Authorization).toBe("Bearer token");
       expect(headers["X-Custom-Header"]).toBe("value");
     });

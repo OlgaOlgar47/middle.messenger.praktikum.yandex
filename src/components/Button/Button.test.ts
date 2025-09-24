@@ -1,4 +1,3 @@
-// Простые тесты для Button компонента
 describe("Button", () => {
   let mockButton: {
     props: Record<string, unknown>;
@@ -43,7 +42,6 @@ describe("Button", () => {
       const mockOnClick = jest.fn();
       mockButton.props.onClick = mockOnClick;
 
-      // Симулируем клик
       const mockEvent = new Event("click");
       if (mockButton.element) {
         mockButton.element.addEventListener("click", mockOnClick);

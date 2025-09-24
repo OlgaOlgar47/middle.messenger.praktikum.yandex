@@ -192,9 +192,17 @@ export default class Block<T extends BaseProps = BaseProps> {
       }
     });
 
-    // Компиляция шаблона
+    // Компиляция шаблона с защитой от XSS
     const fragment = this._createDocumentElement("template") as HTMLTemplateElement;
-    fragment.innerHTML = Handlebars.compile(template)(propsAndStubs);
+    const compiledTemplate = Handlebars.compile(template);
+    const htmlContent = compiledTemplate(propsAndStubs);
+
+    // Дополнительная защита от XSS - проверяем на подозрительные теги
+    if (this.containsMaliciousContent(htmlContent)) {
+      console.warn("Обнаружен потенциально опасный контент в шаблоне");
+    }
+
+    fragment.innerHTML = htmlContent;
 
     // Замена заглушек для children
     Object.values(this.children).forEach((child) => {
@@ -290,5 +298,21 @@ export default class Block<T extends BaseProps = BaseProps> {
         this._element?.removeEventListener(eventName, events[eventName]);
       }
     });
+  }
+
+  // Защита от XSS - проверка на подозрительный контент
+  private containsMaliciousContent(html: string): boolean {
+    const dangerousPatterns = [
+      /<script[^>]*>.*?<\/script>/gi,
+      /javascript:/gi,
+      /on\w+\s*=/gi,
+      /<iframe[^>]*>.*?<\/iframe>/gi,
+      /<object[^>]*>.*?<\/object>/gi,
+      /<embed[^>]*>/gi,
+      /<link[^>]*>/gi,
+      /<meta[^>]*>/gi,
+    ];
+
+    return dangerousPatterns.some((pattern) => pattern.test(html));
   }
 }

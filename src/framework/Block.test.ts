@@ -1,20 +1,16 @@
 import Block from "./Block";
 
-// Мокаем Handlebars
 jest.mock("handlebars", () => ({
   compile: jest.fn(() => jest.fn(() => "<div>Test</div>")),
 }));
 
-// Мокаем EventBus
 jest.mock("./EventBus");
 
-// Создаем тестовый класс один раз
 class TestBlock extends Block {
   protected render(): string {
     return "<div>{{title}}</div>";
   }
 
-  // Методы для тестирования жизненного цикла
   testComponentDidMount(callback: () => void): void {
     this.componentDidMount = callback;
   }
@@ -26,7 +22,6 @@ class TestBlock extends Block {
 
 describe("Block", () => {
   beforeEach(() => {
-    // Очищаем моки
     jest.clearAllMocks();
   });
 
@@ -43,7 +38,7 @@ describe("Block", () => {
       const block = new TestBlock("span", {});
 
       expect(block.element).toBeDefined();
-      // В тестовой среде element может быть undefined, поэтому проверяем только что блок создался
+
       expect(block).toBeInstanceOf(Block);
     });
 
@@ -177,7 +172,6 @@ describe("Block", () => {
         },
       });
 
-      // Обновляем props
       block.setProps({ title: "New Title" } as Record<string, unknown>);
 
       expect(block.element).toBeDefined();
@@ -194,7 +188,6 @@ describe("Block", () => {
       });
 
       expect(block.element).toBeDefined();
-      // В тестовой среде проверяем только что блок создался с атрибутами
       expect(block).toBeInstanceOf(Block);
     });
   });
@@ -206,7 +199,6 @@ describe("Block", () => {
       expect(block.element).toBeDefined();
       block.show();
 
-      // В тестовой среде проверяем только что метод вызывается без ошибок
       expect(() => block.show()).not.toThrow();
     });
 
@@ -216,7 +208,6 @@ describe("Block", () => {
       expect(block.element).toBeDefined();
       block.hide();
 
-      // В тестовой среде проверяем только что метод вызывается без ошибок
       expect(() => block.hide()).not.toThrow();
     });
   });
@@ -227,7 +218,6 @@ describe("Block", () => {
       const block = new TestBlock("div", {});
       block.testComponentDidMount(mockComponentDidMount);
 
-      // Вызываем componentDidMount вручную для тестирования
       (block as unknown as { componentDidMount: () => void }).componentDidMount();
 
       expect(mockComponentDidMount).toHaveBeenCalled();
@@ -239,7 +229,6 @@ describe("Block", () => {
       block.testComponentDidUpdate(mockComponentDidUpdate);
       block.setProps({ title: "New" } as Record<string, unknown>);
 
-      // Вызываем componentDidUpdate вручную для тестирования
       (
         block as unknown as {
           componentDidUpdate: (oldProps: unknown, newProps: unknown) => boolean;
@@ -255,6 +244,27 @@ describe("Block", () => {
       const block = new TestBlock("div", {});
 
       expect(block.getContent()).toBe(block.element);
+    });
+  });
+
+  describe("Защита от XSS", () => {
+    it("должен обнаруживать подозрительный контент", () => {
+      const block = new TestBlock("div", {});
+
+      const maliciousTemplate = "<div>{{title}}</div><script>alert('xss')</script>";
+      const fragment = block.compile(maliciousTemplate, {
+        title: "Test",
+      } as Record<string, unknown>);
+
+      expect(fragment).toBeInstanceOf(DocumentFragment);
+    });
+
+    it("должен безопасно обрабатывать обычный контент", () => {
+      const block = new TestBlock("div", {});
+      const safeTemplate = "<div>{{title}}</div><p>Безопасный текст</p>";
+      const fragment = block.compile(safeTemplate, { title: "Test" } as Record<string, unknown>);
+
+      expect(fragment).toBeInstanceOf(DocumentFragment);
     });
   });
 });

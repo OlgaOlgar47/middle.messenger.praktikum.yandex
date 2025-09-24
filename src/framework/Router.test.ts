@@ -1,9 +1,7 @@
-// Простые тесты для Router без сложных зависимостей
 describe("Router", () => {
   let router: unknown;
 
   beforeEach(() => {
-    // Простая заглушка для роутера
     router = {
       use: jest.fn(),
       start: jest.fn(),

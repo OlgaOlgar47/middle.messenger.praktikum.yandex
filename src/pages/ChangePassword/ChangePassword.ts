@@ -4,6 +4,7 @@ import { Button } from "@/components/Button";
 import { BackButton } from "@/components/BackButton";
 import { createFormSubmitHandler } from "@/utils/formUtils";
 import type { BaseProps } from "@/types";
+import { router } from "@/App";
 import { UserController } from "@/controllers/UserController";
 import { Toast } from "@/utils/toast";
 
@@ -29,7 +30,7 @@ export class ChangePassword extends Block<ChangePasswordProps> {
     const backButton = new BackButton({
       label: "Назад",
       onClick: () => {
-        window.location.href = "/profile";
+        router.go("/profile");
       },
     });
 
@@ -139,7 +140,7 @@ export class ChangePassword extends Block<ChangePasswordProps> {
       });
 
       setTimeout(() => {
-        window.location.href = "/profile";
+        router.go("/profile");
       }, 1000);
     } catch {
       if (submitButton) {

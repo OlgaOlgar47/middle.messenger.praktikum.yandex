@@ -23,6 +23,7 @@ export const AuthController = {
 
   async register(data: RegisterData) {
     await authAPI.signup(data);
+    await this.fetchUser();
     router.go("/messenger");
   },
 

@@ -4,6 +4,7 @@ import { Button } from "@/components/Button";
 import { BackButton } from "@/components/BackButton";
 import { createFormSubmitHandler } from "@/utils/formUtils";
 import type { BaseProps, User, UpdateProfileData } from "@/types";
+import { router } from "@/App";
 import { UserController } from "@/controllers/UserController";
 import { connect } from "@/store/connect";
 import type { State } from "@/store/Store";
@@ -41,7 +42,7 @@ export class Settings extends Block<SettingsProps> {
       backButton: new BackButton({
         label: "Назад",
         onClick: () => {
-          window.location.href = "/profile";
+          router.go("/profile");
         },
       }),
       events: {},
@@ -211,7 +212,7 @@ export class Settings extends Block<SettingsProps> {
       await UserController.updateProfile(updateData);
       Toast.success("Профиль успешно обновлен");
       setTimeout(() => {
-        window.location.href = "/profile";
+        router.go("/profile");
       }, 1000);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Ошибка при обновлении профиля";

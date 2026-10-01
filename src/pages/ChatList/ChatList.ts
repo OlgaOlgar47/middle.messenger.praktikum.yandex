@@ -4,6 +4,7 @@ import { RoundButton } from "@/components/RoundButton";
 import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
 import type { BaseProps, Chat, Message } from "@/types";
+import { router } from "@/App";
 import { ChatController } from "@/controllers/ChatController";
 import { messageController } from "@/controllers/MessageController";
 import { connect } from "@/store/connect";
@@ -209,7 +210,7 @@ export class ChatList extends Block<ChatListProps> {
     // клик на профиль
     if (target.id === "profile-button" || target.closest("#profile-button")) {
       event.preventDefault();
-      window.location.href = "/profile";
+      router.go("/profile");
       return;
     }
 

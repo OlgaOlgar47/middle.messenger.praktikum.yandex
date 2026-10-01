@@ -2,6 +2,7 @@ import Block from "@/framework/Block";
 import { Link } from "@/components/Link";
 import { BackButton } from "@/components/BackButton";
 import type { BaseProps, User } from "@/types";
+import { router } from "@/App";
 import { AuthController } from "@/controllers/AuthController";
 import { UserController } from "@/controllers/UserController";
 import { Toast } from "@/utils/toast";
@@ -26,7 +27,7 @@ export class Profile extends Block<ProfileProps> {
       backButton: new BackButton({
         label: "Назад",
         onClick: () => {
-          window.location.href = "/#/chats";
+          router.go("/messenger");
         },
       }),
       changeDataLink: new Link({

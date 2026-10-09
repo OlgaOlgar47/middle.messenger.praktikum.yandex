@@ -7,6 +7,7 @@ import type { BaseProps } from "@/types";
 import { router } from "@/App";
 import { UserController } from "@/controllers/UserController";
 import { Toast } from "@/utils/toast";
+import { text } from "@/locale";
 
 import styles from "../styles/authForm.module.sass";
 import changePasswordStyles from "./ChangePassword.module.sass";
@@ -125,7 +126,7 @@ export class ChangePassword extends Block<ChangePasswordProps> {
     }
 
     if (!formData.oldPassword || !formData.newPassword) {
-      Toast.error("Заполните все поля");
+      Toast.error(text().fillAll);
       return;
     }
 

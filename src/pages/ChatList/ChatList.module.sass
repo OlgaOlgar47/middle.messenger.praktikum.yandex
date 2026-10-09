@@ -1,11 +1,10 @@
-@use 'sass:color'
-@use '@/theme/colors' as *
 
 .wrapper
   width: 100%
   display: flex
-  height: 100vh
+  height: 100%
   overflow: hidden
+  background: transparent
 
 .chatContainer
   display: flex
@@ -16,31 +15,42 @@
   display: flex
   align-items: center
   justify-content: space-between
-  padding: 20px
-  background-color: $white
-  border-bottom: 1px solid $border-color
+  gap: 12px
+  margin: 12px 16px 0
+  padding: 12px 16px
+  background: linear-gradient(90deg, $secondary-color, $secondary-green-hover)
+  border-radius: 20px
+  color: $white
 
 .chatTitle
+  flex: 1
   margin: 0
+  min-width: 0
+  overflow: hidden
   font-size: 18px
   font-weight: 500
-  color: $text-color
+  color: $white
+  white-space: nowrap
+  text-overflow: ellipsis
 
 .chatMenu
   position: relative
 
 .chatMenuButton
-  background: none
+  width: auto
+  height: 36px
+  padding: 4px 10px
+  background: rgb(255 255 255 / 22%)
   border: none
+  box-shadow: none
   font-size: 20px
-  color: $secondary-color
+  color: $white
   cursor: pointer
-  padding: 8px
-  border-radius: 50%
-  transition: background-color 0.2s
+  border-radius: 999px
 
   &:hover
-    background-color: $hover-gray
+    filter: none
+    background: rgb(255 255 255 / 32%)
 
 .chatMenuDropdown
   position: absolute
@@ -53,7 +63,8 @@
   min-width: 200px
   z-index: 1000
 
-.addUserMenuItem, .removeUserMenuItem
+.addUserMenuItem,
+ .removeUserMenuItem
   display: flex
   align-items: center
   padding: 12px 16px
@@ -97,14 +108,25 @@
   overflow: hidden
   min-height: 0
 
+  @media (max-width: 480px)
+    display: none
+    width: 100%
+
 .chatList
-  padding: 1.5rem
+  padding: 8px 16px 16px
   display: flex
   flex-direction: column
-  max-width: 400px
+  width: 380px
+  max-width: 40%
   min-height: 0
-  background-color: $light-gray
-  border-right: 1px solid $medium-gray
+  background: rgb(255 255 255 / 28%)
+  border-right: 1px solid rgb(255 255 255 / 45%)
+  backdrop-filter: blur(10px)
+
+  @media (max-width: 480px)
+    width: 100%
+    max-width: none
+    border-right: 0
 
 .header
   display: flex
@@ -113,8 +135,10 @@
   gap: 8px
   padding: 16px 0
 
-.logo
-  float: left
+.header .logo
+  width: 148px
+  height: auto
+  float: none
 
 .title
   font-size: 14px
@@ -136,15 +160,21 @@
 .chatItem
   display: flex
   align-items: center
-  padding: 10px
-  border-bottom: 1px solid $border-color
-  border-radius: 7px
+  margin-bottom: 8px
+  padding: 12px
+  border: 0
+  border-radius: 16px
   cursor: pointer
-  background-color: transparent
-  transition: background-color 0.2s
+  background: rgb(255 255 255 / 72%)
+  box-shadow: 0 8px 18px rgb(30 58 138 / 8%)
+  transition: transform 0.15s ease, box-shadow 0.15s ease
+
+  &:hover
+    transform: translateY(-2px)
 
   &.isActive
-    background-color: $active-color
+    background: rgb(255 255 255 / 86%)
+    box-shadow: inset 0 0 0 1px secondary-color, 0 10px 22px rgb(0 174 239 / 16%)
 
 .avatar
   width: 40px
@@ -167,28 +197,29 @@
 
 .createChatButton
   width: 100%
-  background-color: $secondary-color
+  background: linear-gradient(90deg, $secondary-color, $secondary-green-hover)
   color: $white
   border: none
-  border-radius: 5px
+  border-radius: 16px
+  box-shadow: 0 10px 22px rgb(0 174 239 / 32%)
   padding: 10px
   font-size: 14px
   cursor: pointer
-  transition: background-color 0.2s
 
   &:hover
-    background-color: color.adjust($secondary-color, $lightness: -10%)
+    filter: brightness(1.05)
 
 .searchInputWithIcon
   font-family: inherit
   padding-left: 36px
-  background-image: url('/images/search.svg')
+  background-image: '/images/search.svg'
   background-repeat: no-repeat
   background-position: 10px center
   background-size: 16px 16px
-  border-radius: 5px
+  border-radius: 16px
   outline: none
-  border-bottom: none
+  border: 1px solid rgb(255 255 255 / 80%)
+  background-color: rgb(255 255 255 / 72%)
 
   &::placeholder
     color: $border-color
@@ -206,14 +237,14 @@
   color: $text-color
   font-weight: 500
   margin-bottom: 2px
-  $white-space: nowrap
+  white-space: nowrap
   overflow: hidden
   text-overflow: ellipsis
 
 .message
   font-size: 12px
   color: $secondary-text-color
-  $white-space: nowrap
+  white-space: nowrap
   overflow: hidden
   text-overflow: ellipsis
 
@@ -221,14 +252,14 @@
   font-size: 12px
   color: $secondary-text-color
   margin-right: 10px
-  $white-space: nowrap
+  white-space: nowrap
   flex-shrink: 0
 
 .unread
   width: 20px
   height: 20px
   background-color: $secondary-color
-  color: $primary-color
+  color: $white
   border-radius: 50%
   display: flex
   align-items: center
@@ -255,9 +286,11 @@
 
 .messageInput
   font-family: inherit
-  background-color: $light-gray
-  border-radius: 10px
-  padding: 1rem
+  background: rgb(255 255 255 / 72%)
+  border: 1px solid rgb(255 255 255 / 80%)
+  border-radius: 16px
+  padding: 0 12px
+  height: 44px
 
 .messageList
   list-style: none
@@ -288,9 +321,9 @@
 
 .messageForm
   margin-top: auto
-  padding: 20px
-  background-color: $white
-  border-top: 1px solid $border-color
+  padding: 16px
+  background: transparent
+  border-top: 0
   flex-shrink: 0
   position: sticky
   bottom: 0
@@ -306,9 +339,11 @@
     align-items: flex-end
 
     .messageText
-      background: $message-bg-own
-      color: $primary-color
-      border-radius: 18px 18px 4px 18px
+      background: linear-gradient(135deg, $secondary-color, $secondary-green-hover)
+      color: $white
+      border: 0
+      border-radius: 16px 16px 4px
+      box-shadow: 0 8px 18px rgb(0 174 239 / 28%)
 
     .messageTime
       color: $message-time-color
@@ -316,14 +351,14 @@
       margin-left: 0
 
 .messageText
-  background: $message-bg-other
-  border-radius: 18px 18px 18px 4px
+  background: rgb(255 255 255 / 78%)
+  border-radius: 16px 16px 16px 4px
   padding: 8px 12px
   font-size: 14px
   max-width: 70%
   word-wrap: break-word
-  box-shadow: 0 1px 2px $shadow-color
-  border: 1px solid $message-border
+  box-shadow: 0 8px 18px rgb(30 58 138 / 8%)
+  border: 1px solid rgb(255 255 255 / 80%)
 
 .messageTime
   font-size: 11px
@@ -361,3 +396,30 @@
   font-size: 14px
   padding: 20px
   font-style: italic
+
+.backChat
+  display: none
+
+  @media (max-width: 480px)
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    flex-shrink: 0
+    width: 36px
+    height: 36px
+    border: 0
+    border-radius: 999px
+    background: rgb(255 255 255 / 22%)
+    color: $white
+    font-size: 28px
+    line-height: 1
+    cursor: pointer
+
+.chatOpen
+  .chatList
+    @media (max-width: 480px)
+      display: none
+
+  .chat
+    @media (max-width: 480px)
+      display: flex

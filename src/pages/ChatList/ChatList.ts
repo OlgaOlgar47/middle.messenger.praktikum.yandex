@@ -214,12 +214,28 @@ export class ChatList extends Block<ChatListProps> {
       return;
     }
 
+    if (target.id === "back-to-chats" || target.closest("#back-to-chats")) {
+      event.preventDefault();
+      this.closeChat();
+      return;
+    }
+
     // клик на чат
     const chatItem = target.closest("[data-chat-id]");
     if (chatItem) {
       const chatId = parseInt(chatItem.getAttribute("data-chat-id") || "0", 10);
       this.selectChat(chatId);
     }
+  }
+
+  private closeChat() {
+    messageController.disconnectFromChat();
+    store.set("selectedChatId", undefined);
+    this.setProps({
+      messages: [],
+      selectedChatId: undefined,
+      isLoadingMessages: false,
+    });
   }
 
   private async selectChat(chatId: number) {
@@ -425,7 +441,7 @@ export class ChatList extends Block<ChatListProps> {
     }
 
     return `
-      <div class="{{styles.wrapper}}">
+      <div class="{{styles.wrapper}}${selectedChatId ? " {{styles.chatOpen}}" : ""}">
         <div class="{{styles.chatContainer}}">
         <div class="{{styles.chatList}}">
           <div class="{{styles.header}}">
@@ -491,6 +507,12 @@ export class ChatList extends Block<ChatListProps> {
             selectedChatId
               ? `
             <div class="{{styles.chatHeader}}">
+              <button
+                type="button"
+                class="{{styles.backChat}}"
+                id="back-to-chats"
+                aria-label="Назад"
+              >‹</button>
               <div class="{{styles.chatTitle}}">${
                 selectedChat?.title || `Чат ${selectedChatId}`
               }</div>

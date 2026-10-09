@@ -1,19 +1,21 @@
-@use 'sass:color'
-@use '@/theme/colors' as *
+
 
 .button
   font-family: 'Onest', sans-serif
   width: 100%
+  height: 44px
   padding: 10px
-  background-color: $primary-color
+  background: linear-gradient(90deg, $secondary-color, $secondary-green-hover)
   color: white
   border: none
-  border-radius: 5px
+  border-radius: 16px
   font-size: 16px
+  font-weight: 500
   cursor: pointer
+  box-shadow: 0 10px 22px rgb(0 174 239 / 32%)
 
   &:hover
-    background-color: color.adjust($primary-color, $lightness: -10%)
+    filter: brightness(1.05)
 
   &:disabled
     background-color: $disabled-bg

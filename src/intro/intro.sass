@@ -1,0 +1,117 @@
+.intro
+  position: fixed
+  inset: 0
+  z-index: 30
+  display: flex
+  align-items: center
+  justify-content: center
+  background: linear-gradient(135deg, #00aeef 0%, #d7f3fc 28%, #f5f7fa 58%, #fff 100%)
+
+.intro-leaving
+  animation: intro-out 0.45s ease forwards
+
+.intro-bg
+  position: absolute
+  inset: 0
+  z-index: 0
+  overflow: hidden
+  pointer-events: none
+
+.intro-map
+  position: absolute
+  inset: 0
+
+.intro-country
+  position: absolute
+  width: min(30vw, 240px)
+  height: min(30vw, 240px)
+
+.intro-country-ru
+  top: 3%
+  right: 4%
+
+.intro-country-uy
+  bottom: 6%
+  left: 4%
+
+.intro-link
+  position: absolute
+  inset: 0
+  width: 100%
+  height: 100%
+
+.intro-glow
+  position: absolute
+  top: -120px
+  right: -80px
+  width: 360px
+  height: 360px
+  border-radius: 50%
+  background: radial-gradient(circle, rgb(0 255 170 / 35%), transparent 68%)
+  animation: intro-glow 7s ease-in-out infinite
+
+.intro-wave
+  position: absolute
+  right: 0
+  bottom: 0
+  left: 0
+  height: 42%
+  animation: intro-wave 7s ease-in-out infinite
+
+.intro-wave svg
+  width: 100%
+  height: 100%
+
+.intro-flake
+  position: absolute
+  top: -12px
+  width: 8px
+  height: 8px
+  border-radius: 50%
+  background: #fff
+  opacity: 0.7
+  animation-name: intro-fall
+  animation-timing-function: linear
+  animation-iteration-count: infinite
+
+.intro-content
+  position: relative
+  z-index: 1
+  display: flex
+  flex-direction: column
+  align-items: center
+  width: min(380px, calc(100% - 48px))
+  margin-top: -6vh
+  padding: 28px 32px 24px
+  border: 1px solid rgb(255 255 255 / 80%)
+  border-radius: 28px
+  background: rgb(255 255 255 / 90%)
+  box-shadow: 0 18px 44px rgb(12 53 92 / 10%)
+  backdrop-filter: blur(18px)
+  text-align: center
+  animation: intro-rise 0.8s ease
+
+.intro-logo
+  display: block
+  width: 168px
+  height: auto
+  margin-bottom: 18px
+
+.intro-phrase
+  margin: 0
+  color: #0c355c
+  font-size: 26px
+  font-weight: 600
+  line-height: 1.25
+  letter-spacing: -0.03em
+
+.intro-line
+  display: block
+  width: 64px
+  height: 2px
+  margin-top: 20px
+  border-radius: 999px
+  background: linear-gradient(90deg, #00aeef, #00ffaa)
+  transform: scaleX(0)
+  transform-origin: center
+  animation: intro-progress 3s linear forwards

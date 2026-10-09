@@ -1,6 +1,6 @@
 {
   "extends": "stylelint-config-sass-guidelines",
-  "customSyntax": "postcss-sass",
+  "customSyntax": "../../../../stylelint-sass-syntax.cjs",
   "plugins": ["stylelint-scss"],
   "rules": {
     "@stylistic/block-opening-brace-space-before": null,

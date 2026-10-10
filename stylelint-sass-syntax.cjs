@@ -1,5 +1,17 @@
 const sass = require("postcss-sass");
 
+const moduleLoads = new WeakMap();
+const moduleLoadPattern =
+  /^\s*@(?:use|forward|import)\b[^\n]*(?:\r?\n[ \t]*@(?:use|forward|import)\b[^\n]*)*\r?\n?/;
+
+function splitModuleLoads(css) {
+  const match = css.match(moduleLoadPattern);
+  if (!match) {
+    return "";
+  }
+  return match[0];
+}
+
 function linkParents(node) {
   if (!node || !node.nodes) {
     return;
@@ -21,8 +33,17 @@ function linkParents(node) {
 module.exports = {
   parse(css, opts) {
     const root = sass.parse(css, opts);
+    const loads = splitModuleLoads(css);
+    moduleLoads.set(root, loads);
+    root.raws.sassModuleLoads = loads;
     linkParents(root);
     return root;
   },
-  stringify: sass.stringify,
+  stringify(node, builder) {
+    const loads = moduleLoads.get(node) || (node.raws && node.raws.sassModuleLoads) || "";
+    if (loads) {
+      builder(loads);
+    }
+    sass.stringify(node, builder);
+  },
 };

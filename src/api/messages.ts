@@ -1,13 +1,12 @@
 import { HTTPTransport } from "@/framework/HTTPTransport";
+import { getApiUrl } from "@/config/api";
 import type { Message, SendMessageData } from "@/types";
-
-const API_BASE_URL = "https://ya-praktikum.tech/api/v2";
 
 class MessagesAPI {
   private http: HTTPTransport;
 
   constructor() {
-    this.http = new HTTPTransport(`${API_BASE_URL}/chats/token`);
+    this.http = new HTTPTransport(`${getApiUrl()}/chats/token`);
   }
 
   async getChatToken(chatId: number): Promise<{ token: string }> {

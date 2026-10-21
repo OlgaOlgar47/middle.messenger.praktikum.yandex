@@ -8,6 +8,7 @@ import { router } from "@/App";
 import { ChatController } from "@/controllers/ChatController";
 import { messageController } from "@/controllers/MessageController";
 import { connect } from "@/store/connect";
+import { resourceUrl } from "@/config/api";
 import store, { type State } from "@/store/Store";
 
 import styles from "./ChatList.module.sass";
@@ -473,7 +474,7 @@ export class ChatList extends Block<ChatListProps> {
                 <div class="{{styles.avatar}}">
                   ${
                     chat.avatar
-                      ? `<img src="https://ya-praktikum.tech/api/v2/resources${chat.avatar}"
+                      ? `<img src="${resourceUrl(chat.avatar)}"
                          alt="Аватар чата" />`
                       : ""
                   }

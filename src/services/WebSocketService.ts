@@ -1,3 +1,4 @@
+import { chatSocketUrl } from "@/config/api";
 import type { Message, SendMessageData } from "@/types";
 import store from "@/store/Store";
 import { errorHandler } from "@/utils/errorHandler";
@@ -30,7 +31,7 @@ export class WebSocketService {
     this._token = token;
 
     const userId = this.getCurrentUserId();
-    const wsUrl = `wss://ya-praktikum.tech/ws/chats/${userId}/${chatId}/${token}`;
+    const wsUrl = chatSocketUrl(userId, chatId, token);
 
     try {
       this.socket = new WebSocket(wsUrl);

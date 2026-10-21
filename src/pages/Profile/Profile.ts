@@ -9,6 +9,7 @@ import { Toast } from "@/utils/toast";
 import { connect } from "@/store/connect";
 import type { State } from "@/store/Store";
 import { LanguageSwitch } from "@/components/LanguageSwitch/LanguageSwitch";
+import { resourceUrl } from "@/config/api";
 import { errorText, onLocale, text } from "@/locale";
 
 import styles from "./Profile.module.sass";
@@ -142,7 +143,7 @@ export class Profile extends Block<ProfileProps> {
               />
               ${
                 user.avatar
-                  ? `<img src="https://ya-praktikum.tech/api/v2/resources${user.avatar}"
+                  ? `<img src="${resourceUrl(user.avatar)}"
                        alt="${copy.avatarAlt}"
                        class="{{styles.avatarImage}}" />`
                   : ""

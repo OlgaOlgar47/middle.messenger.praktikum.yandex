@@ -1,3 +1,4 @@
+import { resourceUrl } from "@/config/api";
 import Block from "@/framework/Block";
 import { UserController } from "@/controllers/UserController";
 import type { User } from "@/types";
@@ -50,9 +51,7 @@ export class AvatarUpload extends Block<AvatarUploadProps> {
 
   override render() {
     const user = this.props.user || UserController.getCurrentUser();
-    const avatarUrl = user?.avatar
-      ? `https://ya-praktikum.tech/api/v2/resources${user.avatar}`
-      : "/images/avatar-placeholder.svg";
+    const avatarUrl = user?.avatar ? resourceUrl(user.avatar) : "/images/avatar-placeholder.svg";
 
     return `
       <div class="{{styles.avatarUpload}}">

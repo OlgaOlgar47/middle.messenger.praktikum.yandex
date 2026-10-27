@@ -8,6 +8,8 @@ import { UserController } from "@/controllers/UserController";
 import { Toast } from "@/utils/toast";
 import { connect } from "@/store/connect";
 import type { State } from "@/store/Store";
+import { LanguageSwitch } from "@/components/LanguageSwitch/LanguageSwitch";
+import { errorText, onLocale, text } from "@/locale";
 
 import styles from "./Profile.module.sass";
 
@@ -17,32 +19,36 @@ export interface ProfileProps extends BaseProps {
   changeDataLink?: Link;
   changePasswordLink?: Link;
   logoutLink?: Link;
+  languageSwitch?: LanguageSwitch;
+  localeTick?: string;
 }
 
 export class Profile extends Block<ProfileProps> {
   constructor(props: ProfileProps = {}) {
+    const copy = text();
     super("div", {
       ...props,
       styles,
+      languageSwitch: new LanguageSwitch(),
       backButton: new BackButton({
-        label: "Назад",
+        label: copy.back,
         onClick: () => {
           router.go("/messenger");
         },
       }),
       changeDataLink: new Link({
         href: "/settings",
-        label: "Изменить данные",
+        label: copy.editData,
         className: styles.link,
       }),
       changePasswordLink: new Link({
         href: "/changePassword",
-        label: "Изменить пароль",
+        label: copy.changePassword,
         className: styles.link,
       }),
       logoutLink: new Link({
         href: "#",
-        label: "Выйти",
+        label: copy.logout,
         className: styles.logout,
         onClick: (e: Event) => {
           e.preventDefault();
@@ -58,15 +64,15 @@ export class Profile extends Block<ProfileProps> {
         },
       },
     });
+    onLocale(() => this.applyLocale());
   }
 
   private async handleLogout() {
     try {
       await AuthController.logout();
-      Toast.success("Вы успешно вышли из системы");
+      Toast.success(text().logoutSuccess);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Ошибка при выходе";
-      Toast.error(errorMessage);
+      Toast.error(errorText(error, text().logoutError));
     }
   }
 
@@ -80,33 +86,42 @@ export class Profile extends Block<ProfileProps> {
 
     // Проверяем тип файла
     if (!file.type.startsWith("image/")) {
-      Toast.error("Пожалуйста, выберите изображение");
+      Toast.error(text().avatarType);
       return;
     }
 
     // Проверяем размер файла (максимум 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      Toast.error("Размер файла не должен превышать 5MB");
+      Toast.error(text().avatarSize);
       return;
     }
 
     try {
       await UserController.updateAvatar(file);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Ошибка при обновлении аватара";
-      Toast.error(errorMessage);
+      Toast.error(errorText(error, text().avatarError));
     }
+  }
+
+  private applyLocale(): void {
+    const copy = text();
+    (this.children.backButton as BackButton).setProps({ label: copy.back });
+    (this.children.changeDataLink as Link).setProps({ label: copy.editData });
+    (this.children.changePasswordLink as Link).setProps({ label: copy.changePassword });
+    (this.children.logoutLink as Link).setProps({ label: copy.logout });
+    this.setProps({ localeTick: copy.language });
   }
 
   override render() {
     const { user } = this.props || {};
+    const copy = text();
 
     if (!user) {
       return `
         <div class="{{styles.container}}">
           <div class="{{styles.profileWrapper}}">
             <div class="{{styles.profile}}">
-              <div class="{{styles.loading}}">Загрузка...</div>
+              <div class="{{styles.loading}}">${copy.profileLoading}</div>
             </div>
           </div>
         </div>
@@ -128,20 +143,24 @@ export class Profile extends Block<ProfileProps> {
               ${
                 user.avatar
                   ? `<img src="https://ya-praktikum.tech/api/v2/resources${user.avatar}"
-                       alt="Аватар"
+                       alt="${copy.avatarAlt}"
                        class="{{styles.avatarImage}}" />`
                   : ""
               }
             </label>
             <div class="{{styles.name}}">${user.display_name || user.first_name}</div>
             <ul class="{{styles.infoList}}">
-              <li><span>Почта</span><span>${user.email}</span></li>
-              <li><span>Логин</span><span>${user.login}</span></li>
-              <li><span>Имя</span><span>${user.first_name}</span></li>
-              <li><span>Фамилия</span><span>${user.second_name}</span></li>
-              <li><span>Имя в чате</span><span>${user.display_name || user.first_name}</span></li>
-              <li><span>Телефон</span><span>${user.phone}</span></li>
+              <li><span>${copy.email}</span><span>${user.email}</span></li>
+              <li><span>${copy.loginLabel}</span><span>${user.login}</span></li>
+              <li><span>${copy.firstName}</span><span>${user.first_name}</span></li>
+              <li><span>${copy.lastName}</span><span>${user.second_name}</span></li>
+              <li>
+                <span>${copy.displayName}</span>
+                <span>${user.display_name || user.first_name}</span>
+              </li>
+              <li><span>${copy.phone}</span><span>${user.phone}</span></li>
             </ul>
+            {{{languageSwitch}}}
             <div class="{{styles.actions}}">
               {{{changeDataLink}}}
               {{{changePasswordLink}}}

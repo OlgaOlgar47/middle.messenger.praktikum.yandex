@@ -1,6 +1,7 @@
 import { usersAPI } from "@/api/users";
 import { Store } from "@/store";
 import { Toast } from "@/utils/toast";
+import { errorText, text } from "@/locale";
 import type { UpdateProfileData, ChangePasswordData } from "@/types";
 
 export const UserController = {
@@ -11,8 +12,7 @@ export const UserController = {
       Toast.success("Профиль успешно обновлен");
       return updatedUser;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Ошибка обновления профиля";
-      Toast.error(errorMessage);
+      Toast.error(errorText(error, text().profileUpdateError));
       throw error;
     }
   },
@@ -32,8 +32,7 @@ export const UserController = {
       Toast.success("Аватар успешно обновлен");
       return response;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Ошибка обновления аватара";
-      Toast.error(errorMessage);
+      Toast.error(errorText(error, text().avatarError));
       throw error;
     }
   },
@@ -43,8 +42,7 @@ export const UserController = {
       await usersAPI.changePassword(data);
       Toast.success("Пароль успешно изменен");
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Ошибка изменения пароля";
-      Toast.error(errorMessage);
+      Toast.error(errorText(error, text().passwordChangeError));
       throw error;
     }
   },

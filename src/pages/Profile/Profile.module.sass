@@ -1,11 +1,16 @@
+
 @use 'sass:color'
 @use '@/theme/colors' as *
+
+
 
 .container
   display: flex
   width: 100%
-  height: calc(100vh - 40px)
+  height: 100%
   overflow-y: auto
+  padding: 16px
+  box-sizing: border-box
 
 .profileWrapper
   display: flex
@@ -16,26 +21,31 @@
   flex-grow: 1
 
 .profile
-  width: 40%
-  flex-grow: 1
-  padding: 20px
-  background: $background-color
+  width: min(420px, 100%)
+  flex-grow: 0
+  margin: auto
+  padding: 24px 20px
+  background: rgb(255 255 255 / 52%)
+  border: 1px solid rgb(255 255 255 / 70%)
+  border-radius: 28px
+  box-shadow: 0 24px 50px rgb(30 58 138 / 16%)
+  backdrop-filter: blur(22px)
   display: flex
   flex-direction: column
   align-items: center
-  gap: 40px
-  margin-top: 60px
+  gap: 16px
 
 .title
   font-size: 16px
   color: $text-light
 
 .avatar
-  width: 100px
-  height: 100px
+  width: 96px
+  height: 96px
   border-radius: 50%
-  background: $border-medium
-  background-image: url('/images/avatar-placeholder.svg')
+  background: linear-gradient(135deg, $secondary-color, #1e3a8a)
+  box-shadow: 0 12px 24px rgb(0 174 239 / 30%)
+  background-image: '/images/avatar-placeholder.svg'
   background-repeat: no-repeat
   background-position: center
   background-size: 50%
@@ -48,7 +58,7 @@
     opacity: 0.8
 
     &::after
-      content: "✏️ Изменить"
+      content: '✏️ Изменить'
       position: absolute
       top: 50%
       left: 50%
@@ -78,8 +88,9 @@
   color: $error-color
 
 .name
-  font-weight: bold
-  font-size: 16px
+  font-weight: 500
+  font-size: 20px
+  color: $text-color
 
 .infoList
   list-style: none
@@ -91,14 +102,15 @@
     display: flex
     justify-content: space-between
     padding: 8px 0
-    border-bottom: 1px solid $border-medium
+    border-bottom: 1px solid border-medium
 
 .actions
-  align-self: flex-start
+  align-self: center
   display: flex
   flex-direction: column
-  gap: 10px
-  margin-top: 20px
+  align-items: center
+  gap: 8px
+  margin-top: 8px
 
 .loading
   font-size: 16px

@@ -1,6 +1,7 @@
 import { messagesAPI } from "@/api/messages";
 import { webSocketService } from "@/services/WebSocketService";
 import { Toast } from "@/utils/toast";
+import { text } from "@/locale";
 import store from "@/store/Store";
 import type { Message, SendMessageData } from "@/types";
 
@@ -55,7 +56,7 @@ export class MessageController {
       });
     } catch (error) {
       console.error("Ошибка подключения к чату:", error);
-      Toast.error("Ошибка подключения к чату");
+      Toast.error(text().chatConnectError);
     }
   }
 
@@ -67,12 +68,12 @@ export class MessageController {
 
   sendMessage(content: string): void {
     if (!this.currentChatId) {
-      Toast.error("Выберите чат для отправки сообщения");
+      Toast.error(text().pickChatToSend);
       return;
     }
 
     if (!content.trim()) {
-      Toast.error("Сообщение не может быть пустым");
+      Toast.error(text().messageEmpty);
       return;
     }
 
@@ -85,7 +86,7 @@ export class MessageController {
       webSocketService.sendMessage(messageData);
     } catch (error) {
       console.error("Ошибка отправки сообщения:", error);
-      Toast.error("Ошибка отправки сообщения");
+      Toast.error(text().messageSendError);
     }
   }
 

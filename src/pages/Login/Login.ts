@@ -6,6 +6,8 @@ import { Link } from "@/components/Link";
 import { createFormSubmitHandler } from "@/utils/formUtils";
 import { AuthController } from "@/controllers/AuthController";
 import { Toast } from "@/utils/toast";
+import { LanguageSwitch } from "@/components/LanguageSwitch/LanguageSwitch";
+import { errorText, onLocale, text } from "@/locale";
 
 import styles from "@/pages/styles/authForm.module.sass";
 
@@ -17,41 +19,70 @@ interface LoginProps {
   InputPassword?: Input;
   SubmitButton?: Button;
   RegisterLink?: Link;
+  LanguageSwitch?: LanguageSwitch;
+  title?: string;
 }
 
 export class Login extends Block<LoginProps> {
   constructor(props: LoginProps = {}) {
+    const copy = text();
     super("div", {
       styles,
       ...props,
+      title: copy.loginTitle,
+      LanguageSwitch: new LanguageSwitch(),
       InputLogin: new Input({
         type: "text",
         name: "login",
-        placeholder: "Введите почту",
-        label: "Логин",
+        placeholder: copy.loginPlaceholder,
+        label: copy.loginLabel,
         required: true,
         className: styles.input,
       }),
       InputPassword: new Input({
         type: "password",
-        label: "Пароль",
+        label: copy.passwordLabel,
         name: "password",
-        placeholder: "********",
+        placeholder: copy.passwordPlaceholder,
         required: true,
         className: styles.input,
       }),
       SubmitButton: new Button({
         type: "submit",
-        label: "Войти",
+        label: copy.loginSubmit,
         className: styles.button,
       }),
       RegisterLink: new Link({
         href: "/sign-up",
-        label: "Нет аккаунта?",
+        label: copy.noAccount,
         className: styles.link,
       }),
       events: {},
     });
+    onLocale(() => this.applyLocale());
+  }
+
+  private applyLocale(): void {
+    const copy = text();
+    this.applyField(this.children.InputLogin as Input, {
+      label: copy.loginLabel,
+      placeholder: copy.loginPlaceholder,
+    });
+    this.applyField(this.children.InputPassword as Input, {
+      label: copy.passwordLabel,
+      placeholder: copy.passwordPlaceholder,
+    });
+    (this.children.SubmitButton as Button).setProps({ label: copy.loginSubmit });
+    (this.children.RegisterLink as Link).setProps({ label: copy.noAccount });
+    this.setProps({ title: copy.loginTitle });
+  }
+
+  private applyField(input: Input, props: { label: string; placeholder: string }): void {
+    const hadError = input.hasError();
+    input.setProps(props);
+    if (hadError) {
+      input.validate();
+    }
   }
 
   protected init(): void {
@@ -67,11 +98,9 @@ export class Login extends Block<LoginProps> {
         login: formData.login,
         password: formData.password,
       });
-      Toast.success("Успешный вход!");
+      Toast.success(text().loginSuccess);
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Ошибка входа. Проверьте данные.";
-      Toast.error(errorMessage);
+      Toast.error(errorText(error, text().loginError));
     }
   }
 
@@ -79,13 +108,14 @@ export class Login extends Block<LoginProps> {
     return `
       <div class="{{styles.formPage}}">
         <form novalidate class="{{styles.form}}">
+          {{{LanguageSwitch}}}
           <header class="{{styles.header}}">
             <img
               src="/images/logoURUS.svg"
               alt="Логотип"
               class="{{styles.logo}}"
             />
-            <h1 class="{{styles.title}}">Вход</h1>
+            <h1 class="{{styles.title}}">{{title}}</h1>
           </header>
           <ul class="{{styles.fields}}">
             <li>

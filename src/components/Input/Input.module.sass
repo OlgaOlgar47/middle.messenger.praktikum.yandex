@@ -1,5 +1,30 @@
+
 @use 'sass:color'
 @use '@/theme/colors' as *
+
+
+
+.label
+  display: block
+  color: $dark-gray
+  font-size: 14px
+
+.labelText
+  display: block
+  margin-bottom: 4px
+
+.input
+  height: 44px
+  margin-top: 4px
+  padding: 0 12px
+  border: 1px solid rgb(255 255 255 / 80%)
+  border-radius: 16px
+  background: rgb(255 255 255 / 72%)
+  color: $text-color
+
+  &:focus
+    outline: none
+    border-color: $secondary-color
 
 .error
   color: $error-color

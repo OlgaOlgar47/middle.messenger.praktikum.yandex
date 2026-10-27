@@ -1,4 +1,7 @@
+
 @use '@/theme/colors' as *
+
+
 
 .backdrop
   position: fixed
@@ -6,19 +9,22 @@
   left: 0
   width: 100%
   height: 100%
-  background-color: rgba(0, 0, 0, 0.5)
+  background-color: rgb(0 0 0 / 30%)
   display: flex
   justify-content: center
   align-items: center
   z-index: 1000
 
 .modal
-  background: $white
-  border-radius: 8px
-  padding: 24px
-  min-width: 400px
-  max-width: 500px
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15)
+  width: min(360px, calc(100% - 32px))
+  min-width: 0
+  box-sizing: border-box
+  background: rgb(255 255 255 / 78%)
+  border: 1px solid rgb(255 255 255 / 70%)
+  border-radius: 24px
+  padding: 20px
+  box-shadow: 0 24px 50px rgb(30 58 138 / 20%)
+  backdrop-filter: blur(18px)
 
 .header
   display: flex
@@ -65,22 +71,22 @@
   justify-content: flex-end
 
 .submitButton
-  background-color: $primary-blue
+  background: linear-gradient(90deg, $secondary-color, $secondary-green-hover)
   color: $white
   border: none
   padding: 8px 16px
-  border-radius: 4px
+  border-radius: 16px
   cursor: pointer
 
   &:hover
-    background-color: $primary-blue-hover
+    filter: brightness(1.05)
 
 .addButton
-  background-color: $secondary-color
+  background: linear-gradient(90deg, $secondary-color, $secondary-green-hover)
   color: $white
   border: none
   padding: 8px 16px
-  border-radius: 4px
+  border-radius: 16px
   cursor: pointer
 
   &:hover
@@ -98,11 +104,11 @@
     background-color: $error-red-hover
 
 .cancelButton
-  background-color: $gray-medium
-  color: $white
-  border: none
+  background: $white
+  color: $text-color
+  border: 1px solid border-color
   padding: 8px 16px
-  border-radius: 4px
+  border-radius: 16px
   cursor: pointer
 
   &:hover

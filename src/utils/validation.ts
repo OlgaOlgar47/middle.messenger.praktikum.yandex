@@ -1,70 +1,65 @@
-export const validationRules: Record<string, { regex: RegExp; errorMessage: string }> = {
+import { text } from "@/locale";
+
+type RuleKey = "nameError" | "loginRule" | "emailRule" | "phoneRule" | "messageEmpty";
+
+const validationRules: Record<string, { regex: RegExp; key: RuleKey }> = {
   first_name: {
     regex: /^[A-ZА-ЯЁ][a-zа-яё-]+$/,
-    errorMessage: "Первая буква заглавная, латиница/кириллица, только дефис, без пробелов/цифр",
+    key: "nameError",
   },
   second_name: {
     regex: /^[A-ZА-ЯЁ][a-zа-яё-]+$/,
-    errorMessage: "Первая буква заглавная, латиница/кириллица, только дефис, без пробелов/цифр",
+    key: "nameError",
   },
   display_name: {
     regex: /^[A-ZА-ЯЁ][a-zа-яё-]+$/,
-    errorMessage: "Первая буква заглавная, латиница/кириллица, только дефис, без пробелов/цифр",
+    key: "nameError",
   },
   login: {
     regex: /^([a-zA-Z0-9_-]{3,20}|[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$/,
-    errorMessage: "Логин (3-20 символов) или email",
+    key: "loginRule",
   },
   email: {
     regex: /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-    errorMessage: "Латиница, @ и точка после, буквы перед точкой",
-  },
-  password: {
-    regex: /^(?=.*[A-Z])(?=.*\d).{8,40}$/,
-    errorMessage: "8-40 символов, хотя бы 1 заглавная буква и 1 цифра",
-  },
-  oldPassword: {
-    regex: /^(?=.*[A-Z])(?=.*\d).{8,40}$/,
-    errorMessage: "8-40 символов, хотя бы 1 заглавная буква и 1 цифра",
-  },
-  newPassword: {
-    regex: /^(?=.*[A-Z])(?=.*\d).{8,40}$/,
-    errorMessage: "8-40 символов, хотя бы 1 заглавная буква и 1 цифра",
+    key: "emailRule",
   },
   phone: {
     regex: /^\+?[\d\s-]{10,15}$/,
-    errorMessage: "10-15 цифр, может начинаться с +",
+    key: "phoneRule",
   },
   message: {
     regex: /.+/,
-    errorMessage: "Сообщение не должно быть пустым",
-  },
-  query: {
-    regex: /.*/,
-    errorMessage: "",
+    key: "messageEmpty",
   },
 };
 
 export function validateField(name: string, value: string): { isValid: boolean; error?: string } {
-  // Поля поиска не обязательны для заполнения
+  const copy = text();
+
   if (!value.trim() && (name === "query" || name === "search")) {
     return { isValid: true };
   }
 
   if (!value.trim()) {
-    return { isValid: false, error: "Поле обязательно для заполнения" };
+    return { isValid: false, error: copy.fieldRequired };
   }
   if (name === "password" || name === "oldPassword" || name === "newPassword") {
-    if (value.length < 8 || value.length > 40)
-      return { isValid: false, error: "Длина должна быть от 8 до 40 символов" };
-    if (!/[A-Z]/.test(value))
-      return { isValid: false, error: "Должен быть хотя бы 1 заглавный символ" };
-    if (!/\d/.test(value)) return { isValid: false, error: "Должна быть хотя бы 1 цифра" };
+    if (value.length < 8 || value.length > 40) {
+      return { isValid: false, error: copy.passwordLength };
+    }
+    if (!/[A-Z]/.test(value)) {
+      return { isValid: false, error: copy.passwordUpper };
+    }
+    if (!/\d/.test(value)) {
+      return { isValid: false, error: copy.passwordDigit };
+    }
     return { isValid: true };
   }
   const rule = validationRules[name];
-  if (!rule) return { isValid: true };
+  if (!rule) {
+    return { isValid: true };
+  }
   const isValid = rule.regex.test(value);
 
-  return { isValid, error: isValid ? undefined : rule.errorMessage };
+  return { isValid, error: isValid ? undefined : copy[rule.key] };
 }

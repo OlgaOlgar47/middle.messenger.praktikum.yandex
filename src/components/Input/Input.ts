@@ -58,6 +58,10 @@ export class Input extends Block<InputProps> {
     this.showError(error);
   }
 
+  public hasError(): boolean {
+    return this.errorElement?.style.display === "block";
+  }
+
   public validate(): { isValid: boolean; error?: string } {
     const input = this.element?.querySelector("input") as HTMLInputElement;
     if (!input) return { isValid: false, error: "Input not found" };
@@ -70,8 +74,9 @@ export class Input extends Block<InputProps> {
     const input = this.element?.querySelector("input") as HTMLInputElement;
     if (input?.name === "message") return;
 
-    if (!this.errorElement) {
-      this.errorElement = this.element?.querySelector(
+    const root = this.element;
+    if (!root || !this.errorElement || !root.contains(this.errorElement)) {
+      this.errorElement = root?.querySelector(
         `.${(this.props.styles || styles).error}`
       ) as HTMLElement | null;
     }

@@ -32,12 +32,10 @@
   },
   "lint-staged": {
     "*.{ts,tsx}": [
-      "eslint --fix",
-      "git add"
+      "eslint --fix"
     ],
     "*.{sass,scss}": [
-      "stylelint --fix",
-      "git add"
+      "stylelint --fix"
     ],
     "*.{ts,tsx,js,jsx}": [
       "npm run test -- --passWithNoTests --findRelatedTests"

@@ -44,7 +44,7 @@
   },
   "overrides": [
     {
-      "files": ["vite.config.*", "scripts/**"],
+      "files": ["vite.config.*", "scripts/**", "stylelint-sass-syntax.cjs"],
       "rules": {
         "import/no-extraneous-dependencies": ["error", { "devDependencies": true }]
       }

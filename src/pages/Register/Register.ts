@@ -5,6 +5,7 @@ import { Link } from "@/components/Link";
 import { createFormSubmitHandler } from "@/utils/formUtils";
 import { AuthController } from "@/controllers/AuthController";
 import { Toast } from "@/utils/toast";
+import { errorText, text } from "@/locale";
 
 import styles from "../styles/authForm.module.sass";
 import regStyles from "./Register.module.sass";
@@ -100,7 +101,7 @@ export class Register extends Block<RegisterProps> {
   private async handleSubmit(formData: Record<string, string>) {
     // Проверяем совпадение паролей
     if (formData.password !== formData.confirmPassword) {
-      Toast.error("Пароли не совпадают");
+      Toast.error(text().passwordMismatch);
       return;
     }
 
@@ -115,8 +116,7 @@ export class Register extends Block<RegisterProps> {
       });
       Toast.success("Регистрация успешна!");
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Ошибка регистрации";
-      Toast.error(errorMessage);
+      Toast.error(errorText(error, text().registerError));
     }
   }
 

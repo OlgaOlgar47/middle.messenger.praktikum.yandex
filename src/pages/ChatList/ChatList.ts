@@ -1,14 +1,15 @@
 import Block from "@/framework/Block";
 import { Input } from "@/components/Input";
-import { RoundButton } from "@/components/RoundButton";
 import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
-import type { BaseProps, Chat, Message } from "@/types";
+import type { BaseProps, Chat, ChatUser, Message } from "@/types";
 import { router } from "@/App";
 import { ChatController } from "@/controllers/ChatController";
 import { messageController } from "@/controllers/MessageController";
 import { connect } from "@/store/connect";
 import store, { type State } from "@/store/Store";
+import { getApiUrl } from "@/config/api";
+import { getLocale, onLocale, text } from "@/locale";
 
 import styles from "./ChatList.module.sass";
 
@@ -17,7 +18,7 @@ interface ChatListProps extends BaseProps {
   messages?: Message[];
   searchInput?: Input;
   messageInput?: Input;
-  roundButton?: RoundButton;
+  sendButton?: Button;
   createChatButton?: Button;
   createChatModal?: Modal;
   addUserButton?: Button;
@@ -28,12 +29,48 @@ interface ChatListProps extends BaseProps {
   chatMenuDropdown?: HTMLElement;
   selectedChatId?: number;
   isLoadingMessages?: boolean;
+  searchQuery?: string;
+  notice?: string;
+  localeTick?: string;
+  membersTick?: string;
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/\{/g, "&#123;")
+    .replace(/\}/g, "&#125;");
+}
+
+function localeTag(): string {
+  return getLocale() === "es" ? "es-UY" : "ru-RU";
+}
+
+function memberLabel(user: ChatUser): string {
+  const named = [user.first_name, user.second_name].filter(Boolean).join(" ").trim();
+  return user.display_name || named || user.login;
+}
+
+function avatarLetter(title: string): string {
+  return Array.from(title.trim())[0] || "?";
 }
 
 export class ChatList extends Block<ChatListProps> {
-  private documentClickHandlers: Array<{ element: HTMLElement; handler: (e: Event) => void }> = [];
+  private documentClickHandlers: Array<{ element: EventTarget; handler: (e: Event) => void }> = [];
+
+  private query = "";
+
+  private notice = "";
+
+  private members: ChatUser[] = [];
+
+  private membersLoadedFor: number | undefined;
 
   constructor(props: ChatListProps = {}) {
+    const copy = text();
     super("div", {
       ...props,
       styles,
@@ -43,39 +80,38 @@ export class ChatList extends Block<ChatListProps> {
       searchInput: new Input({
         type: "text",
         name: "query",
-        placeholder: "Поиск",
+        placeholder: copy.search,
         className: styles.searchInputWithIcon,
         required: false,
       }),
       messageInput: new Input({
         type: "text",
         name: "message",
-        placeholder: "Введите сообщение",
+        placeholder: copy.messagePlaceholder,
         className: styles.messageInput,
       }),
-      roundButton: new RoundButton({
-        icon: "arrow-right",
+      sendButton: new Button({
+        label: copy.send,
         type: "submit",
-        onClick: (e: Event) => {
-          e.preventDefault();
+        className: styles.sendButton,
+        onClick: (event: Event) => {
+          event.preventDefault();
           this.handleSendMessage();
         },
       }),
       createChatButton: new Button({
-        label: "Создать чат",
+        label: copy.createChat,
         className: styles.createChatButton,
-        events: {
-          click: (e: Event) => {
-            e.preventDefault();
-            this.openCreateChatModal();
-          },
+        onClick: (event: Event) => {
+          event.preventDefault();
+          this.openCreateChatModal();
         },
       }),
       createChatModal: new Modal({
-        title: "Создать новый чат",
-        inputLabel: "Название чата",
-        inputPlaceholder: "Введите название чата",
-        submitButtonLabel: "Создать",
+        title: copy.createChatTitle,
+        inputLabel: copy.chatName,
+        inputPlaceholder: copy.chatNamePlaceholder,
+        submitButtonLabel: copy.create,
         buttonType: "add",
         onSubmit: (title: string) => this.handleCreateChat(title),
       }),
@@ -83,53 +119,96 @@ export class ChatList extends Block<ChatListProps> {
         label: "⋮",
         className: styles.chatMenuButton,
         id: "chat-menu-button",
-        events: {
-          click: (e: Event) => {
-            e.preventDefault();
-            this.toggleChatMenu();
-          },
+        ariaLabel: copy.chatMenu,
+        onClick: (event: Event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          this.toggleChatMenu();
         },
       }),
       addUserModal: new Modal({
-        title: "Добавить пользователя в чат",
-        inputLabel: "Логин пользователя",
-        inputPlaceholder: "Введите логин пользователя",
-        submitButtonLabel: "Добавить",
+        title: copy.addUserTitle,
+        inputLabel: copy.userLogin,
+        inputPlaceholder: copy.userLoginPlaceholder,
+        submitButtonLabel: copy.add,
         buttonType: "add",
         onSubmit: (login: string) => this.handleAddUser(login),
       }),
       removeUserModal: new Modal({
-        title: "Удалить пользователя из чата",
-        inputLabel: "Логин пользователя",
-        inputPlaceholder: "Введите логин пользователя",
-        submitButtonLabel: "Удалить",
+        title: copy.removeUserTitle,
+        inputLabel: copy.userLogin,
+        inputPlaceholder: copy.userLoginPlaceholder,
+        submitButtonLabel: copy.remove,
         buttonType: "remove",
         onSubmit: (login: string) => this.handleRemoveUser(login),
       }),
       events: {
-        click: (e: Event) => this.handleClick(e),
+        click: (event: Event) => this.handleClick(event),
+        input: (event: Event) => this.handleSearch(event),
       },
     });
+    onLocale(() => this.applyLocale());
+    this.bindMenuListeners();
   }
 
   protected init(): void {
     this.loadChats();
-
-    setTimeout(() => {
-      const createButton = this.element?.querySelector("button");
-      if (createButton) {
-        createButton.addEventListener("click", (e) => {
-          e.preventDefault();
-          this.openCreateChatModal();
-        });
-      }
-    }, 100);
   }
 
   public updateFields() {}
 
   public destroy() {
     this.detachDocumentEvents();
+  }
+
+  private applyLocale(): void {
+    const copy = text();
+    const search = this.children.searchInput as Input;
+    const message = this.children.messageInput as Input;
+    search.setProps({ placeholder: copy.search, value: this.fieldValue(search) });
+    message.setProps({
+      placeholder: copy.messagePlaceholder,
+      value: this.fieldValue(message),
+    });
+    (this.children.createChatButton as Button).setProps({ label: copy.createChat });
+    (this.children.sendButton as Button).setProps({ label: copy.send });
+    (this.children.chatMenuButton as Button).setProps({ ariaLabel: copy.chatMenu });
+    this.applyModal(this.children.createChatModal as Modal, {
+      title: copy.createChatTitle,
+      inputLabel: copy.chatName,
+      inputPlaceholder: copy.chatNamePlaceholder,
+      submitButtonLabel: copy.create,
+    });
+    this.applyModal(this.children.addUserModal as Modal, {
+      title: copy.addUserTitle,
+      inputLabel: copy.userLogin,
+      inputPlaceholder: copy.userLoginPlaceholder,
+      submitButtonLabel: copy.add,
+    });
+    this.applyModal(this.children.removeUserModal as Modal, {
+      title: copy.removeUserTitle,
+      inputLabel: copy.userLogin,
+      inputPlaceholder: copy.userLoginPlaceholder,
+      submitButtonLabel: copy.remove,
+    });
+    this.setProps({ localeTick: copy.language });
+  }
+
+  private applyModal(
+    modal: Modal,
+    copy: {
+      title: string;
+      inputLabel: string;
+      inputPlaceholder: string;
+      submitButtonLabel: string;
+    }
+  ): void {
+    modal.setCopy(copy);
+  }
+
+  private fieldValue(input: Input): string {
+    const field = input.element?.querySelector("input");
+    return field?.value ?? "";
   }
 
   private async loadChats() {
@@ -182,39 +261,95 @@ export class ChatList extends Block<ChatListProps> {
     }
   }
 
+  private hasMember(login: string): boolean {
+    return this.members.some((user) => user.login === login);
+  }
+
+  private showNotice(message: string): void {
+    this.notice = message;
+    this.setProps({ notice: message });
+  }
+
+  private async loadMembers(chatId: number): Promise<void> {
+    try {
+      const users = await ChatController.getChatUsers(chatId);
+      if (this.props.selectedChatId !== chatId) {
+        return;
+      }
+      this.members = users;
+      this.membersLoadedFor = chatId;
+      this.setProps({
+        membersTick: `${chatId}:${users.map((user) => user.id).join(",")}`,
+      });
+    } catch (error) {
+      if (this.props.selectedChatId === chatId) {
+        this.members = [];
+        this.membersLoadedFor = undefined;
+      }
+      console.error("Ошибка загрузки участников:", error);
+    }
+  }
+
   private async handleAddUser(login: string) {
-    if (!this.props.selectedChatId) {
+    const { selectedChatId } = this.props;
+    if (!selectedChatId) {
+      return;
+    }
+    if (this.membersLoadedFor === selectedChatId && this.hasMember(login)) {
+      this.showNotice(text().alreadyInChat);
       return;
     }
     try {
-      await ChatController.addUsersToChat(this.props.selectedChatId, [login]);
+      await ChatController.addUsersToChat(selectedChatId, [login]);
+      this.showNotice(text().userAdded);
+      await this.loadMembers(selectedChatId);
     } catch (error) {
       console.error("Ошибка добавления пользователя:", error);
     }
   }
 
   private async handleRemoveUser(login: string) {
-    if (!this.props.selectedChatId) {
+    const { selectedChatId } = this.props;
+    if (!selectedChatId) {
+      return;
+    }
+    if (this.membersLoadedFor === selectedChatId && !this.hasMember(login)) {
+      this.showNotice(text().notInChat);
       return;
     }
     try {
-      await ChatController.removeUserFromChatByLogin(this.props.selectedChatId, login);
+      await ChatController.removeUserFromChatByLogin(selectedChatId, login);
+      this.showNotice(text().userRemoved);
+      await this.loadMembers(selectedChatId);
     } catch (error) {
       console.error("Ошибка удаления пользователя:", error);
     }
   }
 
+  private handleSearch(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    if (target?.name !== "query") {
+      return;
+    }
+    this.query = target.value;
+    this.setProps({ searchQuery: this.query });
+  }
+
   private handleClick(event: Event) {
     const target = event.target as HTMLElement;
 
-    // клик на профиль
     if (target.id === "profile-button" || target.closest("#profile-button")) {
       event.preventDefault();
       router.go("/profile");
       return;
     }
 
-    // клик на чат
+    if (target.id === "back-to-chats" || target.closest("#back-to-chats")) {
+      event.preventDefault();
+      this.closeChat();
+      return;
+    }
+
     const chatItem = target.closest("[data-chat-id]");
     if (chatItem) {
       const chatId = parseInt(chatItem.getAttribute("data-chat-id") || "0", 10);
@@ -222,11 +357,29 @@ export class ChatList extends Block<ChatListProps> {
     }
   }
 
+  private closeChat() {
+    messageController.disconnectFromChat();
+    this.notice = "";
+    this.members = [];
+    this.membersLoadedFor = undefined;
+    this.closeChatMenu();
+    store.set("selectedChatId", undefined);
+    this.setProps({
+      messages: [],
+      selectedChatId: undefined,
+      isLoadingMessages: false,
+      notice: "",
+    });
+  }
+
   private async selectChat(chatId: number) {
     messageController.disconnectFromChat();
+    this.notice = "";
+    this.members = [];
+    this.membersLoadedFor = undefined;
+    this.closeChatMenu();
 
     store.set("isLoadingMessages", true);
-
     store.set("selectedChatId", chatId);
     store.set(`messagesByChat.${chatId}`, []);
 
@@ -234,24 +387,20 @@ export class ChatList extends Block<ChatListProps> {
       messages: [],
       selectedChatId: chatId,
       isLoadingMessages: true,
+      notice: "",
     });
+
+    this.loadMembers(chatId);
 
     const messageList = this.element?.querySelector(`.${styles.messageList}`);
     if (messageList) {
-      messageList.innerHTML = '<li class="{{styles.loader}}"> Загрузка...</li>';
+      messageList.innerHTML = `<li class="${styles.loader}">${escapeHtml(text().loading)}</li>`;
     }
 
     setTimeout(async () => {
       try {
         await messageController.connectToChat(chatId);
-
         this.updateMessages();
-
-        setTimeout(() => {
-          this.attachMessageEvents();
-          this.attachChatMenuEvents();
-          this.updateMessages();
-        }, 50);
       } catch (error) {
         console.error("Ошибка подключения к чату:", error);
         store.set("isLoadingMessages", false);
@@ -267,79 +416,38 @@ export class ChatList extends Block<ChatListProps> {
     if (message && this.props.selectedChatId) {
       messageController.sendMessage(message);
       inputElement.value = "";
-      // Скроллим вниз после отправки сообщения
       this.scrollToBottom();
     }
   }
 
-  private attachMessageEvents() {
-    const buttons = this.element?.querySelectorAll("button");
-
-    buttons?.forEach((button, index) => {
-      if (
-        button.textContent?.trim() === "→" ||
-        button.getAttribute("type") === "submit" ||
-        (index === 1 && button.closest("form"))
-      ) {
-        button.addEventListener("click", (e) => {
-          e.preventDefault();
-          this.handleSendMessage();
-        });
-      }
-    });
-
-    const messageForm = this.element?.querySelector("form");
-    if (messageForm) {
-      messageForm.addEventListener("submit", (e) => {
-        e.preventDefault();
-        this.handleSendMessage();
-      });
-    }
-  }
-
-  private attachChatMenuEvents() {
-    const chatMenuButton = this.element?.querySelector("#chat-menu-button");
-    if (chatMenuButton) {
-      chatMenuButton.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        this.toggleChatMenu();
-      });
-    }
-
-    const menuClickHandler = (e: Event) => {
-      const target = e.target as HTMLElement;
-
-      if (!this.element?.contains(target)) {
-        return;
-      }
-
+  private bindMenuListeners(): void {
+    const onMenu = (event: Event) => {
+      const target = event.target as HTMLElement;
       if (target.id === "add-user-button" || target.closest("#add-user-button")) {
-        e.preventDefault();
-        e.stopPropagation();
+        event.preventDefault();
         this.closeChatMenu();
         this.openAddUserModal();
       } else if (target.id === "remove-user-button" || target.closest("#remove-user-button")) {
-        e.preventDefault();
-        e.stopPropagation();
+        event.preventDefault();
         this.closeChatMenu();
         this.openRemoveUserModal();
       }
     };
 
-    const closeMenuHandler = (e: Event) => {
-      const target = e.target as HTMLElement;
-      if (!target.closest(`.${styles.chatMenuDropdown}`) && !target.closest("#chat-menu-button")) {
+    const onOutside = (event: Event) => {
+      const target = event.target as HTMLElement;
+      const inMenu = target.closest(`.${styles.chatMenuDropdown}`);
+      const onButton = target.closest("#chat-menu-button");
+      if (!inMenu && !onButton) {
         this.closeChatMenu();
       }
     };
 
-    document.addEventListener("click", menuClickHandler);
-    document.addEventListener("click", closeMenuHandler);
-
+    document.addEventListener("click", onMenu);
+    document.addEventListener("click", onOutside);
     this.documentClickHandlers.push(
-      { element: document.body, handler: menuClickHandler },
-      { element: document.body, handler: closeMenuHandler }
+      { element: document, handler: onMenu },
+      { element: document, handler: onOutside }
     );
   }
 
@@ -384,57 +492,190 @@ export class ChatList extends Block<ChatListProps> {
     return 0;
   }
 
-  private formatTime(timeString: string): string {
+  private formatClock(timeString: string): string {
     const date = new Date(timeString);
-    return date.toLocaleTimeString("ru-RU", {
+    if (Number.isNaN(date.getTime())) {
+      return "";
+    }
+    return date.toLocaleTimeString(localeTag(), {
       hour: "2-digit",
       minute: "2-digit",
     });
   }
 
+  private formatListTime(timeString: string): string {
+    const date = new Date(timeString);
+    if (Number.isNaN(date.getTime())) {
+      return "";
+    }
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfYesterday = new Date(startOfToday);
+    startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+    if (date >= startOfToday) {
+      return this.formatClock(timeString);
+    }
+    if (date >= startOfYesterday) {
+      return text().yesterday;
+    }
+    return date.toLocaleDateString(localeTag(), {
+      day: "2-digit",
+      month: "2-digit",
+    });
+  }
+
+  private visibleChats(chats: Chat[]): Chat[] {
+    const query = this.query.trim().toLowerCase();
+    if (!query) {
+      return chats;
+    }
+    return chats.filter((chat) => chat.title.toLowerCase().includes(query));
+  }
+
+  private renderChatItems(chats: Chat[], selectedChatId?: number): string {
+    const visible = this.visibleChats(chats);
+    if (visible.length === 0) {
+      const label = chats.length === 0 ? text().noChats : text().nothingFound;
+      return `<li class="${styles.noChats}">${escapeHtml(label)}</li>`;
+    }
+
+    return visible
+      .map((chat) => {
+        const active = selectedChatId === chat.id ? styles.isActive : "";
+        const preview = chat.last_message ? chat.last_message.content : text().noMessages;
+        const time = chat.last_message ? this.formatListTime(chat.last_message.time) : "";
+        const badge = `<div class="${styles.unread}">${chat.unread_count}</div>`;
+        const unread = chat.unread_count > 0 ? badge : "";
+        const avatar = chat.avatar
+          ? `<img src="${escapeHtml(`${getApiUrl()}/resources${chat.avatar}`)}" alt="" />`
+          : `<span>${escapeHtml(avatarLetter(chat.title))}</span>`;
+
+        return `
+          <li class="${styles.chatItem} ${active}" data-chat-id="${chat.id}">
+            <div class="${styles.avatar}">${avatar}</div>
+            <div class="${styles.chatInfo}">
+              <div class="${styles.name}">${escapeHtml(chat.title)}</div>
+              <div class="${styles.message}">${escapeHtml(preview)}</div>
+            </div>
+            <div class="${styles.timeBlock}">
+              <div class="${styles.time}">${escapeHtml(time)}</div>
+              ${unread}
+            </div>
+          </li>
+        `;
+      })
+      .join("");
+  }
+
+  private renderMembers(): string {
+    if (this.membersLoadedFor !== this.props.selectedChatId || this.members.length === 0) {
+      return "";
+    }
+    const names = this.members.map((user) => escapeHtml(memberLabel(user))).join(", ");
+    return `<p class="${styles.members}">${escapeHtml(text().members)}: ${names}</p>`;
+  }
+
+  private renderNotice(): string {
+    if (!this.notice) {
+      return "";
+    }
+    return `<p class="${styles.notice}">${escapeHtml(this.notice)}</p>`;
+  }
+
   private renderMessages(messages: Message[]): string {
     if (messages.length === 0) {
-      return '<li class="{{styles.noMessages}}">Сообщения будут отображаться здесь</li>';
+      return `<li class="${styles.noMessages}">${escapeHtml(text().emptyThread)}</li>`;
     }
 
     return messages
-      .map(
-        (message) => `
-          <li class="{{styles.messageItem}} ${
-            message.user_id === this.getCurrentUserId() ? "{{styles.isOwn}}" : ""
-          }">
-            <div class="{{styles.messageText}}">${message.content}</div>
-            <div class="{{styles.messageTime}}">${this.formatTime(message.time)}</div>
+      .map((message) => {
+        const own = message.user_id === this.getCurrentUserId() ? styles.isOwn : "";
+        return `
+          <li class="${styles.messageItem} ${own}">
+            <div class="${styles.bubble}">
+              <div class="${styles.messageText}">${escapeHtml(message.content)}</div>
+              <div class="${styles.messageTime}">${escapeHtml(this.formatClock(message.time))}</div>
+            </div>
           </li>
-        `
-      )
+        `;
+      })
       .join("");
+  }
+
+  private renderConversation(messages: Message[], isLoadingMessages: boolean): string {
+    const copy = text();
+    const selected = (this.props.chats || []).find((chat) => chat.id === this.props.selectedChatId);
+    const title = selected?.title || "";
+    const body = isLoadingMessages
+      ? `<li class="${styles.loader}">${escapeHtml(copy.loading)}</li>`
+      : this.renderMessages(messages);
+
+    return `
+      <div class="{{styles.chatHeader}}">
+        <button
+          type="button"
+          class="{{styles.backChat}}"
+          id="back-to-chats"
+          aria-label="${escapeHtml(copy.back)}"
+        >‹</button>
+        <div class="{{styles.chatHeading}}">
+          <div class="{{styles.chatTitle}}">${escapeHtml(title)}</div>
+          ${this.renderMembers()}
+        </div>
+        <div class="{{styles.chatMenu}}">
+          {{{chatMenuButton}}}
+          <div class="{{styles.chatMenuDropdown}}" style="display: none;">
+            <button type="button" class="{{styles.menuItem}}" id="add-user-button">
+              ${escapeHtml(copy.addUser)}
+            </button>
+            <button type="button" class="{{styles.menuItem}}" id="remove-user-button">
+              ${escapeHtml(copy.removeUser)}
+            </button>
+          </div>
+        </div>
+      </div>
+      ${this.renderNotice()}
+      <ul class="{{styles.messageList}}">
+        ${body}
+      </ul>
+      <form novalidate class="{{styles.messageForm}}">
+        <div class="{{styles.messageInputContainer}}">
+          {{{messageInput}}}
+          {{{sendButton}}}
+        </div>
+      </form>
+    `;
   }
 
   override render() {
     const { chats = [], selectedChatId, isLoadingMessages = false } = this.props;
-
+    const copy = text();
     const messages =
       selectedChatId !== undefined ? store.getState().messagesByChat[selectedChatId] || [] : [];
 
-    const selectedChat = chats.find((chat) => chat.id === selectedChatId);
-
-    // Скроллим вниз после рендера, если есть сообщения
     if (messages.length > 0 && !isLoadingMessages) {
       setTimeout(() => this.scrollToBottom(), 0);
     }
 
+    const conversation = selectedChatId
+      ? this.renderConversation(messages, isLoadingMessages)
+      : `
+        <div class="{{styles.noChatSelected}}">
+          <p>${escapeHtml(copy.pickChat)}</p>
+        </div>
+      `;
+
     return `
-      <div class="{{styles.wrapper}}">
+      <div class="{{styles.wrapper}}${selectedChatId ? " {{styles.chatOpen}}" : ""}">
         <div class="{{styles.chatContainer}}">
         <div class="{{styles.chatList}}">
           <div class="{{styles.header}}">
             <img src="/images/logoURUS.svg" alt="Логотип" class="{{styles.logo}}" />
             <span class="{{styles.title}}" id="profile-button">
-              Профиль
+              ${escapeHtml(copy.profile)}
               <img
                 src="/images/chevron-right.svg"
-                alt="Chevron"
+                alt=""
                 class="{{styles.chevronIcon}}"
               >
             </span>
@@ -446,90 +687,12 @@ export class ChatList extends Block<ChatListProps> {
             {{{createChatButton}}}
           </div>
           <ul class="{{styles.chatItems}}">
-            ${
-              chats.length > 0
-                ? chats
-                    .map(
-                      (chat) => `
-              <li class="{{styles.chatItem}} ${
-                selectedChatId === chat.id ? "{{styles.isActive}}" : ""
-              }" data-chat-id="${chat.id}">
-                <div class="{{styles.avatar}}">
-                  ${
-                    chat.avatar
-                      ? `<img src="https://ya-praktikum.tech/api/v2/resources${chat.avatar}"
-                         alt="Аватар чата" />`
-                      : ""
-                  }
-                </div>
-                <div class="{{styles.chatInfo}}">
-                  <div class="{{styles.name}}">${chat.title}</div>
-                  <div class="{{styles.message}}">
-                    ${chat.last_message ? chat.last_message.content : "Нет сообщений"}
-                  </div>
-                </div>
-                <div class="{{styles.timeBlock}}">
-                  <div class="{{styles.time}}">
-                    ${chat.last_message ? this.formatTime(chat.last_message.time) : ""}
-                  </div>
-                  ${
-                    chat.unread_count > 0
-                      ? `<div class="{{styles.unread}}">${chat.unread_count}</div>`
-                      : ""
-                  }
-                </div>
-              </li>
-            `
-                    )
-                    .join("")
-                : '<li class="{{styles.noChats}}">Нет чатов. Создайте новый чат!</li>'
-            }
+            ${this.renderChatItems(chats, selectedChatId)}
           </ul>
         </div>
         <div class="{{styles.chat}}">
-          ${
-            selectedChatId
-              ? `
-            <div class="{{styles.chatHeader}}">
-              <div class="{{styles.chatTitle}}">${
-                selectedChat?.title || `Чат ${selectedChatId}`
-              }</div>
-              <div class="{{styles.chatMenu}}">
-                {{{chatMenuButton}}}
-                <div class="{{styles.chatMenuDropdown}}" style="display: none;">
-                  <div class="{{styles.addUserMenuItem}}" id="add-user-button">
-                    <div class="{{styles.addUserIcon}}">+</div>
-                    <span>Добавить пользователя</span>
-                  </div>
-                  <div class="{{styles.removeUserMenuItem}}" id="remove-user-button">
-                    <div class="{{styles.removeUserIcon}}">×</div>
-                    <span>Удалить пользователя</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <ul class="{{styles.messageList}}">
-              ${
-                isLoadingMessages
-                  ? '<li class="{{styles.loader}}"> Загрузка...</li>'
-                  : this.renderMessages(messages)
-              }
-            </ul>
-            <form novalidate class="{{styles.messageForm}}">
-              <div class="{{styles.messageInputContainer}}">
-                <img src="/images/attach.svg" alt="Attachment-icon" class="{{styles.logo}}" />
-                {{{messageInput}}}
-                {{{roundButton}}}
-              </div>
-            </form>
-          `
-              : `
-            <div class="{{styles.noChatSelected}}">
-              <p>Выберите чат для начала общения</p>
-            </div>
-          `
-          }
-          </div>
+          ${conversation}
+        </div>
         </div>
       </div>
       {{{createChatModal}}}

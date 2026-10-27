@@ -8,6 +8,7 @@ import {
 import { usersAPI } from "@/api/users";
 import { Store } from "@/store";
 import { Toast } from "@/utils/toast";
+import { errorText, text, userNotFound } from "@/locale";
 
 export const ChatController = {
   async getChats(): Promise<Chat[]> {
@@ -16,8 +17,7 @@ export const ChatController = {
       Store.set("chats", chats);
       return chats;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Ошибка загрузки чатов";
-      Toast.error(errorMessage);
+      Toast.error(errorText(error, text().chatsLoadError));
       throw error;
     }
   },
@@ -26,11 +26,10 @@ export const ChatController = {
     try {
       const data: CreateChatData = { title };
       await chatsAPI.createChat(data);
-      Toast.success("Чат успешно создан");
+      Toast.success(text().chatCreated);
       await this.getChats();
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Ошибка создания чата";
-      Toast.error(errorMessage);
+      Toast.error(errorText(error, text().chatCreateError));
       throw error;
     }
   },
@@ -41,9 +40,7 @@ export const ChatController = {
       await chatsAPI.addUsersToChat(data);
       Toast.success("Пользователь добавлен в чат");
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Ошибка добавления пользователя";
-      Toast.error(errorMessage);
+      Toast.error(errorText(error, text().addUserError));
       throw error;
     }
   },
@@ -54,7 +51,7 @@ export const ChatController = {
         logins.map(async (login) => {
           const foundUsers = await usersAPI.searchUsers(login);
           if (foundUsers.length === 0) {
-            throw new Error(`Пользователь с логином "${login}" не найден`);
+            throw new Error(userNotFound(login));
           }
           return foundUsers[0];
         })
@@ -63,11 +60,8 @@ export const ChatController = {
       const userIds = users.map((user) => user.id);
       const data: AddUserToChatData = { users: userIds, chatId };
       await chatsAPI.addUsersToChat(data);
-      Toast.success("Пользователи добавлены в чат");
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Ошибка добавления пользователей";
-      Toast.error(errorMessage);
+      Toast.error(errorText(error, text().addUsersError));
       throw error;
     }
   },
@@ -78,8 +72,7 @@ export const ChatController = {
       await chatsAPI.deleteUsersFromChat(data);
       Toast.success("Пользователь удален из чата");
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Ошибка удаления пользователя";
-      Toast.error(errorMessage);
+      Toast.error(errorText(error, text().removeUserError));
       throw error;
     }
   },
@@ -88,16 +81,14 @@ export const ChatController = {
     try {
       const foundUsers = await usersAPI.searchUsers(login);
       if (foundUsers.length === 0) {
-        throw new Error(`Пользователь с логином "${login}" не найден`);
+        throw new Error(userNotFound(login));
       }
 
       const userId = foundUsers[0].id;
       const data: DeleteUserFromChatData = { users: [userId], chatId };
       await chatsAPI.deleteUsersFromChat(data);
-      Toast.success("Пользователь удален из чата");
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Ошибка удаления пользователя";
-      Toast.error(errorMessage);
+      Toast.error(errorText(error, text().removeUserError));
       throw error;
     }
   },
@@ -106,9 +97,7 @@ export const ChatController = {
     try {
       return await chatsAPI.getChatUsers(chatId);
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Ошибка загрузки пользователей чата";
-      Toast.error(errorMessage);
+      Toast.error(errorText(error, text().chatUsersError));
       throw error;
     }
   },
@@ -117,8 +106,7 @@ export const ChatController = {
     try {
       return await chatsAPI.getChatToken(chatId);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Ошибка получения токена";
-      Toast.error(errorMessage);
+      Toast.error(errorText(error, text().tokenError));
       throw error;
     }
   },

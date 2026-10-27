@@ -9,6 +9,7 @@ import { UserController } from "@/controllers/UserController";
 import { connect } from "@/store/connect";
 import type { State } from "@/store/Store";
 import { Toast } from "@/utils/toast";
+import { errorText, text } from "@/locale";
 
 import styles from "../styles/authForm.module.sass";
 import settingsStyles from "./Settings.module.sass";
@@ -191,7 +192,7 @@ export class Settings extends Block<SettingsProps> {
 
     const { originalUser } = this.props;
     if (!originalUser) {
-      Toast.error("Ошибка: данные пользователя не загружены");
+      Toast.error(text().profileMissing);
       return;
     }
 
@@ -215,8 +216,7 @@ export class Settings extends Block<SettingsProps> {
         router.go("/profile");
       }, 1000);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Ошибка при обновлении профиля";
-      Toast.error(errorMessage);
+      Toast.error(errorText(error, text().profileUpdateError));
 
       if (submitButton) {
         submitButton.disabled = false;

@@ -8,6 +8,7 @@ export interface ButtonProps extends BaseProps {
   type?: "button" | "submit" | "reset";
   disabled?: boolean;
   id?: string;
+  ariaLabel?: string;
   className?: string;
   onClick?: (e: Event) => void;
 }
@@ -31,6 +32,7 @@ export class Button extends Block<ButtonProps> {
         class="{{styles.button}} {{className}}"
         type="{{type}}"
         {{#if id}}id="{{id}}"{{/if}}
+        {{#if ariaLabel}}aria-label="{{ariaLabel}}"{{/if}}
         {{#if disabled}}disabled{{/if}}
       >
         {{label}}

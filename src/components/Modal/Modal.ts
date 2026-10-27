@@ -99,6 +99,27 @@ export class Modal extends Block<ModalProps> {
     }
   }
 
+  public setCopy(copy: {
+    title: string;
+    inputLabel: string;
+    inputPlaceholder: string;
+    submitButtonLabel: string;
+  }): void {
+    this.setProps({
+      title: copy.title,
+      inputLabel: copy.inputLabel,
+      inputPlaceholder: copy.inputPlaceholder,
+      submitButtonLabel: copy.submitButtonLabel,
+    });
+    (this.children.input as Input).setProps({
+      label: copy.inputLabel,
+      placeholder: copy.inputPlaceholder,
+    });
+    (this.children.submitButton as Button).setProps({
+      label: copy.submitButtonLabel,
+    });
+  }
+
   public open() {
     this.setProps({ isOpen: true });
 

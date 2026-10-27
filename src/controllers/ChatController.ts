@@ -26,7 +26,7 @@ export const ChatController = {
     try {
       const data: CreateChatData = { title };
       await chatsAPI.createChat(data);
-      Toast.success("Чат успешно создан");
+      Toast.success(text().chatCreated);
       await this.getChats();
     } catch (error) {
       Toast.error(errorText(error, text().chatCreateError));
@@ -60,7 +60,6 @@ export const ChatController = {
       const userIds = users.map((user) => user.id);
       const data: AddUserToChatData = { users: userIds, chatId };
       await chatsAPI.addUsersToChat(data);
-      Toast.success("Пользователи добавлены в чат");
     } catch (error) {
       Toast.error(errorText(error, text().addUsersError));
       throw error;
@@ -88,7 +87,6 @@ export const ChatController = {
       const userId = foundUsers[0].id;
       const data: DeleteUserFromChatData = { users: [userId], chatId };
       await chatsAPI.deleteUsersFromChat(data);
-      Toast.success("Пользователь удален из чата");
     } catch (error) {
       Toast.error(errorText(error, text().removeUserError));
       throw error;

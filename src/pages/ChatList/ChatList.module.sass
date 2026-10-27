@@ -4,6 +4,7 @@
 
 
 
+
 .wrapper
   width: 100%
   display: flex
@@ -21,16 +22,19 @@
   align-items: center
   justify-content: space-between
   gap: 12px
-  margin: 12px 16px 0
-  padding: 12px 16px
+  margin: 0
+  padding: 16px 20px 18px
   background: linear-gradient(90deg, $secondary-color, $secondary-green-hover)
-  border-radius: 20px
+  border-radius: 0 0 28px 28px
   color: $white
+  box-shadow: 0 12px 24px rgb(0 174 239 / 28%)
+
+.chatHeading
+  flex: 1
+  min-width: 0
 
 .chatTitle
-  flex: 1
   margin: 0
-  min-width: 0
   overflow: hidden
   font-size: 18px
   font-weight: 500
@@ -38,10 +42,25 @@
   white-space: nowrap
   text-overflow: ellipsis
 
+.members
+  margin: 4px 0 0
+  overflow: hidden
+  color: rgb(255 255 255 / 82%)
+  font-size: 12px
+  font-weight: 400
+  white-space: nowrap
+  text-overflow: ellipsis
+
+.notice
+  margin: 0
+  padding: 12px 20px 0
+  color: $secondary-green-hover
+  font-size: 14px
+
 .chatMenu
   position: relative
 
-.chatMenuButton
+.chatMenu .chatMenuButton
   width: auto
   height: 36px
   padding: 4px 10px
@@ -68,43 +87,20 @@
   min-width: 200px
   z-index: 1000
 
-.addUserMenuItem,
- .removeUserMenuItem
-  display: flex
-  align-items: center
+.menuItem
+  display: block
+  width: 100%
   padding: 12px 16px
+  border: 0
+  background: none
+  color: $text-color
+  font: inherit
+  font-size: 14px
+  text-align: left
   cursor: pointer
-  transition: background-color 0.2s
 
   &:hover
-    background-color: $hover-light-gray
-
-
-.addUserIcon
-  width: 24px
-  height: 24px
-  background-color: $secondary-color
-  color: $white
-  border-radius: 50%
-  display: flex
-  align-items: center
-  justify-content: center
-  font-size: 16px
-  font-weight: bold
-  margin-right: 12px
-
-.removeUserIcon
-  width: 24px
-  height: 24px
-  background-color: $error-color
-  color: $white
-  border-radius: 50%
-  display: flex
-  align-items: center
-  justify-content: center
-  font-size: 16px
-  font-weight: bold
-  margin-right: 12px
+    background: rgb(0 174 239 / 10%)
 
 .chat
   display: flex
@@ -112,6 +108,7 @@
   flex-grow: 1
   overflow: hidden
   min-height: 0
+  background: rgb(255 255 255 / 32%)
 
   @media (max-width: 480px)
     display: none
@@ -182,12 +179,24 @@
     box-shadow: inset 0 0 0 1px secondary-color, 0 10px 22px rgb(0 174 239 / 16%)
 
 .avatar
+  display: flex
+  align-items: center
+  justify-content: center
   width: 40px
   height: 40px
   background-color: $avatar-gray
   border-radius: 50%
   margin-right: 10px
   flex-shrink: 0
+  overflow: hidden
+  color: $text-color
+  font-size: 14px
+  font-weight: 500
+
+  img
+    width: 100%
+    height: 100%
+    object-fit: cover
 
 .chatInfo
   flex-grow: 1
@@ -214,17 +223,18 @@
   &:hover
     filter: brightness(1.05)
 
-.searchInputWithIcon
+.searchContainer .searchInputWithIcon
   font-family: inherit
-  padding-left: 36px
+  height: 44px
+  padding: 0 12px 0 36px
+  border: 1px solid rgb(255 255 255 / 80%)
+  border-radius: 16px
+  outline: none
+  background-color: rgb(255 255 255 / 72%)
   background-image: '/images/search.svg'
   background-repeat: no-repeat
   background-position: 10px center
   background-size: 16px 16px
-  border-radius: 16px
-  outline: none
-  border: 1px solid rgb(255 255 255 / 80%)
-  background-color: rgb(255 255 255 / 72%)
 
   &::placeholder
     color: $border-color
@@ -232,7 +242,7 @@
 .timeBlock
   display: flex
   flex-direction: column
-  align-items: center
+  align-items: flex-end
   justify-content: space-between
   gap: 0.5rem
   margin-left: 1rem
@@ -261,11 +271,12 @@
   flex-shrink: 0
 
 .unread
-  width: 20px
+  min-width: 20px
   height: 20px
-  background-color: $secondary-color
+  padding: 0 4px
+  background: linear-gradient(90deg, $secondary-color, $secondary-green-hover)
   color: $white
-  border-radius: 50%
+  border-radius: 999px
   display: flex
   align-items: center
   justify-content: center
@@ -283,19 +294,28 @@
 .messageInputContainer
   display: flex
   align-items: center
-  gap: 1rem
+  gap: 12px
 
-.label
-  flex-grow: 1
-  width: 100%
+  label
+    flex: 1
+    min-width: 0
 
-.messageInput
+.messageInputContainer .messageInput
   font-family: inherit
-  background: rgb(255 255 255 / 72%)
+  width: 100%
+  height: 44px
+  margin: 0
+  padding: 0 12px
   border: 1px solid rgb(255 255 255 / 80%)
   border-radius: 16px
-  padding: 0 12px
+  background: rgb(255 255 255 / 80%)
+
+.messageInputContainer .sendButton
+  width: auto
+  flex-shrink: 0
   height: 44px
+  padding: 0 20px
+  border-radius: 999px
 
 .messageList
   list-style: none
@@ -325,52 +345,48 @@
     background-color: $scrollbar-hover
 
 .messageForm
-  margin-top: auto
-  padding: 16px
-  background: transparent
-  border-top: 0
+  margin: 0 12px 12px
+  padding: 12px
+  background: rgb(255 255 255 / 55%)
+  border: 1px solid rgb(255 255 255 / 65%)
+  border-radius: 24px
   flex-shrink: 0
-  position: sticky
-  bottom: 0
-  z-index: 10
+  backdrop-filter: blur(16px)
 
 .messageItem
   display: flex
-  flex-direction: column
   align-items: flex-start
   margin: 4px 0
 
-  &.isOwn
-    align-items: flex-end
+.messageItem.isOwn
+  justify-content: flex-end
 
-    .messageText
-      background: linear-gradient(135deg, $secondary-color, $secondary-green-hover)
-      color: $white
-      border: 0
-      border-radius: 16px 16px 4px
-      box-shadow: 0 8px 18px rgb(0 174 239 / 28%)
+.messageItem.isOwn .bubble
+  background: linear-gradient(135deg, $secondary-color, $secondary-green-hover)
+  color: $white
+  border: 0
+  border-radius: 16px 16px 4px
+  box-shadow: 0 8px 18px rgb(0 174 239 / 28%)
 
-    .messageTime
-      color: $message-time-color
-      margin-right: 8px
-      margin-left: 0
+.messageItem.isOwn .messageTime
+  color: rgb(255 255 255 / 80%)
+
+.bubble
+  max-width: 70%
+  padding: 8px 12px
+  border: 1px solid rgb(255 255 255 / 80%)
+  border-radius: 16px 16px 16px 4px
+  background: rgb(255 255 255 / 78%)
+  box-shadow: 0 8px 18px rgb(30 58 138 / 8%)
 
 .messageText
-  background: rgb(255 255 255 / 78%)
-  border-radius: 16px 16px 16px 4px
-  padding: 8px 12px
   font-size: 14px
-  max-width: 70%
   word-wrap: break-word
-  box-shadow: 0 8px 18px rgb(30 58 138 / 8%)
-  border: 1px solid rgb(255 255 255 / 80%)
 
 .messageTime
+  margin-top: 4px
   font-size: 11px
   color: $message-time-color
-  margin-top: 2px
-  margin-left: 8px
-  text-align: left
 
 .noChats
   text-align: center

@@ -39,9 +39,13 @@ export default class Route {
   render() {
     if (!this._block) {
       const page = new this._blockClass();
-      const layout = new Layout({ content: page });
-      this._block = layout;
-      render(this._props.rootQuery, layout);
+      this._block = new Layout({ content: page });
+    }
+
+    const element = this._block.getContent();
+    const root = document.querySelector(this._props.rootQuery);
+    if (element && root && !root.contains(element)) {
+      render(this._props.rootQuery, this._block);
       return;
     }
     this._block.show();

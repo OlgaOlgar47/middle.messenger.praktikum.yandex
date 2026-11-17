@@ -271,7 +271,7 @@ export default class Block<T extends BaseProps = BaseProps> {
   public show(): void {
     const content = this.getContent();
     if (content) {
-      content.style.display = "block";
+      content.style.removeProperty("display");
     }
   }
 

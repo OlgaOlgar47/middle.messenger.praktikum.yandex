@@ -51,7 +51,8 @@ export class AvatarUpload extends Block<AvatarUploadProps> {
 
   override render() {
     const user = this.props.user || UserController.getCurrentUser();
-    const avatarUrl = user?.avatar ? resourceUrl(user.avatar) : "/images/avatar-placeholder.svg";
+    const avatar = user && typeof user.avatar === "string" ? user.avatar : "";
+    const avatarUrl = avatar ? resourceUrl(avatar) : "/images/avatar-placeholder.svg";
 
     return `
       <div class="{{styles.avatarUpload}}">

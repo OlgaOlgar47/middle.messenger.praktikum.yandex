@@ -35,6 +35,7 @@ npm install --prefix server
 cp "$APP_DIR/server/deploy/uruschat.nginx" /etc/nginx/sites-available/uruschat
 ln -sfn /etc/nginx/sites-available/uruschat /etc/nginx/sites-enabled/uruschat
 rm -f /etc/nginx/sites-enabled/default
+rm -f /etc/nginx/sites-enabled/zombie-shooter.online
 nginx -t
 systemctl reload nginx
 

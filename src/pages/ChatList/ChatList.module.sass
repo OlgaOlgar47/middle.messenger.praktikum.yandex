@@ -7,6 +7,7 @@
 
 
 
+
 .wrapper
   display: flex
   flex: 1
@@ -106,6 +107,9 @@
   &:hover
     background: rgb(0 174 239 / 10%)
 
+.menuItemDanger
+  color: $error-color
+
 .chat
   display: flex
   flex-direction: column
@@ -114,7 +118,7 @@
   min-height: 0
   background: rgb(255 255 255 / 32%)
 
-  @media (max-width: 480px)
+  @media (max-width: 720px)
     display: none
     width: 100%
 
@@ -129,7 +133,7 @@
   border-right: 1px solid rgb(255 255 255 / 45%)
   backdrop-filter: blur(10px)
 
-  @media (max-width: 480px)
+  @media (max-width: 720px)
     width: 100%
     max-width: none
     border-right: 0
@@ -145,6 +149,7 @@
   width: 148px
   height: auto
   float: none
+  user-select: none
 
 .title
   font-size: 14px
@@ -349,13 +354,21 @@
     background-color: $scrollbar-hover
 
 .messageForm
-  margin: 0 12px 12px
+  margin: 0 12px max(12px, env(safe-area-inset-bottom))
   padding: 12px
   background: rgb(255 255 255 / 55%)
   border: 1px solid rgb(255 255 255 / 65%)
   border-radius: 24px
   flex-shrink: 0
   backdrop-filter: blur(16px)
+
+  @media (max-width: 720px)
+    margin-right: 8px
+    margin-left: 8px
+    padding: 8px
+
+.chatList
+  padding: max(8px, env(safe-area-inset-top)) 16px 16px
 
 .messageItem
   display: flex
@@ -387,10 +400,27 @@
   font-size: 14px
   word-wrap: break-word
 
+.bubble.isOpenable
+  cursor: pointer
+
+.messageHint
+  margin-top: 4px
+  font-size: 10px
+  line-height: 1.3
+  opacity: 0.45
+
+.messageOriginal
+  margin-top: 6px
+  font-size: 12px
+  line-height: 1.35
+  opacity: 0.72
+  word-wrap: break-word
+
 .messageTime
   margin-top: 4px
   font-size: 11px
   color: $message-time-color
+  text-align: right
 
 .noChats
   text-align: center
@@ -425,7 +455,7 @@
 .backChat
   display: none
 
-  @media (max-width: 480px)
+  @media (max-width: 720px)
     display: inline-flex
     align-items: center
     justify-content: center
@@ -442,9 +472,9 @@
 
 .chatOpen
   .chatList
-    @media (max-width: 480px)
+    @media (max-width: 720px)
       display: none
 
   .chat
-    @media (max-width: 480px)
+    @media (max-width: 720px)
       display: flex

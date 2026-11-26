@@ -14,6 +14,10 @@ export class WebSocketService {
 
   private onNewMessageCallback: ((message: Message) => void) | null = null;
 
+  private onControlCallback:
+    | ((event: { type: string; chatId: number; title?: string }) => void)
+    | null = null;
+
   constructor() {
     this.handleOpen = this.handleOpen.bind(this);
     this.handleMessage = this.handleMessage.bind(this);
@@ -91,6 +95,10 @@ export class WebSocketService {
     this.onNewMessageCallback = callback;
   }
 
+  onControl(callback: (event: { type: string; chatId: number; title?: string }) => void): void {
+    this.onControlCallback = callback;
+  }
+
   private handleOpen(): void {
     setTimeout(() => {
       this.getOldMessages(0);
@@ -109,6 +117,8 @@ export class WebSocketService {
         if (this.onNewMessageCallback) {
           this.onNewMessageCallback(data);
         }
+      } else if (data.type === "chat-updated" || data.type === "chat-deleted") {
+        this.onControlCallback?.(data);
       }
     } catch (error) {
       console.error("Ошибка парсинга сообщения WebSocket:", error);

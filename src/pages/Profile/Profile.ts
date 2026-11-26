@@ -141,13 +141,11 @@ export class Profile extends Block<ProfileProps> {
                 class="{{styles.fileInput}}"
                 accept="image/*"
               />
-              ${
-                user.avatar
-                  ? `<img src="${resourceUrl(user.avatar)}"
-                       alt="${copy.avatarAlt}"
-                       class="{{styles.avatarImage}}" />`
-                  : ""
-              }
+              <img
+                src="${user.avatar ? resourceUrl(user.avatar) : "/images/avatar-placeholder.svg"}"
+                alt="${copy.avatarAlt}"
+                class="{{styles.avatarImage}}"
+              />
             </label>
             <div class="{{styles.name}}">${user.display_name || user.first_name}</div>
             <ul class="{{styles.infoList}}">

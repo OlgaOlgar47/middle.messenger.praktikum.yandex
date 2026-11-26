@@ -70,6 +70,8 @@ export type Chat = {
     };
     time: string;
     content: string;
+    translation?: string;
+    user_id?: number;
   } | null;
 };
 
@@ -106,6 +108,7 @@ export type Message = {
   type: string;
   time: string;
   content: string;
+  translation?: string;
   file?: {
     id: number;
     user_id: number;

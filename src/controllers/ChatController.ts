@@ -93,6 +93,28 @@ export const ChatController = {
     }
   },
 
+  async renameChat(chatId: number, title: string): Promise<void> {
+    try {
+      await chatsAPI.updateChat({ chatId, title });
+      Toast.success(text().chatRenamed);
+      await this.getChats();
+    } catch (error) {
+      Toast.error(errorText(error, text().chatRenameError));
+      throw error;
+    }
+  },
+
+  async deleteChat(chatId: number): Promise<void> {
+    try {
+      await chatsAPI.deleteChat(chatId);
+      Toast.success(text().chatDeleted);
+      await this.getChats();
+    } catch (error) {
+      Toast.error(errorText(error, text().chatDeleteError));
+      throw error;
+    }
+  },
+
   async getChatUsers(chatId: number) {
     try {
       return await chatsAPI.getChatUsers(chatId);

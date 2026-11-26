@@ -1,0 +1,24 @@
+---
+description: Keep every source line at or under 100 characters
+alwaysApply: true
+---
+
+# Line length
+
+ESLint `max-len` is 100. A longer line fails the pre-commit hook and the commit is rejected.
+
+- Count the whole line, including indentation.
+- Break template strings, JSX, HTML, function calls, and conditions before column 100.
+- Do not disable `max-len` to keep a line intact.
+
+```typescript
+// Bad: one attribute list longer than 100 characters
+<button type="button" class="{{styles.menuItem}} {{styles.menuItemDanger}}" id="delete-chat-button">
+
+// Good: each line stays within the limit
+<button
+  type="button"
+  class="{{styles.menuItem}} {{styles.menuItemDanger}}"
+  id="delete-chat-button"
+>
+```

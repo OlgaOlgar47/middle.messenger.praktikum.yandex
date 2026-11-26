@@ -7,6 +7,7 @@ WorkingDirectory=/opt/uruschat/server
 Environment=NODE_ENV=production
 Environment=HOST=127.0.0.1
 Environment=PORT=3001
+EnvironmentFile=-/opt/uruschat/server/.env
 ExecStart=/usr/bin/node src/index.js
 Restart=on-failure
 RestartSec=3

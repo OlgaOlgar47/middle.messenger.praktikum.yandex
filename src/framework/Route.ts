@@ -46,7 +46,6 @@ export default class Route {
     const root = document.querySelector(this._props.rootQuery);
     if (element && root && !root.contains(element)) {
       render(this._props.rootQuery, this._block);
-      return;
     }
     this._block.show();
   }

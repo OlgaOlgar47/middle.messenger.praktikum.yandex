@@ -3,7 +3,7 @@ import { webSocketService } from "@/services/WebSocketService";
 import { Toast } from "@/utils/toast";
 import { text } from "@/locale";
 import store from "@/store/Store";
-import type { Message, SendMessageData } from "@/types";
+import type { Chat, Message, SendMessageData } from "@/types";
 
 export class MessageController {
   private currentChatId: number | null = null;
@@ -40,6 +40,32 @@ export class MessageController {
         }
       });
 
+      webSocketService.onControl((event) => {
+        if (event.chatId !== chatId) {
+          return;
+        }
+        if (event.type === "chat-updated" && event.title) {
+          const chats = store
+            .getState()
+            .chats.map((chat: Chat) =>
+              chat.id === chatId ? { ...chat, title: event.title as string } : chat
+            );
+          store.set("chats", chats);
+          return;
+        }
+        if (event.type === "chat-deleted") {
+          store.set(
+            "chats",
+            store.getState().chats.filter((chat: Chat) => chat.id !== chatId)
+          );
+          if (this.currentChatId === chatId) {
+            this.disconnectFromChat();
+            store.set("selectedChatId", undefined);
+            store.set("isLoadingMessages", false);
+          }
+        }
+      });
+
       webSocketService.onNewMessage((message: Message) => {
         if (this.currentChatId === chatId) {
           const prev = store.getState().messagesByChat[chatId] || [];
@@ -56,6 +82,7 @@ export class MessageController {
       });
     } catch (error) {
       console.error("Ошибка подключения к чату:", error);
+      store.set("isLoadingMessages", false);
       Toast.error(text().chatConnectError);
     }
   }

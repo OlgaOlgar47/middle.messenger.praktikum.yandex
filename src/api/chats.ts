@@ -16,6 +16,8 @@ export interface Chat {
     };
     time: string;
     content: string;
+    translation?: string;
+    user_id?: number;
   } | null;
 }
 
@@ -62,6 +64,14 @@ export class ChatsAPI {
 
   addUsersToChat(data: AddUserToChatData): Promise<void> {
     return this.http.put("/chats/users", { data });
+  }
+
+  updateChat(data: { chatId: number; title: string }): Promise<void> {
+    return this.http.put("/chats", { data });
+  }
+
+  deleteChat(chatId: number): Promise<void> {
+    return this.http.delete("/chats", { data: { chatId } });
   }
 
   deleteUsersFromChat(data: DeleteUserFromChatData): Promise<void> {

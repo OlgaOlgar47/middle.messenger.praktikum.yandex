@@ -2,10 +2,11 @@ import Block from "@/framework/Block";
 import { Input } from "@/components/Input";
 import { Button } from "@/components/Button";
 import { Link } from "@/components/Link";
+import { LanguageSwitch } from "@/components/LanguageSwitch/LanguageSwitch";
 import { createFormSubmitHandler } from "@/utils/formUtils";
 import { AuthController } from "@/controllers/AuthController";
 import { Toast } from "@/utils/toast";
-import { errorText, text } from "@/locale";
+import { errorText, onLocale, text } from "@/locale";
 
 import styles from "../styles/authForm.module.sass";
 import regStyles from "./Register.module.sass";
@@ -17,78 +18,114 @@ interface RegisterProps {
   fields?: Input[];
   button?: Button;
   link?: Link;
+  languageSwitch?: LanguageSwitch;
+  title?: string;
   events?: Record<string, (e: Event) => void>;
 }
 
 export class Register extends Block<RegisterProps> {
   constructor(props: RegisterProps = {}) {
+    const copy = text();
     super("div", {
       ...props,
       styles,
       regStyles,
-      fields: [
-        new Input({
-          type: "text",
-          name: "first_name",
-          placeholder: "Иван",
-          label: "Имя",
-          required: true,
-        }),
-        new Input({
-          type: "text",
-          name: "second_name",
-          placeholder: "Иванов",
-          label: "Фамилия",
-          required: true,
-        }),
-        new Input({
-          type: "text",
-          name: "login",
-          placeholder: "ivanivanov",
-          label: "Логин",
-          required: true,
-        }),
-        new Input({
-          type: "tel",
-          name: "phone",
-          placeholder: "+7 (999) 999-99-99",
-          label: "Телефон",
-          required: true,
-        }),
-        new Input({
-          type: "email",
-          name: "email",
-          placeholder: "example@mail.com",
-          label: "Почта",
-          required: true,
-        }),
-        new Input({
-          type: "password",
-          name: "password",
-          placeholder: "********",
-          label: "Пароль",
-          required: true,
-        }),
-        new Input({
-          type: "password",
-          name: "confirmPassword",
-          placeholder: "********",
-          label: "Повторите пароль",
-          required: true,
-        }),
-      ],
+      title: copy.registerTitle,
+      languageSwitch: new LanguageSwitch(),
+      fields: Register.createFields(),
       button: new Button({
         type: "submit",
-        label: "Зарегистрироваться",
+        label: copy.registerSubmit,
         className: styles.button,
       }),
       link: new Link({
         href: "/",
-        label: "Войдите",
+        label: copy.haveAccount,
         className: styles.link,
       }),
       events: {},
     });
+    onLocale(() => this.applyLocale());
+  }
+
+  private static createFields(): Input[] {
+    const copy = text();
+    return [
+      new Input({
+        type: "text",
+        name: "first_name",
+        placeholder: copy.firstNamePlaceholder,
+        label: copy.firstName,
+        required: true,
+      }),
+      new Input({
+        type: "text",
+        name: "second_name",
+        placeholder: copy.lastNamePlaceholder,
+        label: copy.lastName,
+        required: true,
+      }),
+      new Input({
+        type: "text",
+        name: "login",
+        placeholder: copy.loginPlaceholder,
+        label: copy.loginLabel,
+        required: true,
+      }),
+      new Input({
+        type: "tel",
+        name: "phone",
+        placeholder: copy.phonePlaceholder,
+        label: copy.phone,
+        required: true,
+      }),
+      new Input({
+        type: "email",
+        name: "email",
+        placeholder: copy.emailPlaceholder,
+        label: copy.email,
+        required: true,
+      }),
+      new Input({
+        type: "password",
+        name: "password",
+        placeholder: copy.passwordPlaceholder,
+        label: copy.passwordLabel,
+        required: true,
+      }),
+      new Input({
+        type: "password",
+        name: "confirmPassword",
+        placeholder: copy.passwordPlaceholder,
+        label: copy.repeatPassword,
+        required: true,
+      }),
+    ];
+  }
+
+  private applyLocale(): void {
+    const copy = text();
+    const labels = [
+      { label: copy.firstName, placeholder: copy.firstNamePlaceholder },
+      { label: copy.lastName, placeholder: copy.lastNamePlaceholder },
+      { label: copy.loginLabel, placeholder: copy.loginPlaceholder },
+      { label: copy.phone, placeholder: copy.phonePlaceholder },
+      { label: copy.email, placeholder: copy.emailPlaceholder },
+      { label: copy.passwordLabel, placeholder: copy.passwordPlaceholder },
+      { label: copy.repeatPassword, placeholder: copy.passwordPlaceholder },
+    ];
+    (this.lists.fields as Input[]).forEach((input, index) => {
+      const field = input.element?.querySelector("input");
+      const value = field instanceof HTMLInputElement ? field.value : "";
+      const hadError = input.hasError();
+      input.setProps({ ...labels[index], value });
+      if (hadError) {
+        input.validate();
+      }
+    });
+    (this.children.button as Button).setProps({ label: copy.registerSubmit });
+    (this.children.link as Link).setProps({ label: copy.haveAccount });
+    this.setProps({ title: copy.registerTitle });
   }
 
   protected init(): void {
@@ -99,7 +136,6 @@ export class Register extends Block<RegisterProps> {
   }
 
   private async handleSubmit(formData: Record<string, string>) {
-    // Проверяем совпадение паролей
     if (formData.password !== formData.confirmPassword) {
       Toast.error(text().passwordMismatch);
       return;
@@ -114,7 +150,7 @@ export class Register extends Block<RegisterProps> {
         password: formData.password,
         phone: formData.phone,
       });
-      Toast.success("Регистрация успешна!");
+      Toast.success(text().registerSuccess);
     } catch (error) {
       Toast.error(errorText(error, text().registerError));
     }
@@ -124,9 +160,10 @@ export class Register extends Block<RegisterProps> {
     return `
       <div class="{{styles.formPage}} {{regStyles.registerForm}}">
         <form novalidate class="{{styles.form}}">
+          {{{languageSwitch}}}
           <header class="{{styles.header}}">
             <img src="/images/logoURUS.svg" alt="Логотип" class="{{styles.logo}}" />
-            <h1 class="{{styles.title}}">Регистрация</h1>
+            <h1 class="{{styles.title}}">{{title}}</h1>
           </header>
           <ul class="{{styles.fields}}">
             {{#each fields}}

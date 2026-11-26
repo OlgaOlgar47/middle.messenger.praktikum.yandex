@@ -24,6 +24,8 @@ rsync -a --delete \
   --exclude server/node_modules \
   --exclude server/data \
   --exclude server/uploads \
+  --exclude server/.env \
+  --exclude .env \
   --exclude .git \
   "$REPO_DIR/" "$APP_DIR/"
 

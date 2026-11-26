@@ -15,6 +15,8 @@ interface ModalProps extends BaseProps {
   submitButtonLabel?: string;
   cancelButtonLabel?: string;
   buttonType?: "add" | "remove" | "default";
+  confirm?: boolean;
+  message?: string;
   input?: Input;
   submitButton?: Button;
   cancelButton?: Button;
@@ -76,6 +78,12 @@ export class Modal extends Block<ModalProps> {
   private handleSubmit(e: Event) {
     e.preventDefault();
 
+    if (this.props.confirm) {
+      this.props.onSubmit?.("");
+      this.handleClose();
+      return;
+    }
+
     const inputElement = this.element?.querySelector("input") as HTMLInputElement;
     const value = inputElement?.value?.trim();
 
@@ -120,22 +128,21 @@ export class Modal extends Block<ModalProps> {
     });
   }
 
-  public open() {
+  public open(initial = "") {
+    (this.children.input as Input).setProps({ value: initial });
     this.setProps({ isOpen: true });
 
     setTimeout(() => {
       const modalElement = this.element;
       if (modalElement && document.body) {
         document.body.appendChild(modalElement);
-
         this.attachEvents();
       }
+      const inputElement = this.element?.querySelector("input") as HTMLInputElement | null;
+      if (inputElement) {
+        inputElement.value = initial;
+      }
     }, 0);
-
-    const inputElement = this.props.input?.element?.querySelector("input") as HTMLInputElement;
-    if (inputElement) {
-      inputElement.value = "";
-    }
   }
 
   public close() {
@@ -190,9 +197,13 @@ export class Modal extends Block<ModalProps> {
             </button>
           </div>
           <form class="{{styles.form}}">
-            <div class="{{styles.inputContainer}}">
-              {{{input}}}
-            </div>
+            {{#if confirm}}
+              <p class="{{styles.message}}">{{message}}</p>
+            {{else}}
+              <div class="{{styles.inputContainer}}">
+                {{{input}}}
+              </div>
+            {{/if}}
             <div class="{{styles.buttons}}">
               {{{submitButton}}}
             </div>

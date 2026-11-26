@@ -67,6 +67,11 @@ db.exec(`
   );
 `);
 
+const messageColumns = db.prepare("PRAGMA table_info(messages)").all();
+if (!messageColumns.some((column) => column.name === "translation")) {
+  db.exec("ALTER TABLE messages ADD COLUMN translation TEXT NOT NULL DEFAULT ''");
+}
+
 export function publicUser(row) {
   return {
     id: row.id,

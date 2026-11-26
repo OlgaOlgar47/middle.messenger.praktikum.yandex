@@ -1,3 +1,12 @@
-<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M36 0C38.2091 0 40 1.79086 40 4V36C40 38.2091 38.2091 40 36 40H4C1.79086 40 0 38.2091 0 36V4C5.15413e-07 1.79086 1.79086 0 4 0H36ZM4 2C2.89543 2 2 2.89543 2 4V25.2666L14.6543 22.3135C15.5482 22.1049 16.4639 22 17.3818 22H22.6182C23.5361 22 24.4518 22.1049 25.3457 22.3135L38 25.2666V4C38 2.89543 37.1046 2 36 2H4ZM10.9092 7.27246C12.9175 7.27249 14.5459 8.90089 14.5459 10.9092C14.5459 12.9174 12.9174 14.5459 10.9092 14.5459C8.9009 14.5459 7.27251 12.9174 7.27246 10.9092C7.27246 8.90087 8.90087 7.27246 10.9092 7.27246Z" fill="#CDCDCD"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160" fill="none">
+  <defs>
+    <linearGradient id="avatarDisc" x1="28" y1="8" x2="132" y2="156" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#7ADFFF"/>
+      <stop offset="48%" stop-color="#00AEEF"/>
+      <stop offset="100%" stop-color="#0C355C"/>
+    </linearGradient>
+  </defs>
+  <circle cx="80" cy="80" r="80" fill="url(#avatarDisc)"/>
+  <circle cx="80" cy="62" r="22" fill="#fff"/>
+  <path fill="#fff" d="M41 126c6.5-27 21-39 39-39s32.5 12 39 39c1.6 6.5 2.2 15 2.2 24H38.8c0-9 .6-17.5 2.2-24z"/>
 </svg>

@@ -4,13 +4,18 @@ import { createReadStream, existsSync, mkdirSync, writeFileSync } from "node:fs"
 import path from "node:path";
 import { WebSocketServer } from "ws";
 import { db, findUserById, findUserByLogin, publicUser, uploadDir } from "./db.js";
+import { loadEnv } from "./env.js";
+import { translateMessage } from "./translate.js";
 
-const PORT = Number(process.env.PORT || 3001);
+loadEnv();
+
+const PORT = Number(process.env.PORT || 3002);
 const HOST = process.env.HOST || "127.0.0.1";
 const JSON_LIMIT = 1024 * 1024;
 const FILE_LIMIT = 5 * 1024 * 1024;
 const rooms = new Map();
 const socketChats = new WeakMap();
+const socketQueues = new WeakMap();
 
 function hashPassword(password) {
   const salt = randomBytes(16).toString("hex");
@@ -169,6 +174,8 @@ function chatList(userId) {
               },
               time: message.time,
               content: message.content,
+              translation: message.translation || "",
+              user_id: message.user_id,
             }
           : null,
         sortTime: message ? message.time : chat.created_at,
@@ -361,6 +368,34 @@ async function createChat(req, res) {
   return send(res, 200, { id });
 }
 
+async function updateChat(req, res) {
+  const user = sessionUser(req);
+  if (!user) return fail(res, 401, "Cookie is not valid");
+  const body = await readJson(req);
+  const chatId = Number(body.chatId);
+  if (!memberRole(chatId, user.id)) return fail(res, 403, "You are not a chat member");
+  const title = String(body.title || "").trim().slice(0, 100);
+  if (!title) return fail(res, 400, "title is empty, but required");
+  db.prepare("UPDATE chats SET title = ? WHERE id = ?").run(title, chatId);
+  broadcast(chatId, { type: "chat-updated", chatId, title });
+  return send(res, 200, "OK");
+}
+
+async function deleteChat(req, res) {
+  const user = sessionUser(req);
+  if (!user) return fail(res, 401, "Cookie is not valid");
+  const body = await readJson(req);
+  const chatId = Number(body.chatId);
+  if (!memberRole(chatId, user.id)) return fail(res, 403, "You are not a chat member");
+  broadcast(chatId, { type: "chat-deleted", chatId });
+  const room = rooms.get(chatId);
+  if (room) {
+    [...room].forEach((socket) => socket.close());
+  }
+  db.prepare("DELETE FROM chats WHERE id = ?").run(chatId);
+  return send(res, 200, "OK");
+}
+
 async function addUsers(req, res) {
   const user = sessionUser(req);
   if (!user) return fail(res, 401, "Cookie is not valid");
@@ -444,6 +479,8 @@ const routes = [
   ["POST", /^\/api\/v2\/user\/search$/, searchUsers],
   ["GET", /^\/api\/v2\/chats$/, getChats],
   ["POST", /^\/api\/v2\/chats$/, createChat],
+  ["PUT", /^\/api\/v2\/chats$/, updateChat],
+  ["DELETE", /^\/api\/v2\/chats$/, deleteChat],
   ["PUT", /^\/api\/v2\/chats\/users$/, addUsers],
   ["DELETE", /^\/api\/v2\/chats\/users$/, removeUsers],
   ["GET", /^\/api\/v2\/chats\/(\d+)\/users$/, getChatUsers],
@@ -469,7 +506,7 @@ async function onRequest(req, res) {
 function socketMessages(chatId) {
   return db
     .prepare(
-      `SELECT id, user_id, chat_id, type, time, content
+      `SELECT id, user_id, chat_id, type, time, content, translation
        FROM messages WHERE chat_id = ? ORDER BY id ASC`
     )
     .all(chatId);
@@ -480,6 +517,39 @@ function joinRoom(chatId, socket) {
   if (!rooms.has(key)) rooms.set(key, new Set());
   rooms.get(key).add(socket);
   socketChats.set(socket, key);
+}
+
+async function handleSocketMessage(socket, chatId, userId, raw) {
+  let body;
+  try {
+    body = JSON.parse(raw.toString());
+  } catch {
+    return;
+  }
+  if (body.type === "get old") {
+    socket.send(JSON.stringify(socketMessages(chatId)));
+    return;
+  }
+  if (body.type !== "message") return;
+  const content = String(body.content || "").trim();
+  if (!content) return;
+  const translation = await translateMessage(content.slice(0, 4000));
+  const time = now();
+  const saved = db
+    .prepare(
+      `INSERT INTO messages (chat_id, user_id, type, content, translation, time)
+       VALUES (?, ?, 'message', ?, ?, ?)`
+    )
+    .run(chatId, userId, content, translation, time);
+  broadcast(chatId, {
+    id: Number(saved.lastInsertRowid),
+    user_id: userId,
+    chat_id: chatId,
+    type: "message",
+    time,
+    content,
+    translation,
+  });
 }
 
 function leaveRoom(socket) {
@@ -523,35 +593,14 @@ sockets.on("connection", (socket, req) => {
   }
   joinRoom(chatId, socket);
   socket.on("message", (raw) => {
-    let body;
-    try {
-      body = JSON.parse(raw.toString());
-    } catch {
-      return;
-    }
-    if (body.type === "get old") {
-      socket.send(JSON.stringify(socketMessages(chatId)));
-      return;
-    }
-    if (body.type === "message") {
-      const content = String(body.content || "").trim();
-      if (!content) return;
-      const time = now();
-      const saved = db
-        .prepare(
-          `INSERT INTO messages (chat_id, user_id, type, content, time)
-           VALUES (?, ?, 'message', ?, ?)`
-        )
-        .run(chatId, userId, content, time);
-      broadcast(chatId, {
-        id: Number(saved.lastInsertRowid),
-        user_id: userId,
-        chat_id: chatId,
-        type: "message",
-        time,
-        content,
+    const previous = socketQueues.get(socket) || Promise.resolve();
+    const next = previous
+      .then(() => handleSocketMessage(socket, chatId, userId, raw))
+      .catch((error) => {
+        const message = error instanceof Error ? error.message : "error";
+        process.stderr.write(`message failed ${message}\n`);
       });
-    }
+    socketQueues.set(socket, next);
   });
   socket.on("close", () => leaveRoom(socket));
 });

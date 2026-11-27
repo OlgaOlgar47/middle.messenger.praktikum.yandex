@@ -1,0 +1,18 @@
+{
+  "name": "URUS chat",
+  "short_name": "URUS",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#00AEEF",
+  "theme_color": "#00AEEF",
+  "lang": "ru",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

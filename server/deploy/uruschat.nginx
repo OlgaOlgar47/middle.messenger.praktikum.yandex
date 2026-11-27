@@ -1,6 +1,6 @@
 server {
   listen 80;
-  server_name 282692.fornex.cloud;
+  server_name uruschat.duckdns.org;
 
   root /opt/uruschat/dist;
   index index.html;

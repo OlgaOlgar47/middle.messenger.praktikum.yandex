@@ -2,6 +2,8 @@ import { messagesAPI } from "@/api/messages";
 import { webSocketService } from "@/services/WebSocketService";
 import { Toast } from "@/utils/toast";
 import { text } from "@/locale";
+import { alertNewMessage } from "@/utils/notify";
+import { ChatController } from "@/controllers/ChatController";
 import store from "@/store/Store";
 import type { Chat, Message, SendMessageData } from "@/types";
 
@@ -37,6 +39,7 @@ export class MessageController {
 
           clearTimeout(loaderTimeout);
           store.set("isLoadingMessages", false);
+          if (!document.hidden) ChatController.markRead(chatId).catch(() => undefined);
         }
       });
 
@@ -66,9 +69,76 @@ export class MessageController {
         }
       });
 
+      webSocketService.onTranslated((update) => {
+        if (this.currentChatId !== chatId) return;
+        const prev = store.getState().messagesByChat[chatId] || [];
+        const updated = prev.map((item: Message) =>
+          item.id === update.id ? { ...item, translation: update.translation } : item
+        );
+        store.set(`messagesByChat.${chatId}`, updated);
+        const last = updated[updated.length - 1];
+        if (last?.id !== update.id) return;
+        store.set(
+          "chats",
+          store.getState().chats.map((chat: Chat) =>
+            chat.id === chatId && chat.last_message
+              ? {
+                  ...chat,
+                  last_message: { ...chat.last_message, translation: update.translation },
+                }
+              : chat
+          )
+        );
+      });
+
       webSocketService.onNewMessage((message: Message) => {
         if (this.currentChatId === chatId) {
+          const me = Number((store.getState().user as { id?: number } | null)?.id || 0);
+          if (message.user_id !== me) {
+            if (document.hidden) {
+              const chat = store.getState().chats.find((item) => item.id === chatId);
+              alertNewMessage(
+                chatId,
+                chat?.title || "URUS",
+                "",
+                message.content,
+                message.translation
+              );
+            } else {
+              ChatController.markRead(chatId).catch(() => undefined);
+            }
+          }
           const prev = store.getState().messagesByChat[chatId] || [];
+          store.set(
+            "chats",
+            store.getState().chats.map((chat: Chat) =>
+              chat.id === chatId
+                ? {
+                    ...chat,
+                    unread_count:
+                      message.user_id === me
+                        ? chat.unread_count
+                        : document.hidden
+                          ? chat.unread_count + 1
+                          : 0,
+                    last_message: {
+                      user: chat.last_message?.user || {
+                        first_name: "",
+                        second_name: "",
+                        avatar: null,
+                        email: "",
+                        login: "",
+                        phone: "",
+                      },
+                      time: message.time,
+                      content: message.content,
+                      translation: message.translation || "",
+                      user_id: message.user_id,
+                    },
+                  }
+                : chat
+            )
+          );
           const updatedMessages = [...prev, message];
 
           const sortedMessages = updatedMessages.sort((a, b) => {

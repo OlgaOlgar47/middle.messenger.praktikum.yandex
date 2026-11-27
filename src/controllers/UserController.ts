@@ -9,7 +9,7 @@ export const UserController = {
     try {
       const updatedUser = await usersAPI.updateProfile(data);
       Store.set("user", updatedUser);
-      Toast.success("Профиль успешно обновлен");
+      Toast.success(text().profileUpdated);
       return updatedUser;
     } catch (error) {
       Toast.error(errorText(error, text().profileUpdateError));
@@ -29,7 +29,7 @@ export const UserController = {
         Store.set("user", { ...currentUser, avatar: response.avatar });
       }
 
-      Toast.success("Аватар успешно обновлен");
+      Toast.success(text().avatarUpdated);
       return response;
     } catch (error) {
       Toast.error(errorText(error, text().avatarError));
@@ -40,7 +40,7 @@ export const UserController = {
   async changePassword(data: ChangePasswordData) {
     try {
       await usersAPI.changePassword(data);
-      Toast.success("Пароль успешно изменен");
+      Toast.success(text().passwordChanged);
     } catch (error) {
       Toast.error(errorText(error, text().passwordChangeError));
       throw error;

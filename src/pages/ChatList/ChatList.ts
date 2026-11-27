@@ -1,8 +1,9 @@
 import Block from "@/framework/Block";
 import { Input } from "@/components/Input";
 import { Button } from "@/components/Button";
-import { Modal } from "@/components/Modal";
-import type { BaseProps, Chat, ChatUser, Message } from "@/types";
+import { Modal, type UserSuggestion } from "@/components/Modal";
+import { usersAPI } from "@/api/users";
+import type { BaseProps, Chat, ChatUser, Message, User } from "@/types";
 import { router } from "@/App";
 import { ChatController } from "@/controllers/ChatController";
 import { messageController } from "@/controllers/MessageController";
@@ -10,6 +11,8 @@ import { connect } from "@/store/connect";
 import { resourceUrl } from "@/config/api";
 import store, { type State } from "@/store/Store";
 import { getLocale, onLocale, text } from "@/locale";
+import { alertNewMessage, enableMessageAlerts } from "@/utils/notify";
+import { webSocketService } from "@/services/WebSocketService";
 
 import styles from "./ChatList.module.sass";
 
@@ -36,6 +39,7 @@ interface ChatListProps extends BaseProps {
   localeTick?: string;
   membersTick?: string;
   revealTick?: number;
+  readTick?: number;
 }
 
 function escapeHtml(value: string): string {
@@ -50,6 +54,10 @@ function escapeHtml(value: string): string {
 
 function localeTag(): string {
   return getLocale() === "es" ? "es-UY" : "ru-RU";
+}
+
+function personName(user: Pick<User, "first_name" | "second_name">): string {
+  return [user.first_name, user.second_name].filter(Boolean).join(" ").trim();
 }
 
 function memberLabel(user: ChatUser): string {
@@ -70,13 +78,20 @@ function scriptOf(value: string): "ru" | "es" | "" {
   return cyrillic > latin ? "ru" : "es";
 }
 
-function messageView(content: string, translation?: string): { shown: string; original: string } {
+function messageView(
+  content: string,
+  translation: string | undefined,
+  own: boolean
+): { shown: string; original: string } {
   const original = content || "";
   const translated = (translation || "").trim();
-  const locale = getLocale();
   const originalScript = scriptOf(original);
   const keepOriginal =
-    !translated || translated === original || originalScript === locale || originalScript === "";
+    own ||
+    !translated ||
+    translated === original ||
+    originalScript === getLocale() ||
+    originalScript === "";
   if (keepOriginal) {
     return { shown: original, original };
   }
@@ -95,6 +110,14 @@ export class ChatList extends Block<ChatListProps> {
   private membersLoadedFor: number | undefined;
 
   private revealedIds = new Set<number>();
+
+  private readUpTo = 0;
+
+  private chatRefreshTimer: number | undefined;
+
+  private suggestTimer: number | undefined;
+
+  private suggestQuery = "";
 
   constructor(props: ChatListProps = {}) {
     const copy = text();
@@ -119,7 +142,7 @@ export class ChatList extends Block<ChatListProps> {
       }),
       sendButton: new Button({
         label: copy.send,
-        type: "submit",
+        type: "button",
         className: styles.sendButton,
         onClick: (event: Event) => {
           event.preventDefault();
@@ -159,6 +182,8 @@ export class ChatList extends Block<ChatListProps> {
         inputPlaceholder: copy.userLoginPlaceholder,
         submitButtonLabel: copy.add,
         buttonType: "add",
+        pickHint: copy.pickFromList,
+        onQuery: (value: string) => this.handleUserQuery(value),
         onSubmit: (login: string) => this.handleAddUser(login),
       }),
       removeUserModal: new Modal({
@@ -188,6 +213,7 @@ export class ChatList extends Block<ChatListProps> {
       events: {
         click: (event: Event) => this.handleClick(event),
         input: (event: Event) => this.handleSearch(event),
+        keydown: (event: Event) => this.handleMessageKey(event),
       },
     });
     onLocale(() => this.applyLocale());
@@ -196,13 +222,93 @@ export class ChatList extends Block<ChatListProps> {
 
   protected init(): void {
     this.loadChats();
+    this.chatRefreshTimer = window.setInterval(() => this.refreshChats(), 3000);
+    window.addEventListener("focus", this.refreshChats);
+    document.addEventListener("visibilitychange", this.refreshChats);
+    window.addEventListener("click", this.askAlerts, { once: true });
+    window.addEventListener("urus-open-chat", this.openFromAlert);
+    webSocketService.onIncoming(this.onIncoming);
+    webSocketService.onRead(this.onRead);
   }
 
   public updateFields() {}
 
   public destroy() {
+    if (this.chatRefreshTimer !== undefined) window.clearInterval(this.chatRefreshTimer);
+    window.removeEventListener("focus", this.refreshChats);
+    document.removeEventListener("visibilitychange", this.refreshChats);
+    window.removeEventListener("click", this.askAlerts);
+    window.removeEventListener("urus-open-chat", this.openFromAlert);
     this.detachDocumentEvents();
   }
+
+  private askAlerts = (): void => {
+    enableMessageAlerts();
+  };
+
+  private openFromAlert = (event: Event): void => {
+    const chatId = (event as CustomEvent<number>).detail;
+    if (chatId) this.selectChat(chatId);
+  };
+
+  private onIncoming = (event: {
+    chatId: number;
+    content: string;
+    translation?: string;
+    title: string;
+    author: string;
+    update?: boolean;
+  }): void => {
+    const looking = !document.hidden && store.getState().selectedChatId === event.chatId;
+    if (looking) {
+      ChatController.markRead(event.chatId).catch(() => undefined);
+      return;
+    }
+    if (!event.update) {
+      const chats = store.getState().chats.map((chat) =>
+        chat.id === event.chatId ? { ...chat, unread_count: chat.unread_count + 1 } : chat
+      );
+      store.set("chats", chats);
+    }
+    alertNewMessage(event.chatId, event.title, event.author, event.content, event.translation);
+  };
+
+  private onRead = (event: { chatId: number; messageId: number }): void => {
+    if (event.chatId !== store.getState().selectedChatId) return;
+    this.readUpTo = event.messageId;
+    this.setProps({ readTick: event.messageId });
+  };
+
+  private noticeChats(before: Chat[], chats: Chat[]): void {
+    if (before.length === 0) return;
+    const me = this.getCurrentUserId();
+    chats.forEach((chat) => {
+      const last = chat.last_message;
+      if (!last || last.user_id === me) return;
+      const previous = before.find((item) => item.id === chat.id);
+      const changed =
+        !previous ||
+        previous.last_message?.time !== last.time ||
+        previous.last_message?.content !== last.content ||
+        (previous.last_message?.translation || "") !== (last.translation || "");
+      if (!changed) return;
+      if (!document.hidden && this.props.selectedChatId === chat.id) return;
+      const author = [last.user.first_name, last.user.second_name].filter(Boolean).join(" ");
+      alertNewMessage(chat.id, chat.title, author, last.content, last.translation);
+    });
+  }
+
+  private refreshChats = (): void => {
+    if (document.visibilityState === "hidden") return;
+    const selected = this.props.selectedChatId;
+    const run = async () => {
+      if (selected) await ChatController.markRead(selected);
+      const before = store.getState().chats;
+      const chats = await ChatController.getChats({ silent: true });
+      this.noticeChats(before, chats);
+    };
+    run().catch(() => undefined);
+  };
 
   private applyLocale(): void {
     const copy = text();
@@ -222,6 +328,7 @@ export class ChatList extends Block<ChatListProps> {
       inputPlaceholder: copy.chatNamePlaceholder,
       submitButtonLabel: copy.create,
     });
+    (this.children.addUserModal as Modal).setProps({ pickHint: copy.pickFromList });
     this.applyModal(this.children.addUserModal as Modal, {
       title: copy.addUserTitle,
       inputLabel: copy.userLogin,
@@ -284,7 +391,40 @@ export class ChatList extends Block<ChatListProps> {
     if (!this.props.selectedChatId) {
       return;
     }
+    window.clearTimeout(this.suggestTimer);
+    this.suggestQuery = "";
     (this.children.addUserModal as Modal)?.open();
+  }
+
+  private handleUserQuery(value: string): void {
+    window.clearTimeout(this.suggestTimer);
+    const query = value.trim();
+    this.suggestQuery = query;
+    const modal = this.children.addUserModal as Modal;
+    if (!query) {
+      modal.setSuggestions([]);
+      return;
+    }
+    this.suggestTimer = window.setTimeout(() => {
+      this.loadSuggestions(query).catch(() => undefined);
+    }, 250);
+  }
+
+  private async loadSuggestions(query: string): Promise<void> {
+    const users = await usersAPI.searchUsers(query);
+    if (this.suggestQuery !== query) return;
+    const members = new Set(this.members.map((user) => user.login.toLowerCase()));
+    const suggestions: UserSuggestion[] = users.map((user) => {
+      const inChat = members.has(user.login.toLowerCase());
+      return {
+        login: user.login,
+        name: personName(user),
+        disabled: inChat,
+        hint: inChat ? text().inChat : "",
+      };
+    });
+    const empty = suggestions.length === 0 ? text().nobodyFound : "";
+    (this.children.addUserModal as Modal).setSuggestions(suggestions, empty);
   }
 
   private openRemoveUserModal() {
@@ -488,6 +628,7 @@ export class ChatList extends Block<ChatListProps> {
     this.members = [];
     this.membersLoadedFor = undefined;
     this.revealedIds.clear();
+    this.readUpTo = 0;
     this.closeChatMenu();
 
     store.set("isLoadingMessages", true);
@@ -502,6 +643,7 @@ export class ChatList extends Block<ChatListProps> {
     });
 
     this.loadMembers(chatId);
+    ChatController.markRead(chatId).catch(() => undefined);
 
     const messageList = this.element?.querySelector(`.${styles.messageList}`);
     if (messageList) {
@@ -518,6 +660,14 @@ export class ChatList extends Block<ChatListProps> {
         this.setProps({ isLoadingMessages: false });
       }
     }, 20);
+  }
+
+  private handleMessageKey(event: Event): void {
+    const keyboard = event as KeyboardEvent;
+    const target = event.target as HTMLInputElement;
+    if (keyboard.key !== "Enter" || target?.name !== "message") return;
+    event.preventDefault();
+    this.handleSendMessage();
   }
 
   private handleSendMessage() {
@@ -664,7 +814,8 @@ export class ChatList extends Block<ChatListProps> {
         const active = selectedChatId === chat.id ? styles.isActive : "";
         const preview = this.previewText(chat.last_message);
         const time = chat.last_message ? this.formatListTime(chat.last_message.time) : "";
-        const badge = `<div class="${styles.unread}">${chat.unread_count}</div>`;
+        const countLabel = chat.unread_count > 99 ? "99+" : String(chat.unread_count);
+        const badge = `<div class="${styles.unread}">${countLabel}</div>`;
         const unread = chat.unread_count > 0 ? badge : "";
         const avatar = chat.avatar
           ? `<img src="${escapeHtml(resourceUrl(chat.avatar))}" alt="" />`
@@ -702,20 +853,34 @@ export class ChatList extends Block<ChatListProps> {
     return `<p class="${styles.notice}">${escapeHtml(this.notice)}</p>`;
   }
 
+  private readMark(mine: boolean, messageId: number): string {
+    if (!mine) return "";
+    const read = messageId <= this.readUpTo;
+    const label = read ? text().messageRead : text().messageSent;
+    const mark = read ? "✓✓" : "✓";
+    const state = read ? styles.isRead : "";
+    return `<span class="${styles.ticks} ${state}" title="${escapeHtml(label)}">${mark}</span>`;
+  }
+
   private renderMessages(messages: Message[]): string {
     if (messages.length === 0) {
       return `<li class="${styles.noMessages}">${escapeHtml(text().emptyThread)}</li>`;
     }
 
     const hintIndex = messages.findIndex((message) => {
-      const view = messageView(message.content, message.translation);
+      const view = messageView(
+        message.content,
+        message.translation,
+        message.user_id === this.getCurrentUserId()
+      );
       return view.shown !== view.original;
     });
 
     return messages
       .map((message, index) => {
-        const own = message.user_id === this.getCurrentUserId() ? styles.isOwn : "";
-        const view = messageView(message.content, message.translation);
+        const mine = message.user_id === this.getCurrentUserId();
+        const own = mine ? styles.isOwn : "";
+        const view = messageView(message.content, message.translation, mine);
         const canOpen = view.shown !== view.original;
         const open = canOpen && this.revealedIds.has(message.id);
         const openable = canOpen ? styles.isOpenable : "";
@@ -733,7 +898,10 @@ export class ChatList extends Block<ChatListProps> {
               <div class="${styles.messageText}">${escapeHtml(view.shown)}</div>
               ${source}
               ${hint}
-              <div class="${styles.messageTime}">${escapeHtml(this.formatClock(message.time))}</div>
+              <div class="${styles.messageMeta}">
+                <span class="${styles.messageTime}">${escapeHtml(this.formatClock(message.time))}</span>
+                ${this.readMark(mine, message.id)}
+              </div>
             </div>
           </li>
         `;
@@ -743,7 +911,8 @@ export class ChatList extends Block<ChatListProps> {
 
   private previewText(last: Chat["last_message"]): string {
     if (!last) return text().noMessages;
-    return messageView(last.content, last.translation).shown;
+    return messageView(last.content, last.translation, last.user_id === this.getCurrentUserId())
+      .shown;
   }
 
   private renderConversation(messages: Message[], isLoadingMessages: boolean): string {
@@ -762,7 +931,7 @@ export class ChatList extends Block<ChatListProps> {
           class="{{styles.backChat}}"
           id="back-to-chats"
           aria-label="${escapeHtml(copy.back)}"
-        >‹</button>
+        ><svg class="{{styles.backIcon}}" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.25 6 8.75 12l6.5 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         <div class="{{styles.chatHeading}}">
           <div class="{{styles.chatTitle}}">${escapeHtml(title)}</div>
           ${this.renderMembers()}
@@ -804,6 +973,8 @@ export class ChatList extends Block<ChatListProps> {
 
   override render() {
     const { chats = [], selectedChatId, isLoadingMessages = false } = this.props;
+    const unread = chats.reduce((sum, chat) => sum + chat.unread_count, 0);
+    document.title = unread > 0 ? `(${unread}) URUS` : "URUS";
     const copy = text();
     const messages =
       selectedChatId !== undefined ? store.getState().messagesByChat[selectedChatId] || [] : [];

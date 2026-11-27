@@ -1,4 +1,5 @@
 import { chatSocketUrl } from "@/config/api";
+import { getLocale } from "@/locale";
 import type { Message, SendMessageData } from "@/types";
 import store from "@/store/Store";
 import { errorHandler } from "@/utils/errorHandler";
@@ -16,6 +17,22 @@ export class WebSocketService {
 
   private onControlCallback:
     | ((event: { type: string; chatId: number; title?: string }) => void)
+    | null = null;
+
+  private onTranslatedCallback: ((event: { id: number; translation: string }) => void) | null =
+    null;
+
+  private onReadCallback: ((event: { chatId: number; messageId: number }) => void) | null = null;
+
+  private onIncomingCallback:
+    | ((event: {
+        chatId: number;
+        content: string;
+        translation?: string;
+        title: string;
+        author: string;
+        update?: boolean;
+      }) => void)
     | null = null;
 
   constructor() {
@@ -69,6 +86,7 @@ export class WebSocketService {
         JSON.stringify({
           content: message.content,
           type: message.type || "message",
+          locale: getLocale(),
         })
       );
     } else {
@@ -99,7 +117,29 @@ export class WebSocketService {
     this.onControlCallback = callback;
   }
 
+  onTranslated(callback: (event: { id: number; translation: string }) => void): void {
+    this.onTranslatedCallback = callback;
+  }
+
+  onRead(callback: (event: { chatId: number; messageId: number }) => void): void {
+    this.onReadCallback = callback;
+  }
+
+  onIncoming(
+    callback: (event: {
+      chatId: number;
+      content: string;
+      translation?: string;
+      title: string;
+      author: string;
+      update?: boolean;
+    }) => void
+  ): void {
+    this.onIncomingCallback = callback;
+  }
+
   private handleOpen(): void {
+    this.socket?.send(JSON.stringify({ type: "locale", locale: getLocale() }));
     setTimeout(() => {
       this.getOldMessages(0);
     }, 10);
@@ -117,6 +157,12 @@ export class WebSocketService {
         if (this.onNewMessageCallback) {
           this.onNewMessageCallback(data);
         }
+      } else if (data.type === "message-translated") {
+        this.onTranslatedCallback?.(data);
+      } else if (data.type === "read") {
+        this.onReadCallback?.(data);
+      } else if (data.type === "incoming") {
+        this.onIncomingCallback?.(data);
       } else if (data.type === "chat-updated" || data.type === "chat-deleted") {
         this.onControlCallback?.(data);
       }

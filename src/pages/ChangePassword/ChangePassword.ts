@@ -7,7 +7,7 @@ import type { BaseProps } from "@/types";
 import { router } from "@/App";
 import { UserController } from "@/controllers/UserController";
 import { Toast } from "@/utils/toast";
-import { text } from "@/locale";
+import { onLocale, text } from "@/locale";
 
 import styles from "../styles/authForm.module.sass";
 import changePasswordStyles from "./ChangePassword.module.sass";
@@ -17,19 +17,21 @@ export interface ChangePasswordProps extends BaseProps {
   button?: Button;
   backButton?: BackButton;
   changePasswordStyles?: unknown;
+  title?: string;
 }
 
 export class ChangePassword extends Block<ChangePasswordProps> {
   constructor(props: ChangePasswordProps = {}) {
+    const copy = text();
     const button = new Button({
       type: "submit",
-      label: "Сохранить",
+      label: copy.save,
       className: styles.button,
       disabled: true,
     });
 
     const backButton = new BackButton({
-      label: "Назад",
+      label: copy.back,
       onClick: () => {
         router.go("/profile");
       },
@@ -39,11 +41,13 @@ export class ChangePassword extends Block<ChangePasswordProps> {
       ...props,
       styles,
       changePasswordStyles,
+      title: copy.changePassword,
       fields: [],
       button,
       backButton,
       events: {},
     });
+    onLocale(() => this.applyLocale());
   }
 
   protected init(): void {
@@ -56,25 +60,44 @@ export class ChangePassword extends Block<ChangePasswordProps> {
   }
 
   private createFields(): Input[] {
-    const fields = [
+    const copy = text();
+    return [
       new Input({
         type: "password",
         name: "oldPassword",
-        label: "Старый пароль",
-        placeholder: "Введите старый пароль",
+        label: copy.oldPassword,
+        placeholder: copy.oldPasswordPlaceholder,
         required: true,
         className: styles.input,
       }),
       new Input({
         type: "password",
         name: "newPassword",
-        label: "Новый пароль",
-        placeholder: "Введите новый пароль",
+        label: copy.newPassword,
+        placeholder: copy.newPasswordPlaceholder,
         required: true,
         className: styles.input,
       }),
     ];
-    return fields;
+  }
+
+  private applyLocale(): void {
+    const copy = text();
+    const labels = [
+      { label: copy.oldPassword, placeholder: copy.oldPasswordPlaceholder },
+      { label: copy.newPassword, placeholder: copy.newPasswordPlaceholder },
+    ];
+    (this.lists.fields as Input[] | undefined)?.forEach((input, index) => {
+      const field = input.element?.querySelector("input");
+      const value = field instanceof HTMLInputElement ? field.value : "";
+      const next = labels[index];
+      if (!next) return;
+      input.setProps({ ...next, value });
+    });
+    (this.children.button as Button | undefined)?.setProps({ label: copy.save });
+    (this.children.backButton as BackButton | undefined)?.setProps({ label: copy.back });
+    this.setProps({ title: copy.changePassword });
+    this.addChangeListeners((this.lists.fields as Input[]) || []);
   }
 
   private addChangeListeners(inputs: Input[]) {
@@ -156,7 +179,7 @@ export class ChangePassword extends Block<ChangePasswordProps> {
         <form novalidate class="{{styles.form}}">
           <header class="{{styles.header}}">
             <h1 class="{{styles.title}} {{changePasswordStyles.headerChangePassword}}">
-              Изменить пароль
+              {{title}}
             </h1>
           </header>
           <ul class="{{styles.fields}}">

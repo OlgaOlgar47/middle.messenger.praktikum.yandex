@@ -1,4 +1,5 @@
 import { getApiUrl } from "@/config/api";
+import { getLocale } from "@/locale";
 import { errorHandler } from "@/utils/errorHandler";
 import { HttpStatus } from "@/utils/httpStatus";
 
@@ -43,6 +44,7 @@ export class HTTPTransport {
       xhr.open(method, fullURL);
       xhr.timeout = timeout;
       xhr.withCredentials = true;
+      xhr.setRequestHeader("X-Locale", getLocale());
 
       Object.entries(headers).forEach(([key, value]) => xhr.setRequestHeader(key, value));
 

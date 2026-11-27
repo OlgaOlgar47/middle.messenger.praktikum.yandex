@@ -5,11 +5,19 @@ import type { BaseProps } from "@/types";
 
 import styles from "./Modal.module.sass";
 
+export type UserSuggestion = {
+  login: string;
+  name: string;
+  disabled?: boolean;
+  hint?: string;
+};
+
 interface ModalProps extends BaseProps {
   title?: string;
   isOpen?: boolean;
   onClose?: () => void;
   onSubmit?: (data: string) => void;
+  onQuery?: (value: string) => void;
   inputLabel?: string;
   inputPlaceholder?: string;
   submitButtonLabel?: string;
@@ -17,12 +25,27 @@ interface ModalProps extends BaseProps {
   buttonType?: "add" | "remove" | "default";
   confirm?: boolean;
   message?: string;
+  suggestions?: UserSuggestion[];
+  suggestEmpty?: string;
+  pickHint?: string;
   input?: Input;
   submitButton?: Button;
   cancelButton?: Button;
 }
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/\{/g, "&#123;")
+    .replace(/\}/g, "&#125;");
+}
+
 export class Modal extends Block<ModalProps> {
+  private chosenLogin = "";
+
   constructor(props: ModalProps) {
     super("div", {
       ...props,
@@ -44,6 +67,7 @@ export class Modal extends Block<ModalProps> {
       events: {
         click: (e: Event) => this.handleBackdropClick(e),
         submit: (e: Event) => this.handleSubmit(e),
+        input: (e: Event) => this.handleQuery(e),
       },
     });
   }
@@ -70,9 +94,48 @@ export class Modal extends Block<ModalProps> {
 
   private handleBackdropClick(e: Event) {
     const target = e.target as HTMLElement;
+    const pick = target.closest("[data-login]") as HTMLButtonElement | null;
+    if (pick) {
+      if (!pick.disabled) this.pickLogin(pick.getAttribute("data-login") || "");
+      return;
+    }
     if (target.classList.contains(styles.backdrop)) {
       this.handleClose();
     }
+  }
+
+  private handleQuery(e: Event) {
+    const target = e.target as HTMLInputElement;
+    if (target?.name !== "modalInput" || !this.props.onQuery) return;
+    const value = target.value.trim();
+    if (value !== this.chosenLogin) this.chosenLogin = "";
+    this.props.onQuery(target.value);
+  }
+
+  private pickLogin(login: string) {
+    const item = (this.props.suggestions || []).find(
+      (suggestion) => suggestion.login === login && !suggestion.disabled
+    );
+    if (!item) return;
+    this.chosenLogin = login;
+    const input = this.element?.querySelector(
+      'input[name="modalInput"]'
+    ) as HTMLInputElement | null;
+    if (input) input.value = login;
+    this.setProps({ suggestions: [...(this.props.suggestions || [])], suggestEmpty: "" });
+  }
+
+  private chosenMatch(): UserSuggestion | undefined {
+    const enabled = (this.props.suggestions || []).filter((item) => !item.disabled);
+    const typed = (
+      this.element?.querySelector('input[name="modalInput"]') as HTMLInputElement | null
+    )?.value
+      ?.trim()
+      ?.toLowerCase();
+    if (this.chosenLogin) {
+      return enabled.find((item) => item.login === this.chosenLogin);
+    }
+    return enabled.find((item) => item.login.toLowerCase() === typed);
   }
 
   private handleSubmit(e: Event) {
@@ -86,11 +149,21 @@ export class Modal extends Block<ModalProps> {
 
     const inputElement = this.element?.querySelector("input") as HTMLInputElement;
     const value = inputElement?.value?.trim();
+    if (!value || !this.props.onSubmit) return;
 
-    if (value && this.props.onSubmit) {
-      this.props.onSubmit(value);
+    if (this.props.onQuery) {
+      const match = this.chosenMatch();
+      if (!match) {
+        this.setProps({ suggestEmpty: this.props.pickHint || "" });
+        return;
+      }
+      this.props.onSubmit(match.login);
       this.handleClose();
+      return;
     }
+
+    this.props.onSubmit(value);
+    this.handleClose();
   }
 
   private handleClose() {
@@ -128,9 +201,17 @@ export class Modal extends Block<ModalProps> {
     });
   }
 
+  public setSuggestions(suggestions: UserSuggestion[], empty = ""): void {
+    if (!suggestions.some((item) => item.login === this.chosenLogin)) {
+      this.chosenLogin = "";
+    }
+    this.setProps({ suggestions, suggestEmpty: empty });
+  }
+
   public open(initial = "") {
+    this.chosenLogin = "";
     (this.children.input as Input).setProps({ value: initial });
-    this.setProps({ isOpen: true });
+    this.setProps({ isOpen: true, suggestions: [], suggestEmpty: "" });
 
     setTimeout(() => {
       const modalElement = this.element;
@@ -182,6 +263,40 @@ export class Modal extends Block<ModalProps> {
     }
   }
 
+  private suggestionMarkup(): string {
+    const items = this.props.suggestions || [];
+    const empty = this.props.suggestEmpty || "";
+    const note = empty ? `<p class="{{styles.suggestEmpty}}">${escapeHtml(empty)}</p>` : "";
+    if (!items.length) return note;
+    const rows = items
+      .map((item) => {
+        const selected = item.login === this.chosenLogin ? "{{styles.isSelected}}" : "";
+        const disabled = item.disabled ? "disabled" : "";
+        const name = item.name
+          ? `<span class="{{styles.suggestName}}">(${escapeHtml(item.name)})</span>`
+          : "";
+        const hint = item.hint
+          ? `<span class="{{styles.suggestHint}}">${escapeHtml(item.hint)}</span>`
+          : "";
+        return `
+          <li>
+            <button
+              type="button"
+              class="{{styles.suggestButton}} ${selected}"
+              data-login="${escapeHtml(item.login)}"
+              ${disabled}
+            >
+              <span class="{{styles.suggestLogin}}">${escapeHtml(item.login)}</span>
+              ${name}
+              ${hint}
+            </button>
+          </li>
+        `;
+      })
+      .join("");
+    return `<ul class="{{styles.suggestions}}">${rows}</ul>${note}`;
+  }
+
   override render() {
     if (!this.props.isOpen) {
       return "";
@@ -202,6 +317,7 @@ export class Modal extends Block<ModalProps> {
             {{else}}
               <div class="{{styles.inputContainer}}">
                 {{{input}}}
+                ${this.suggestionMarkup()}
               </div>
             {{/if}}
             <div class="{{styles.buttons}}">

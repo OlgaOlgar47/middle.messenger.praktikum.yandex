@@ -1,10 +1,11 @@
 const MODEL = "gpt-6-luna";
 const ENDPOINT = "https://inference-api.openserv.ai/v1/chat/completions";
-const SYSTEM = `You translate short family-chat messages between Russian and Uruguayan Spanish.
-If the message is Russian, translate it into natural Uruguayan Spanish: use voseo (vos, tenés, querés) and everyday wording from Uruguay.
-If the message is Spanish, translate it into natural everyday Russian.
-Keep names, phone numbers, links, emoji, and the tone of the original. Do not add greetings, quotes, or notes.
+const RULES = `Keep names, phone numbers, links, emoji, and the tone of the original. Do not add greetings, quotes, or notes.
 Reply with the translation only.`;
+const INSTRUCTIONS = {
+  ru: `Translate the user's message into natural everyday Russian. ${RULES}`,
+  es: `Translate the user's message into natural Uruguayan Spanish. Use voseo (vos, tenés, querés) and everyday wording from Uruguay. ${RULES}`,
+};
 
 function completionText(data) {
   const content = data?.choices?.[0]?.message?.content;
@@ -33,9 +34,14 @@ function unwrap(text) {
   return value;
 }
 
-export async function translateMessage(text) {
+export async function translateMessage(text, target) {
+  const instruction = INSTRUCTIONS[target];
   const key = process.env.SERV_API_KEY;
-  if (!key || !text) return "";
+  if (!instruction || !text) return "";
+  if (!key) {
+    process.stderr.write("translate skipped: SERV_API_KEY is empty\n");
+    return "";
+  }
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 20000);
   try {
@@ -50,7 +56,7 @@ export async function translateMessage(text) {
         model: MODEL,
         max_completion_tokens: 800,
         messages: [
-          { role: "system", content: SYSTEM },
+          { role: "system", content: instruction },
           { role: "user", content: text },
         ],
       }),

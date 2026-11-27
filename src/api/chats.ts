@@ -55,7 +55,7 @@ export class ChatsAPI {
   }
 
   getChats(): Promise<Chat[]> {
-    return this.http.get("/chats");
+    return this.http.get("/chats", { data: { _: Date.now() } });
   }
 
   createChat(data: CreateChatData): Promise<{ id: number }> {
@@ -84,6 +84,10 @@ export class ChatsAPI {
 
   getChatToken(chatId: number): Promise<{ token: string }> {
     return this.http.post(`/chats/token/${chatId}`);
+  }
+
+  markRead(chatId: number): Promise<void> {
+    return this.http.post(`/chats/${chatId}/read`);
   }
 }
 

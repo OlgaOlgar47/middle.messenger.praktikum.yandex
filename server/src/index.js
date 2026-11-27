@@ -14,8 +14,8 @@ const HOST = process.env.HOST || "127.0.0.1";
 const JSON_LIMIT = 1024 * 1024;
 const FILE_LIMIT = 5 * 1024 * 1024;
 const rooms = new Map();
+const userSockets = new Map();
 const socketChats = new WeakMap();
-const socketQueues = new WeakMap();
 
 function hashPassword(password) {
   const salt = randomBytes(16).toString("hex");
@@ -51,17 +51,54 @@ function cookiesOf(req) {
   );
 }
 
+function saveLocale(userId, locale) {
+  if (locale !== "ru" && locale !== "es") return;
+  db.prepare("UPDATE users SET locale = ? WHERE id = ? AND locale != ?").run(
+    locale,
+    userId,
+    locale
+  );
+}
+
 function sessionUser(req) {
   const { auth } = cookiesOf(req);
   if (!auth) return null;
   const session = db.prepare("SELECT user_id FROM sessions WHERE token = ?").get(auth);
   if (!session) return null;
-  return findUserById(session.user_id) || null;
+  const user = findUserById(session.user_id);
+  if (!user) return null;
+  saveLocale(user.id, String(req.headers["x-locale"] || ""));
+  return user;
+}
+
+function textLanguage(text) {
+  const cyrillic = text.match(/[А-Яа-яЁё]/g)?.length ?? 0;
+  const latin = text.match(/[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]/g)?.length ?? 0;
+  if (cyrillic === 0 && latin === 0) return "";
+  return cyrillic > latin ? "ru" : "es";
+}
+
+function recipientLanguage(chatId, senderId, source) {
+  const others = db
+    .prepare(
+      `SELECT users.locale FROM chat_users
+       JOIN users ON users.id = chat_users.user_id
+       WHERE chat_users.chat_id = ? AND chat_users.user_id != ?`
+    )
+    .all(chatId, senderId);
+  const chosen = others.map((row) => row.locale).find((locale) => locale && locale !== source);
+  if (chosen) return chosen;
+  if (source === "ru") return "es";
+  if (source === "es") return "ru";
+  return "";
 }
 
 function send(res, status, body) {
   const payload = body == null ? "" : JSON.stringify(body);
-  res.writeHead(status, { "Content-Type": "application/json; charset=utf-8" });
+  res.writeHead(status, {
+    "Content-Type": "application/json; charset=utf-8",
+    "Cache-Control": "no-store",
+  });
   res.end(payload);
 }
 
@@ -129,6 +166,19 @@ function requireFields(body, fields) {
   return `${missing} is empty, but required`;
 }
 
+function unreadCount(chatId, userId) {
+  const read = db
+    .prepare("SELECT message_id FROM chat_reads WHERE chat_id = ? AND user_id = ?")
+    .get(chatId, userId);
+  const row = db
+    .prepare(
+      `SELECT COUNT(*) AS count FROM messages
+       WHERE chat_id = ? AND id > ? AND user_id != ?`
+    )
+    .get(chatId, read ? read.message_id : 0, userId);
+  return row.count;
+}
+
 function memberRole(chatId, userId) {
   const row = db
     .prepare("SELECT role FROM chat_users WHERE chat_id = ? AND user_id = ?")
@@ -161,7 +211,7 @@ function chatList(userId) {
         id: chat.id,
         title: chat.title,
         avatar: chat.avatar,
-        unread_count: 0,
+        unread_count: unreadCount(chat.id, userId),
         last_message: message
           ? {
               user: {
@@ -339,10 +389,24 @@ async function searchUsers(req, res) {
     .trim()
     .toLowerCase();
   if (!login) return send(res, 200, []);
+  const exact = db
+    .prepare("SELECT * FROM users WHERE id != ? AND lower(login) = ?")
+    .get(user.id, login);
   const rows = db
-    .prepare("SELECT * FROM users WHERE id != ? AND instr(lower(login), ?) > 0 LIMIT 20")
-    .all(user.id, login);
-  return send(res, 200, rows.map(publicUser));
+    .prepare(
+      `SELECT * FROM users
+       WHERE id != ?
+         AND (
+           instr(lower(login), ?) > 0
+           OR instr(lower(first_name), ?) > 0
+           OR instr(lower(second_name), ?) > 0
+           OR instr(lower(display_name), ?) > 0
+         )
+       LIMIT 20`
+    )
+    .all(user.id, login, login, login, login);
+  const merged = exact ? [exact, ...rows.filter((row) => row.id !== exact.id)] : rows;
+  return send(res, 200, merged.map(publicUser));
 }
 
 function getChats(req, res) {
@@ -445,6 +509,54 @@ function getChatUsers(req, res, chatId) {
   );
 }
 
+function markRead(req, res, chatId) {
+  const user = sessionUser(req);
+  if (!user) return fail(res, 401, "Cookie is not valid");
+  const id = Number(chatId);
+  if (!memberRole(id, user.id)) return fail(res, 403, "You are not a chat member");
+  const last = db.prepare("SELECT MAX(id) AS id FROM messages WHERE chat_id = ?").get(id);
+  db.prepare(
+    `INSERT INTO chat_reads (chat_id, user_id, message_id) VALUES (?, ?, ?)
+     ON CONFLICT(chat_id, user_id) DO UPDATE SET
+       message_id = MAX(chat_reads.message_id, excluded.message_id)`
+  ).run(id, user.id, last?.id || 0);
+  pushReadState(id);
+  return send(res, 200, "OK");
+}
+
+function othersReadId(chatId, userId) {
+  const others = db
+    .prepare(
+      `SELECT COALESCE(chat_reads.message_id, 0) AS message_id
+       FROM chat_users
+       LEFT JOIN chat_reads
+         ON chat_reads.chat_id = chat_users.chat_id
+        AND chat_reads.user_id = chat_users.user_id
+       WHERE chat_users.chat_id = ? AND chat_users.user_id != ?`
+    )
+    .all(chatId, userId);
+  if (others.length === 0) return 0;
+  return others.reduce((min, row) => Math.min(min, row.message_id), others[0].message_id);
+}
+
+function pushReadState(chatId) {
+  const members = db.prepare("SELECT user_id FROM chat_users WHERE chat_id = ?").all(chatId);
+  members.forEach((member) => {
+    const sockets = userSockets.get(member.user_id);
+    if (!sockets) return;
+    const payload = JSON.stringify({
+      type: "read",
+      chatId: Number(chatId),
+      messageId: othersReadId(chatId, member.user_id),
+    });
+    sockets.forEach((socket) => {
+      if (socketChats.get(socket) === Number(chatId) && socket.readyState === 1) {
+        socket.send(payload);
+      }
+    });
+  });
+}
+
 function chatToken(req, res, chatId) {
   const user = sessionUser(req);
   if (!user) return fail(res, 401, "Cookie is not valid");
@@ -484,6 +596,7 @@ const routes = [
   ["PUT", /^\/api\/v2\/chats\/users$/, addUsers],
   ["DELETE", /^\/api\/v2\/chats\/users$/, removeUsers],
   ["GET", /^\/api\/v2\/chats\/(\d+)\/users$/, getChatUsers],
+  ["POST", /^\/api\/v2\/chats\/(\d+)\/read$/, markRead],
   ["POST", /^\/api\/v2\/chats\/token\/(\d+)$/, chatToken],
   ["GET", /^\/api\/v2\/resources\/(\d+\/[^/]+)$/, readResource],
 ];
@@ -512,52 +625,122 @@ function socketMessages(chatId) {
     .all(chatId);
 }
 
-function joinRoom(chatId, socket) {
+function joinRoom(chatId, userId, socket) {
   const key = Number(chatId);
   if (!rooms.has(key)) rooms.set(key, new Set());
   rooms.get(key).add(socket);
   socketChats.set(socket, key);
+  if (!userSockets.has(userId)) userSockets.set(userId, new Set());
+  userSockets.get(userId).add(socket);
+}
+
+function notifyOthers(chatId, senderId, content, translation, update) {
+  const chat = db.prepare("SELECT title FROM chats WHERE id = ?").get(Number(chatId));
+  const author = db
+    .prepare("SELECT first_name, second_name FROM users WHERE id = ?")
+    .get(senderId);
+  const payload = JSON.stringify({
+    type: "incoming",
+    chatId: Number(chatId),
+    content,
+    translation: translation || "",
+    title: chat?.title || "URUS",
+    author: [author?.first_name, author?.second_name].filter(Boolean).join(" "),
+    update: Boolean(update),
+  });
+  const members = db.prepare("SELECT user_id FROM chat_users WHERE chat_id = ?").all(Number(chatId));
+  members.forEach((member) => {
+    if (member.user_id === senderId) return;
+    const sockets = userSockets.get(member.user_id);
+    if (!sockets) return;
+    sockets.forEach((socket) => {
+      if (socketChats.get(socket) === Number(chatId)) return;
+      if (socket.readyState === 1) socket.send(payload);
+    });
+  });
 }
 
 async function handleSocketMessage(socket, chatId, userId, raw) {
   let body;
   try {
-    body = JSON.parse(raw.toString());
+    body = JSON.parse(String(raw));
   } catch {
+    return;
+  }
+  if (body.type === "locale") {
+    saveLocale(userId, String(body.locale || ""));
     return;
   }
   if (body.type === "get old") {
     socket.send(JSON.stringify(socketMessages(chatId)));
+    socket.send(
+      JSON.stringify({
+        type: "read",
+        chatId: Number(chatId),
+        messageId: othersReadId(chatId, userId),
+      })
+    );
     return;
   }
   if (body.type !== "message") return;
   const content = String(body.content || "").trim();
   if (!content) return;
-  const translation = await translateMessage(content.slice(0, 4000));
+  saveLocale(userId, String(body.locale || ""));
   const time = now();
   const saved = db
     .prepare(
       `INSERT INTO messages (chat_id, user_id, type, content, translation, time)
-       VALUES (?, ?, 'message', ?, ?, ?)`
+       VALUES (?, ?, 'message', ?, '', ?)`
     )
-    .run(chatId, userId, content, translation, time);
+    .run(chatId, userId, content, time);
+  const messageId = Number(saved.lastInsertRowid);
   broadcast(chatId, {
-    id: Number(saved.lastInsertRowid),
+    id: messageId,
     user_id: userId,
     chat_id: chatId,
     type: "message",
     time,
     content,
-    translation,
+    translation: "",
   });
+  notifyOthers(chatId, userId, content, "", false);
+  const source = textLanguage(content);
+  const target = recipientLanguage(chatId, userId, source);
+  if (target && target !== source) {
+    publishTranslation(messageId, chatId, userId, content, target);
+  }
+}
+
+function publishTranslation(messageId, chatId, userId, content, target) {
+  translateMessage(content.slice(0, 4000), target)
+    .then((translation) => {
+      if (!translation) return;
+      db.prepare("UPDATE messages SET translation = ? WHERE id = ?").run(translation, messageId);
+      broadcast(chatId, {
+        type: "message-translated",
+        id: messageId,
+        chat_id: chatId,
+        translation,
+      });
+      notifyOthers(chatId, userId, content, translation, true);
+    })
+    .catch((error) => {
+      const message = error instanceof Error ? error.message : "error";
+      process.stderr.write(`translate failed ${message}\n`);
+    });
 }
 
 function leaveRoom(socket) {
   const chatId = socketChats.get(socket);
   const room = rooms.get(chatId);
-  if (!room) return;
-  room.delete(socket);
-  if (room.size === 0) rooms.delete(chatId);
+  if (room) {
+    room.delete(socket);
+    if (room.size === 0) rooms.delete(chatId);
+  }
+  userSockets.forEach((sockets, userId) => {
+    sockets.delete(socket);
+    if (sockets.size === 0) userSockets.delete(userId);
+  });
 }
 
 function broadcast(chatId, payload) {
@@ -591,16 +774,13 @@ sockets.on("connection", (socket, req) => {
     socket.close();
     return;
   }
-  joinRoom(chatId, socket);
+  joinRoom(chatId, userId, socket);
   socket.on("message", (raw) => {
-    const previous = socketQueues.get(socket) || Promise.resolve();
-    const next = previous
-      .then(() => handleSocketMessage(socket, chatId, userId, raw))
-      .catch((error) => {
-        const message = error instanceof Error ? error.message : "error";
-        process.stderr.write(`message failed ${message}\n`);
-      });
-    socketQueues.set(socket, next);
+    const text = String(raw);
+    handleSocketMessage(socket, chatId, userId, text).catch((error) => {
+      const message = error instanceof Error ? error.message : "error";
+      process.stderr.write(`message failed ${message}\n`);
+    });
   });
   socket.on("close", () => leaveRoom(socket));
 });

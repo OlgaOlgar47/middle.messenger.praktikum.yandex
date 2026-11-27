@@ -59,6 +59,13 @@ db.exec(`
     time TEXT NOT NULL
   );
 
+  CREATE TABLE IF NOT EXISTS chat_reads (
+    chat_id INTEGER NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    message_id INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (chat_id, user_id)
+  );
+
   CREATE TABLE IF NOT EXISTS chat_tokens (
     token TEXT PRIMARY KEY,
     chat_id INTEGER NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
@@ -70,6 +77,11 @@ db.exec(`
 const messageColumns = db.prepare("PRAGMA table_info(messages)").all();
 if (!messageColumns.some((column) => column.name === "translation")) {
   db.exec("ALTER TABLE messages ADD COLUMN translation TEXT NOT NULL DEFAULT ''");
+}
+
+const userColumns = db.prepare("PRAGMA table_info(users)").all();
+if (!userColumns.some((column) => column.name === "locale")) {
+  db.exec("ALTER TABLE users ADD COLUMN locale TEXT NOT NULL DEFAULT ''");
 }
 
 export function publicUser(row) {

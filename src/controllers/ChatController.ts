@@ -9,15 +9,41 @@ import { usersAPI } from "@/api/users";
 import { Store } from "@/store";
 import { Toast } from "@/utils/toast";
 import { errorText, text, userNotFound } from "@/locale";
+import { dismissAlert } from "@/utils/notify";
+
+function chatStamp(chat: Chat): string {
+  const last = chat.last_message;
+  return [
+    chat.id,
+    chat.title,
+    chat.avatar,
+    chat.unread_count,
+    last?.user.login ?? "",
+    last?.time ?? "",
+    last?.content ?? "",
+    last?.translation ?? "",
+  ].join("\u0001");
+}
+
+function sameChats(left: Chat[], right: Chat[]): boolean {
+  if (left.length !== right.length) return false;
+  return left.every((chat, index) => chatStamp(chat) === chatStamp(right[index]));
+}
 
 export const ChatController = {
-  async getChats(): Promise<Chat[]> {
+  async getChats(options?: { silent?: boolean }): Promise<Chat[]> {
     try {
-      const chats = await chatsAPI.getChats();
-      Store.set("chats", chats);
+      const loaded = await chatsAPI.getChats();
+      const selected = Store.getState().selectedChatId;
+      const reading = typeof document === "undefined" || !document.hidden;
+      const chats = loaded.map((chat) =>
+        reading && chat.id === selected ? { ...chat, unread_count: 0 } : chat
+      );
+      const prev = Store.getState().chats;
+      if (!sameChats(prev, chats)) Store.set("chats", chats);
       return chats;
     } catch (error) {
-      Toast.error(errorText(error, text().chatsLoadError));
+      if (!options?.silent) Toast.error(errorText(error, text().chatsLoadError));
       throw error;
     }
   },
@@ -45,17 +71,17 @@ export const ChatController = {
     }
   },
 
+  async findUserByLogin(login: string) {
+    const foundUsers = await usersAPI.searchUsers(login);
+    const name = login.trim().toLowerCase();
+    const user = foundUsers.find((item) => item.login.toLowerCase() === name);
+    if (!user) throw new Error(userNotFound(login));
+    return user;
+  },
+
   async addUsersToChat(chatId: number, logins: string[]): Promise<void> {
     try {
-      const users = await Promise.all(
-        logins.map(async (login) => {
-          const foundUsers = await usersAPI.searchUsers(login);
-          if (foundUsers.length === 0) {
-            throw new Error(userNotFound(login));
-          }
-          return foundUsers[0];
-        })
-      );
+      const users = await Promise.all(logins.map((login) => this.findUserByLogin(login)));
 
       const userIds = users.map((user) => user.id);
       const data: AddUserToChatData = { users: userIds, chatId };
@@ -79,12 +105,7 @@ export const ChatController = {
 
   async removeUserFromChatByLogin(chatId: number, login: string): Promise<void> {
     try {
-      const foundUsers = await usersAPI.searchUsers(login);
-      if (foundUsers.length === 0) {
-        throw new Error(userNotFound(login));
-      }
-
-      const userId = foundUsers[0].id;
+      const userId = (await this.findUserByLogin(login)).id;
       const data: DeleteUserFromChatData = { users: [userId], chatId };
       await chatsAPI.deleteUsersFromChat(data);
     } catch (error) {
@@ -121,6 +142,25 @@ export const ChatController = {
     } catch (error) {
       Toast.error(errorText(error, text().chatUsersError));
       throw error;
+    }
+  },
+
+  clearUnread(chatId: number): void {
+    dismissAlert(chatId);
+    const chats = Store.getState().chats;
+    if (!chats.some((chat) => chat.id === chatId && chat.unread_count > 0)) return;
+    Store.set(
+      "chats",
+      chats.map((chat) => (chat.id === chatId ? { ...chat, unread_count: 0 } : chat))
+    );
+  },
+
+  async markRead(chatId: number): Promise<void> {
+    this.clearUnread(chatId);
+    try {
+      await chatsAPI.markRead(chatId);
+    } catch {
+      // The open chat stays clear; the next refresh confirms the read cursor.
     }
   },
 

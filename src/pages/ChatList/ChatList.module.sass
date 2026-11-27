@@ -34,6 +34,11 @@
   color: $white
   box-shadow: 0 12px 24px rgb(0 174 239 / 28%)
 
+  @media (max-width: 440px)
+    padding-top: calc(16px + env(safe-area-inset-top))
+    background: $secondary-color
+    box-shadow: none
+
 .chatHeading
   flex: 1
   min-width: 0
@@ -315,9 +320,15 @@
   height: 44px
   margin: 0
   padding: 0 12px
-  border: 1px solid rgb(255 255 255 / 80%)
+  border: 1px solid rgb(0 174 239 / 28%)
   border-radius: 16px
-  background: rgb(255 255 255 / 80%)
+  background: rgb(255 255 255 / 96%)
+  box-shadow: 0 0 0 3px rgb(0 174 239 / 8%)
+
+  &:focus
+    outline: none
+    border-color: rgb(0 174 239 / 55%)
+    box-shadow: 0 0 0 3px rgb(0 174 239 / 16%)
 
 .messageInputContainer .sendButton
   width: auto
@@ -416,11 +427,26 @@
   opacity: 0.72
   word-wrap: break-word
 
-.messageTime
+.messageMeta
+  display: flex
+  justify-content: flex-end
+  align-items: center
+  gap: 4px
   margin-top: 4px
+
+.messageTime
   font-size: 11px
   color: $message-time-color
   text-align: right
+
+.ticks
+  font-size: 12px
+  line-height: 1
+  letter-spacing: -1px
+  color: rgb(255 255 255 / 55%)
+
+.ticks.isRead
+  color: $white
 
 .noChats
   text-align: center
@@ -462,13 +488,18 @@
     flex-shrink: 0
     width: 36px
     height: 36px
+    padding: 0
     border: 0
     border-radius: 999px
     background: rgb(255 255 255 / 22%)
     color: $white
-    font-size: 28px
-    line-height: 1
+    line-height: 0
     cursor: pointer
+
+.backIcon
+  display: block
+  width: 22px
+  height: 22px
 
 .chatOpen
   .chatList
